@@ -196,6 +196,11 @@ static int goal_gui(void)
     int id, jd, kd, ld, md;
     int root_id;
 
+    balls_id = 0;
+    coins_id = 0;
+    score_id = 0;
+    wallet_id = 0;
+
     int high   = progress_lvl_high();
     int master = l ? l->is_master : 0;
 

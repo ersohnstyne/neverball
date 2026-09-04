@@ -123,13 +123,13 @@ void hud_free(void)
 {
     if (!is_init) return;
 
-    gui_delete(stroke_type_id);
-    gui_delete(Lhud_id);
-    gui_delete(Rhud_id);
+    gui_delete(stroke_type_id); stroke_type_id = 0;
+    gui_delete(Lhud_id);        Lhud_id = 0;
+    gui_delete(Rhud_id);        Rhud_id = 0;
 #if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
-    gui_delete(touch_id);
+    gui_delete(touch_id);       touch_id = 0;
 #endif
-    gui_delete(fps_id);
+    gui_delete(fps_id);         fps_id = 0;
 
     is_init = 0;
 }

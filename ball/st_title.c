@@ -886,9 +886,10 @@ static int title_check_shopavailable(void)
 
 static int title_gui(void)
 {
-    vbuttons_id = 0;
-
     int root_id, id, jd;
+    
+    vbuttons_id = 0;
+    play_id     = 0;
 
     if (title_lockscreen) video_hide_cursor(); else video_show_cursor();
 

@@ -2374,32 +2374,32 @@ void console_gui_init(void)
 void console_gui_free(void)
 {
     /* Shared */
-    gui_delete(xbox_control_title_id);
-    gui_delete(xbox_control_keybd_id);
-    gui_delete(xbox_control_list_id);
-    gui_delete(xbox_control_levelopt_id);
-    gui_delete(xbox_control_paused_id);
-    gui_delete(xbox_control_package_installable_id);
-    gui_delete(xbox_control_package_updateable_id);
-    gui_delete(xbox_control_package_manageable_id);
-    gui_delete(xbox_control_package_equipable_id);
-    gui_delete(xbox_control_package_startable_id);
+    gui_safe_delete(xbox_control_title_id);
+    gui_safe_delete(xbox_control_keybd_id);
+    gui_safe_delete(xbox_control_list_id);
+    gui_safe_delete(xbox_control_levelopt_id);
+    gui_safe_delete(xbox_control_paused_id);
+    gui_safe_delete(xbox_control_package_installable_id);
+    gui_safe_delete(xbox_control_package_updateable_id);
+    gui_safe_delete(xbox_control_package_manageable_id);
+    gui_safe_delete(xbox_control_package_equipable_id);
+    gui_safe_delete(xbox_control_package_startable_id);
 
     /* Generic */
-    gui_delete(xbox_control_desc_id);
-    gui_delete(xbox_control_preparation_id);
-    gui_delete(xbox_control_replay_id);
-    gui_delete(xbox_control_replay_eof_id);
-    gui_delete(xbox_control_shop_id);
-    gui_delete(xbox_control_shop_getcoins_id);
-    gui_delete(xbox_control_model_id);
-    gui_delete(xbox_control_beam_style_id);
-    gui_delete(xbox_control_death_id);
+    gui_safe_delete(xbox_control_desc_id);
+    gui_safe_delete(xbox_control_preparation_id);
+    gui_safe_delete(xbox_control_replay_id);
+    gui_safe_delete(xbox_control_replay_eof_id);
+    gui_safe_delete(xbox_control_shop_id);
+    gui_safe_delete(xbox_control_shop_getcoins_id);
+    gui_safe_delete(xbox_control_model_id);
+    gui_safe_delete(xbox_control_beam_style_id);
+    gui_safe_delete(xbox_control_death_id);
 
     /* Putt */
-    gui_delete(xbox_control_putt_stroke_id);
-    gui_delete(xbox_control_putt_stop_id);
-    gui_delete(xbox_control_putt_scores_id);
+    gui_safe_delete(xbox_control_putt_stroke_id);
+    gui_safe_delete(xbox_control_putt_stop_id);
+    gui_safe_delete(xbox_control_putt_scores_id);
 
     for (int i = 0; i < GAMEPAD_MAX_BTN_GUI_IDS; i++)
         for (int j = 0; j < 4; j++) {

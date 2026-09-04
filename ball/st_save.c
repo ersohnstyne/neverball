@@ -173,6 +173,9 @@ static int save_action(int tok, int val)
 static int save_gui(void)
 {
     int id, jd;
+    
+    file_id  = 0;
+    enter_id = 0;
 
     if ((id = gui_vstack(0)))
     {

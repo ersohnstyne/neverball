@@ -568,8 +568,11 @@ static int time_remain_lbl_id;
 
 static int conf_account_gui(void)
 {
-    online_mode = 0;
     int id;
+    
+    save_id     = 0;
+    load_id     = 0;
+    online_mode = 0;
 
     /* Initialize the configuration GUI. */
 
@@ -1372,6 +1375,15 @@ static int conf_control_action(int tok, int val)
 static int conf_control_gui(void)
 {
     int id;
+    
+    preset_id      = 0;
+#ifdef SWITCHBALL_GUI
+    camrot_mode_id = 0;
+    mouse_id       = 0;
+#else
+    for (int i = 0; i < 11; i++)
+        mouse_id[i] = 0;
+#endif
 
     /* Initialize the configuration GUI. */
 

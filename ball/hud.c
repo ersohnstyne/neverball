@@ -333,33 +333,35 @@ void hud_init(void)
 
 void hud_free(void)
 {
-    gui_delete(text_coins_id);
-    gui_delete(text_goal_id);
-    gui_delete(text_balls_id);
-    gui_delete(text_score_id);
-    gui_delete(text_speed_id);
+    gui_delete(text_coins_id); text_coins_id = 0;
+    gui_delete(text_goal_id);  text_goal_id = 0;
+    gui_delete(text_balls_id); text_balls_id = 0;
+    gui_delete(text_score_id); text_score_id = 0;
+    gui_delete(text_speed_id); text_speed_id = 0;
 
-    gui_delete(speedbar_hud_id);
-    gui_delete(speedup_logo_id);
+    gui_delete(speedbar_hud_id); speedbar_hud_id = 0;
+    gui_delete(speedup_logo_id); speedup_logo_id = 0;
 
-    gui_delete(FSLhud_id);
-    gui_delete(Rhud_id);
-    gui_delete(Lhud_id);
-    gui_delete(Touch_id);
-    gui_delete(time_id);
-    gui_delete(cam_id);
-    gui_delete(xppenalty_hud_id);
-    gui_delete(fps_id);
-    gui_delete(lvlname_id);
+    gui_delete(FSLhud_id);        FSLhud_id = 0;
+    gui_delete(Rhud_id);          Rhud_id = 0;
+    gui_delete(Lhud_id);          Lhud_id = 0;
+    gui_delete(Touch_id);         Touch_id = 0;
+    gui_delete(time_id);          time_id = 0;
+    gui_delete(cam_id);           cam_id = 0;
+    gui_delete(xppenalty_hud_id); xppenalty_hud_id = 0;
+    gui_delete(fps_id);           fps_id = 0;
+    gui_delete(lvlname_id);       lvlname_id = 0;
 
 #if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
-    gui_delete(camcompass_id);
+    gui_delete(camcompass_id); camcompass_id = 0;
 #endif
 
-    gui_delete(speed_id);
+    gui_delete(speed_id); speed_id = 0;
 
     for (int i = SPEED_NONE + 1; i < SPEED_MAX; i++)
-        gui_delete(speed_ids[i]);
+    {
+        gui_delete(speed_ids[i]); speed_ids[i] = 0;
+    }
 }
 
 static void hud_update_alpha(void)

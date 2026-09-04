@@ -947,6 +947,13 @@ static void demo_scan_done_moon_taskloader(void *data, void *done_data)
 static int demo_gui(void)
 {
     int id, jd;
+    
+    name_id   = 0;
+    time_id   = 0;
+    coin_id   = 0;
+    date_id   = 0;
+    status_id = 0;
+    player_id = 0;
 
 #if ENABLE_MOON_TASKLOADER!=0
     if (demo_is_scanning_with_moon_taskloader)

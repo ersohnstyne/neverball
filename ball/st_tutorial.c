@@ -301,6 +301,9 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
     video_clr_grab();
 
     int id, jd;
+
+    toggle_id = 0;
+
     if ((id = gui_vstack(0)))
     {
         gui_label(id, _(tutorial_title[tutorial_index]), GUI_MED, GUI_COLOR_DEFAULT);

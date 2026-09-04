@@ -234,6 +234,18 @@ int  gui_child(int id, int index);
 int  gui_delete(int);
 void gui_remove(int id);
 
+/*
+ * HACK: Should be safely delete widget? - Ersohn Styne
+ */
+#define gui_safe_delete(_w_id) \
+    if (_w_id) do { gui_delete(_w_id); _w_id = 0; } while (0)
+
+/*
+ * HACK: Should be safely remove widget? - Ersohn Styne
+ */
+#define gui_safe_remove(_w_id) \
+    if (_w_id) do { gui_remove(_w_id); _w_id = 0; } while (0)
+
 /*---------------------------------------------------------------------------*/
 
 void gui_set_alpha(int, float, int);

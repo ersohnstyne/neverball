@@ -243,6 +243,9 @@ static int name_gui(void)
 {
     int id, jd;
 
+    name_id  = 0;
+    enter_id = 0;
+
     if ((id = gui_vstack(0)))
     {
         if (!newplayers && !name_error &&

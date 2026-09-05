@@ -186,6 +186,8 @@ static void load_ball_name_real(struct model_ball *b, const char *path)
     }
 }
 
+static void free_balls(void);
+
 static void scan_balls(void)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
@@ -211,6 +213,7 @@ static void scan_balls(void)
     Array items;
     int i, j;
 
+    free_balls();
     balls = array_new(sizeof (struct model_ball));
     
     /*
@@ -466,6 +469,7 @@ static int ball_action(int tok, int val)
 
         case GUI_BACK:
             game_fade(+4.0);
+            free_balls();
             exit_state(ball_back ? ball_back : &st_conf);
             ball_back = NULL;
             break;

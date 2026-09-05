@@ -74,6 +74,7 @@ static const char *demo_name(const char *path)
 /*---------------------------------------------------------------------------*/
 
 int demo_requires_update;
+static int demo_fp_state;
 
 static int demo_header_read(fs_file fp, struct demo *d, int fp_ten)
 {
@@ -119,7 +120,7 @@ static int demo_header_read(fs_file fp, struct demo *d, int fp_ten)
                   &date.tm_hour,
                   &date.tm_min,
                   &date.tm_sec) != 6)
-            return 0;
+            return (demo_fp_state = 0);
 
         date.tm_year -= 1900;
         date.tm_mon  -= 1;
@@ -137,13 +138,13 @@ static int demo_header_read(fs_file fp, struct demo *d, int fp_ten)
         d->balls = get_index(fp);
         d->times = get_index(fp);
 
-        return 1;
+        return (demo_fp_state = 1);
     }
 
     if (fp_ten && demo_src_version > DEMO_VERSION)
         demo_requires_update = 1;
 
-    return 0;
+    return (demo_fp_state = 0);
 }
 
 static void demo_header_write(fs_file fp, struct demo *d)
@@ -242,6 +243,11 @@ void demo_free(struct demo *d)
 
         memset(d, 0, sizeof (*d));
     }
+}
+
+int demo_state(void)
+{
+    return demo_fp_state;
 }
 
 /*---------------------------------------------------------------------------*/

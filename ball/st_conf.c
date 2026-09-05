@@ -302,7 +302,7 @@ static int conf_social_gui(void)
 
 static int conf_social_enter(struct state *st, struct state *prev, int intent)
 {
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_social_action, mainmenu_conf);
@@ -569,7 +569,7 @@ static int time_remain_lbl_id;
 static int conf_account_gui(void)
 {
     int id;
-    
+
     save_id     = 0;
     load_id     = 0;
     online_mode = 0;
@@ -680,7 +680,7 @@ static int conf_account_gui(void)
 #endif
         }
 
-        if (mainmenu_conf)
+        if (mainmenu_conf && !game_server_state() && !demo_state())
         {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -710,11 +710,13 @@ static int conf_account_gui(void)
 
 #if NB_HAVE_PB_BOTH==1
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-                if (account_wgcl_name_read_only() ||
+                if (game_server_state() || demo_state() || account_wgcl_name_read_only() ||
 #ifndef __EMSCRIPTEN__
                     config_playername_locked() ||
 #endif
                     online_mode || !account_changeable)
+#else
+                if (game_server_state() || demo_state())
 #endif
                 {
                     /*
@@ -734,22 +736,22 @@ static int conf_account_gui(void)
             }
 
 #endif
+        if (!demo_state()) {
 #if NB_HAVE_PB_BOTH==1
-        if ((ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
-                                      CONF_ACCOUNT_BALL)))
-        {
-            gui_set_trunc(ball_id, TRUNC_TAIL);
+            if ((ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
+                                          CONF_ACCOUNT_BALL)))
+            {
+                gui_set_trunc(ball_id, TRUNC_TAIL);
 #if defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)
-            gui_set_label(ball_id, _("Manage"));
+                gui_set_label(ball_id, _("Manage"));
 #else
-            gui_set_label(ball_id, base_name(ball));
+                gui_set_label(ball_id, base_name(ball));
+#endif
+            }
 #endif
         }
-#endif
 
-        gui_space(id);
-
-        if (mainmenu_conf)
+        if (mainmenu_conf && !game_server_state() && !demo_state())
         {
 #if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
@@ -763,8 +765,9 @@ static int conf_account_gui(void)
         }
 
 #if NB_HAVE_PB_BOTH==1
-        if (mainmenu_conf && (server_policy_get_d(SERVER_POLICY_EDITION) != 0 ||
-                              account_wgcl_name_read_only())) {
+        if (mainmenu_conf && !game_server_state() && !demo_state() &&
+            (server_policy_get_d(SERVER_POLICY_EDITION) != 0 ||
+             account_wgcl_name_read_only())) {
 #ifdef CONFIG_INCLUDES_ACCOUNT
             if ((beam_id = conf_state(id, _("Beam Style"), "XXXXXXXXXXXXXX",
                                           CONF_ACCOUNT_BEAM)))
@@ -822,12 +825,12 @@ static int conf_account_gui(void)
         }
 
         save_id = conf_state(id, _("Save Replay"), "XXXXXXXXXXXXXX",
-                             !ingame_demo && !mainmenu_conf ?
+                             (!ingame_demo && !mainmenu_conf) || game_server_state() ?
                              GUI_NONE : CONF_ACCOUNT_SAVE);
         load_id = conf_state(id, _("Replay Filter"), "XXXXXXXXXXXXXX",
                              CONF_ACCOUNT_LOAD);
 
-        if (!ingame_demo && !mainmenu_conf)
+        if ((!ingame_demo && !mainmenu_conf) || game_server_state())
             gui_set_color(save_id, GUI_COLOR_GRY);
 
         gui_set_trunc(save_id, TRUNC_TAIL);
@@ -846,7 +849,7 @@ static int conf_account_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_ball) game_fade(-6.0f);
 
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_account_action, mainmenu_conf);
@@ -1085,7 +1088,7 @@ static int conf_gameplay_gui(void)
 #endif
             gui_space(id);
         }
-        
+
         if (!game_server_state() ||
             (curr_mode() != MODE_CHALLENGE &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1134,7 +1137,7 @@ static int conf_gameplay_enter(struct state *st, struct state *prev, int intent)
         conf_gameplay_settings_entered = 1;
     }
 
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_gameplay_action, mainmenu_conf);
@@ -1375,7 +1378,7 @@ static int conf_control_action(int tok, int val)
 static int conf_control_gui(void)
 {
     int id;
-    
+
     preset_id      = 0;
 #ifdef SWITCHBALL_GUI
     camrot_mode_id = 0;
@@ -1517,7 +1520,7 @@ static int conf_control_gui(void)
 
 static int conf_control_enter(struct state *st, struct state *prev, int intent)
 {
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_control_action, mainmenu_conf);
@@ -1719,7 +1722,7 @@ static int conf_keybd_enter(struct state *st, struct state *prev, int intent)
     if (!conf_keybd_back)
         conf_keybd_back = prev;
 
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_keybd_action, mainmenu_conf);
@@ -1736,6 +1739,7 @@ static int conf_keybd_leave(struct state *st, struct state *next, int id, int in
     conf_common_leave(st, next, id, intent);
 
     gui_delete(conf_keybd_modal_key_id);
+    conf_keybd_modal_key_id = 0;
 
     keybd_modal_alpha = 0.0f;
 
@@ -1744,7 +1748,7 @@ static int conf_keybd_leave(struct state *st, struct state *next, int id, int in
 
 static void conf_keybd_paint(int id, float t)
 {
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
     {
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
@@ -2290,7 +2294,7 @@ static int conf_controllers_enter(struct state *st, struct state *prev, int inte
     if (!conf_controllers_back)
         conf_controllers_back = prev;
 
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_controllers_action, mainmenu_conf);
@@ -2310,6 +2314,9 @@ static int conf_controllers_leave(struct state *st, struct state *next, int id, 
     gui_delete(conf_controllers_modal_button_id);
     gui_delete(conf_controllers_modal_axis_id);
 
+    conf_controllers_modal_button_id = 0;
+    conf_controllers_modal_axis_id = 0;
+
     controllers_modal_alpha = 0.0f;
 
     return transition_slide(id, 0, intent);
@@ -2317,7 +2324,7 @@ static int conf_controllers_leave(struct state *st, struct state *next, int id, 
 
 static void conf_controllers_paint(int id, float t)
 {
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
     {
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();
@@ -2455,7 +2462,7 @@ static int conf_calibrate_gui(void)
 
 static int conf_calibrate_enter(struct state *st, struct state *prev, int intent)
 {
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_calibrate_action, mainmenu_conf);
@@ -2564,7 +2571,7 @@ static int conf_notification_gui(void)
 
 static int conf_notification_enter(struct state *st, struct state *prev, int intent)
 {
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_notification_action, mainmenu_conf);
@@ -2681,6 +2688,21 @@ static int conf_audio_gui(void)
 {
     int id;
 
+#ifdef SWITCHBALL_GUI
+    master_id   = 0;
+    music_id    = 0;
+    sound_id    = 0;
+    narrator_id = 0;
+#else
+    for (int i = 0; i < 11; i++)
+    {
+        master_id[i]   = 0;
+        music_id[i]    = 0;
+        sound_id[i]    = 0;
+        narrator_id[i] = 0;
+    }
+#endif
+
     if ((id = gui_vstack(0)))
     {
         conf_header(id, _("Audio"), GUI_BACK);
@@ -2730,7 +2752,7 @@ static int conf_audio_gui(void)
 
 static int conf_audio_enter(struct state *st, struct state *prev, int intent)
 {
-    if (mainmenu_conf)
+    if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
     conf_common_init(conf_audio_action, mainmenu_conf);
@@ -2821,9 +2843,10 @@ static int conf_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            if (mainmenu_conf)
+            if (mainmenu_conf && !game_server_state() && !demo_state())
                 game_fade(+6.0f);
 
+            mainmenu_conf = 1;
             return exit_state(conf_back ? conf_back : &st_title);
 
 #if ENABLE_GAME_TRANSFER==1 && \
@@ -2990,7 +3013,7 @@ static int conf_gui(void)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if ENABLE_GAME_TRANSFER==1
-            if (mainmenu_conf)
+            if (mainmenu_conf && !game_server_state() && !demo_state())
             {
 #ifdef GAME_TRANSFER_TARGET
                 rd = conf_state(id, _("Neverball Game Transfer"), _("Start"),
@@ -3028,7 +3051,7 @@ static int conf_gui(void)
             conf_state(id, _("Gameplay"), _("Configure"), CONF_MANAGE_GAMEPLAY);
             gui_space(id);
 
-            if (mainmenu_conf) {
+            if (mainmenu_conf && !game_server_state() && !demo_state()) {
                 conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
                 gui_space(id);
                 conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
@@ -3098,7 +3121,7 @@ static int conf_gui(void)
             }
 #endif
 
-            /*if (mainmenu_conf) {
+            /*if (mainmenu_conf && !game_server_state() && !demo_state()) {
 #if ENABLE_NLS==1 || _WIN32
                 gui_space(id);
 
@@ -3157,28 +3180,16 @@ static void conf_bg_paint(float t)
     }
 }
 
-static void conf_bg_paint(float t)
-{
-    if (game_server_state())
-    {
-        game_client_draw(0, t);
-    }
-    else
-    {
-        video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-        back_draw_easy();
-    }
-}
-
 static int conf_enter(struct state *st, struct state *prev, int intent)
 {
     if (!conf_back)
         conf_back = prev;
 
-    if (!game_server_state())
+    if (!game_server_state() && !demo_state())
     {
         if (mainmenu_conf && prev == &st_title)
             game_fade(-6.0f);
+
         back_push("back/gui.png");
     }
 
@@ -3194,7 +3205,7 @@ static int conf_leave(struct state *st, struct state *next, int id, int intent)
 
     if (next == conf_back)
     {
-        if (!game_server_state())
+        if (!game_server_state() && !demo_state())
             back_pop();
 
         conf_common_bg_paint(NULL);
@@ -3240,7 +3251,6 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_free();
 #endif
-
     hud_free();
     transition_quit();
     gui_free();

@@ -60,6 +60,8 @@
 #include "progress.h"
 #include "key.h"
 
+#include "demo.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "game_payment.h"
 #endif
@@ -95,7 +97,6 @@ struct state st_expenses_export;
 /*---------------------------------------------------------------------------*/
 
 #if NB_HAVE_PB_BOTH==1
-
 struct state st_shop;
 
 static int productkey;
@@ -781,26 +782,23 @@ static int shop_rename_enter(struct state *st, struct state *prev, int intent)
     audio_play(AUD_WARNING, 1.0f);
 #endif
 
-    if (draw_back)
-    {
-        game_client_free(NULL);
-        back_init("back/gui.png");
-    }
+    if (!game_server_state() && !demo_state() && draw_back)
+        back_push("back/gui.png");
 
     return transition_slide(shop_rename_gui(), 1, intent);
 }
 
 static int shop_rename_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (draw_back)
-        back_free();
+    if (!game_server_state() && !demo_state() && draw_back)
+        back_pop();
 
     return transition_slide(id, 0, intent);
 }
 
 static void shop_rename_paint(int id, float t)
 {
-    if (draw_back)
+    if (!game_server_state() && !demo_state() && draw_back)
     {
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();

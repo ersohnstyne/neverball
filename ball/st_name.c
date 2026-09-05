@@ -359,7 +359,7 @@ static int name_enter(struct state *st, struct state *prev, int intent)
 {
     player_renamed = 0;
 
-    if (draw_back)
+    if (!game_server_state() && !demo_state() && draw_back)
         back_push("back/gui.png");
 
     name_lockedby_systemos = config_playername_locked();
@@ -385,8 +385,8 @@ static int name_enter(struct state *st, struct state *prev, int intent)
 
 static int name_leave(struct state *st, struct state *next, int id, int intent)
 {
-    if (draw_back)
-        back_free();
+    if (!game_server_state() && !demo_state() && draw_back)
+        back_pop();
 
 #if NB_HAVE_PB_BOTH==1 && ENABLE_DEDICATED_SERVER==1
     if (player_renamed)
@@ -401,7 +401,7 @@ static int name_leave(struct state *st, struct state *next, int id, int intent)
 
 static void name_paint(int id, float t)
 {
-    if (draw_back)
+    if (!game_server_state() && !demo_state() && draw_back)
     {
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
         back_draw_easy();

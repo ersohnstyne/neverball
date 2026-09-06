@@ -1961,13 +1961,8 @@ static int demo_del_action(int tok, int val)
     if (st_global_animating() || tok == GUI_NONE)
         return 1;
 
-    switch (tok)
-    {
-        case DEMO_DEL:  demo_replay_stop(1);
-        case DEMO_QUIT: return exit_state(&st_demo);
-    }
-
-    return 1;
+    demo_replay_stop(tok == DEMO_DEL);
+    return exit_state(&st_demo);
 }
 
 static int demo_del_gui(void)

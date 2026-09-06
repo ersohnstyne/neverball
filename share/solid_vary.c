@@ -328,71 +328,66 @@ void sol_free_vary(struct s_vary *fp)
 
 /*---------------------------------------------------------------------------*/
 
-/*
- * Check if path movers need their transforms recalculated.
- *
- * This is recursive due to hierarchical transform (paths moving along paths).
- */
-static int is_path_dirty(const struct s_vary *vary, int pi)
+static int is_move_driving(const struct s_vary *fp, int mi, int mj)
 {
-    if (pi < 0 || pi >= vary->pc) return 0;
+    if (!fp)
+        return 0;
 
-    return is_move_dirty(vary, vary->pv[pi].mi) || is_move_dirty(vary, vary->pv[pi].mj);
-}
-
-/*
- * Check if mover needs its transform recalculated.
- *
- * This is recursive due to hierarchical transform (paths moving along paths).
- */
-int is_move_dirty(const struct s_vary *vary, int mi)
-{
-    if (mi < 0 || mi >= vary->mc) return 0;
-
-    return vary->mv[mi].dirty || is_path_dirty(vary, vary->mv[mi].pi);
-}
-
-void set_move_dirty(const struct s_vary *vary, int mi, unsigned int dirty)
-{
-    int mj, pi;
-
-    if (vary->mc && !vary->mv)
+    if (mi < 0 || mi >= fp->mc)
     {
-        log_errorf("vary->mv returned NULL!\n");
+        log_errorf("Move index out of bounds: %d\n", mi);
+        return 0;
+    }
+
+    if (mj < 0 || mj >= fp->mc)
+    {
+        log_errorf("Move index out of bounds: %d\n", mj);
+        return 0;
+    }
+
+    const int curr_pi = fp->mv[mj].pi;
+    const int next_pi = (fp->base && curr_pi >= 0 && curr_pi < fp->base->pc)
+                      ? fp->base->pv[curr_pi].pi : -1;
+
+    if (curr_pi >= 0 && curr_pi < fp->pc)
+        if (fp->pv[curr_pi].mi == mi || fp->pv[curr_pi].mj == mi)
+            return 1;
+
+    if (next_pi >= 0 && next_pi < fp->pc)
+        if (fp->pv[next_pi].mi == mi || fp->pv[next_pi].mj == mi)
+            return 1;
+
+    return 0;
+}
+
+int is_move_dirty(const struct s_vary *fp, int mi)
+{
+    if (!fp || mi < 0 || mi >= fp->mc)
+        return 0;
+
+    return fp->mv[mi].dirty;
+}
+
+void set_move_dirty(const struct s_vary *fp, int mi, unsigned int dirty)
+{
+    int mj;
+
+    if (!fp || mi < 0 || mi >= fp->mc)
         return;
+
+    if (dirty)
+    {
+        if (fp->mv[mi].dirty)
+            return;
+
+        fp->mv[mi].dirty = 1u;
+
+        for (mj = 0; mj < fp->mc; mj++)
+            if (mj != mi && is_move_driving(fp, mi, mj))
+                set_move_dirty(fp, mj, 1u);
     }
-
-    vary->mv[mi].dirty = !!dirty;
-
-    if (dirty) {
-        for (mj = 0; mj < vary->mc; mj++) {
-            if (mi == mj)
-                continue;
-
-            pi = vary->mv[mj].pi;
-
-            if (vary->pv && (vary->pv[pi].mi == mi || vary->pv[pi].mj == mi))
-            {
-                /*
-                 * HACK: Recursive functions with same function name
-                 * and same parameters is not recommended, so I'll have to
-                 * use alternative versions in the future version.
-                 * - Ersohn Styne
-                 */
-
-                set_move_dirty(vary, mj, 1u);
-
-                /*
-                 * HACK: Usable in a single shot in the future version.
-                 * - Ersohn Styne
-                 */
-
-                // vary->mv[mj].dirty = 1u;
-            }
-            else if (vary->pc && !vary->pv)
-                log_errorf("vary->pv returned NULL!\n");
-        }
-    }
+    else
+        fp->mv[mi].dirty = 0;
 }
 
 /*---------------------------------------------------------------------------*/

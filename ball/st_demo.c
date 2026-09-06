@@ -1915,8 +1915,12 @@ static void demo_end_timer(int id, float dt)
 
 static int demo_end_keybd(int c, int d)
 {
+    /* Only that is limit underneath it */
+    const int continue_allowed = (get_max_game_stat() <= get_limit_game_stat() &&
+                                  allow_exact_versions);
+
     if (d && c == KEY_EXIT)
-        return demo_end_action(!demo_paused || allow_exact_versions ?
+        return demo_end_action(!demo_paused || continue_allowed ?
                                GUI_BACK : GUI_NONE, 0);
 
     return 1;
@@ -1926,16 +1930,21 @@ static int demo_end_buttn(int b, int d)
 {
     if (d)
     {
+        /* Only that is limit underneath it */
+        const int continue_allowed = (get_max_game_stat() <= get_limit_game_stat() &&
+                                      allow_exact_versions);
+
         int active = gui_active();
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return demo_end_action(gui_token(active), gui_value(active));
 
-        if (demo_paused && allow_exact_versions)
+        if (demo_paused)
         {
             if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) ||
                 config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-                return demo_end_action(GUI_BACK, 0);
+                return demo_end_action(continue_allowed ?
+                                       GUI_BACK : GUI_NONE, 0);
         }
         else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return demo_end_action(GUI_BACK, 0);

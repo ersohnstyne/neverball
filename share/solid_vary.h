@@ -178,8 +178,8 @@ struct s_vary
 int  sol_load_vary(struct s_vary *, struct s_base *);
 void sol_free_vary(struct s_vary *);
 
-int  is_move_dirty (const struct s_vary *vary, int mi);
-void set_move_dirty(const struct s_vary *vary, int mi, unsigned int dirty);
+int  is_move_dirty(const struct s_vary *fp, int mi);
+void set_move_dirty(const struct s_vary *fp, int mi, unsigned int dirty);
 
 /*---------------------------------------------------------------------------*/
 

@@ -330,7 +330,6 @@ void sol_free_vary(struct s_vary *fp)
 
 static int is_move_driving(const struct s_vary *fp, int mi, int mj)
 {
-<<<<<<< HEAD
     if (!fp)
         return 0;
 
@@ -350,12 +349,6 @@ static int is_move_driving(const struct s_vary *fp, int mi, int mj)
     const int next_pi = (fp->base && curr_pi >= 0 && curr_pi < fp->base->pc)
                       ? fp->base->pv[curr_pi].pi : -1;
 
-=======
-    const int curr_pi = fp->mv[mj].pi;
-    const int next_pi = (fp->base && curr_pi >= 0 && curr_pi < fp->base->pc)
-                      ? fp->base->pv[curr_pi].pi : -1;
-
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
     if (curr_pi >= 0 && curr_pi < fp->pc)
         if (fp->pv[curr_pi].mi == mi || fp->pv[curr_pi].mj == mi)
             return 1;

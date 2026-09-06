@@ -113,22 +113,13 @@ static void test_sol_mover_parent_first_eval(void)
     struct s_base base;
     struct s_vary vary;
     struct b_path paths[3];
-<<<<<<< HEAD
     struct b_body bodys[2];
-    float  p[3];
-=======
-    struct b_body bodies[2];
     float p[3];
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     memset(&base, 0, sizeof (base));
     memset(&vary, 0, sizeof (vary));
     memset(paths, 0, sizeof (paths));
-<<<<<<< HEAD
     memset(bodys, 0, sizeof (bodys));
-=======
-    memset(bodies, 0, sizeof (bodies));
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     /* Path 0: parent segment start, active */
     paths[0].p[0] = 0.0f;
@@ -155,23 +146,6 @@ static void test_sol_mover_parent_first_eval(void)
     paths[1].p1   = -1;
 
     /* Path 2: child node offset at (0, 5, 0), attached to Path 0, inactive */
-<<<<<<< HEAD
-    paths[1].p[0] = 0.0f;
-    paths[1].p[1] = 5.0f;
-    paths[1].p[2] = 0.0f;
-    paths[1].e[0] = 1.0f;
-    paths[1].t    = 1.0f;
-    paths[1].tm   = 1000;
-    paths[1].pi   = 2;
-    paths[1].f    = 0;
-    paths[1].p0   = 0;
-    paths[1].p1   = -1;
-
-    bodys[0].p0 = 0;
-    bodys[0].p1 = -1;
-    bodys[1].p0 = 2;
-    bodys[1].p1 = -1;
-=======
     paths[2].p[0] = 0.0f;
     paths[2].p[1] = 5.0f;
     paths[2].p[2] = 0.0f;
@@ -183,35 +157,26 @@ static void test_sol_mover_parent_first_eval(void)
     paths[2].p0   = 0;
     paths[2].p1   = -1;
 
-    bodies[0].p0 = 0;
-    bodies[0].p1 = -1;
-    bodies[1].p0 = 2;
-    bodies[1].p1 = -1;
+    bodys[0].p0 = 0;
+    bodys[0].p1 = -1;
+    bodys[1].p0 = 2;
+    bodys[1].p1 = -1;
 
     base.pc = 3;
     base.pv = paths;
     base.bc = 2;
-    base.bv = bodies;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
+    base.bv = bodys;
 
     if (!sol_load_vary(&vary, &base))
         exit(1);
 
     /* Initial evaluation at t = 0 */
     sol_body_p(p, &vary, vary.bv[0].mi, 0.0f);
-<<<<<<< HEAD
-    if (!vec3_approx(p, 0.0f, 0.0f, 0.0f, 0.0f))
-        exit(1);
-
-    sol_body_p(p, &vary, vary.bv[1].mi, 0.0f);
-    if (!vec3_approx(p, 0.0f, 5.0f, 0.0f, 0.0f))
-=======
     if (!vec3_approx(p, 0.0f, 0.0f, 0.0f))
         exit(1);
 
     sol_body_p(p, &vary, vary.bv[1].mi, 0.0f);
     if (!vec3_approx(p, 0.0f, 5.0f, 0.0f))
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
         exit(1);
 
     /* Advance simulation by 0.5s (parent moves to X=5) */
@@ -219,21 +184,12 @@ static void test_sol_mover_parent_first_eval(void)
 
     /* Evaluate parent first (clearing parent's dirty flag) */
     sol_body_p(p, &vary, vary.bv[0].mi, 0.0f);
-<<<<<<< HEAD
-    if (!vec3_approx(p, 5.0f, 0.0f, 0.0f, 0.0f))
-        exit(1);
-
-    /* Evaluate child second: child world position must follow parent to X=5, Y=5 */
-    sol_body_p(p, &vary, vary.bv[0].mi, 0.0f);
-    if (!vec3_approx(p, 5.0f, 5.0f, 0.0f, 0.0f))
-=======
     if (!vec3_approx(p, 5.0f, 0.0f, 0.0f))
         exit(1);
 
     /* Evaluate child second: child world position must follow parent to X=5, Y=5 */
     sol_body_p(p, &vary, vary.bv[1].mi, 0.0f);
     if (!vec3_approx(p, 5.0f, 5.0f, 0.0f))
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
         exit(1);
 
     sol_free_vary(&vary);
@@ -244,22 +200,13 @@ static void test_sol_mover_child_first_eval(void)
     struct s_base base;
     struct s_vary vary;
     struct b_path paths[3];
-<<<<<<< HEAD
     struct b_body bodys[2];
-    float  p[3];
-=======
-    struct b_body bodies[2];
     float p[3];
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     memset(&base, 0, sizeof (base));
     memset(&vary, 0, sizeof (vary));
     memset(paths, 0, sizeof (paths));
-<<<<<<< HEAD
     memset(bodys, 0, sizeof (bodys));
-=======
-    memset(bodies, 0, sizeof (bodies));
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     paths[0].p[0] = 0.0f;
     paths[0].p[1] = 0.0f;
@@ -283,18 +230,6 @@ static void test_sol_mover_child_first_eval(void)
     paths[1].p0   = -1;
     paths[1].p1   = -1;
 
-<<<<<<< HEAD
-    paths[1].p[0] = 0.0f;
-    paths[1].p[1] = 5.0f;
-    paths[1].p[2] = 0.0f;
-    paths[1].e[0] = 1.0f;
-    paths[1].t    = 1.0f;
-    paths[1].tm   = 1000;
-    paths[1].pi   = 2;
-    paths[1].f    = 0;
-    paths[1].p0   = 0;
-    paths[1].p1   = -1;
-=======
     paths[2].p[0] = 0.0f;
     paths[2].p[1] = 5.0f;
     paths[2].p[2] = 0.0f;
@@ -306,20 +241,15 @@ static void test_sol_mover_child_first_eval(void)
     paths[2].p0   = 0;
     paths[2].p1   = -1;
 
-    bodies[0].p0 = 0;
-    bodies[0].p1 = -1;
-    bodies[1].p0 = 2;
-    bodies[1].p1 = -1;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
+    bodys[0].p0 = 0;
+    bodys[0].p1 = -1;
+    bodys[1].p0 = 2;
+    bodys[1].p1 = -1;
 
     base.pc = 3;
     base.pv = paths;
     base.bc = 2;
-<<<<<<< HEAD
     base.bv = bodys;
-=======
-    base.bv = bodies;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     if (!sol_load_vary(&vary, &base))
         exit(1);
@@ -341,30 +271,19 @@ static void test_sol_mover_child_first_eval(void)
 
     sol_free_vary(&vary);
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 static void test_sol_mover_multi_children(void)
 {
     struct s_base base;
     struct s_vary vary;
     struct b_path paths[4];
-<<<<<<< HEAD
     struct b_body bodys[3];
-=======
-    struct b_body bodies[3];
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
     float p[3];
 
     memset(&base, 0, sizeof (base));
     memset(&vary, 0, sizeof (vary));
     memset(paths, 0, sizeof (paths));
-<<<<<<< HEAD
     memset(bodys, 0, sizeof (bodys));
-=======
-    memset(bodies, 0, sizeof (bodies));
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     /* Parent moving along X */
     paths[0].e[0] = 1.0f;
@@ -404,30 +323,17 @@ static void test_sol_mover_multi_children(void)
     paths[3].p0   = 0;
     paths[3].p1   = -1;
 
-<<<<<<< HEAD
     bodys[0].p0 = 0;
     bodys[0].p1 = -1;
     bodys[1].p0 = 2;
     bodys[1].p1 = -1;
     bodys[2].p0 = 3;
     bodys[2].p1 = -1;
-=======
-    bodies[0].p0 = 0;
-    bodies[0].p1 = -1;
-    bodies[1].p0 = 2;
-    bodies[1].p1 = -1;
-    bodies[2].p0 = 3;
-    bodies[2].p1 = -1;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     base.pc = 4;
     base.pv = paths;
     base.bc = 3;
-<<<<<<< HEAD
     base.bv = bodys;
-=======
-    base.bv = bodies;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     if (!sol_load_vary(&vary, &base))
         exit(1);
@@ -459,21 +365,13 @@ static void test_sol_mover_multilevel_hierarchy(void)
     struct s_base base;
     struct s_vary vary;
     struct b_path paths[5];
-<<<<<<< HEAD
     struct b_body bodys[3];
-=======
-    struct b_body bodies[3];
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
     float p[3];
 
     memset(&base, 0, sizeof (base));
     memset(&vary, 0, sizeof (vary));
     memset(paths, 0, sizeof (paths));
-<<<<<<< HEAD
     memset(bodys, 0, sizeof (bodys));
-=======
-    memset(bodies, 0, sizeof (bodies));
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     /* Mover A: moves along X from 0 to 10 */
     paths[0].e[0] = 1.0f;
@@ -521,30 +419,17 @@ static void test_sol_mover_multilevel_hierarchy(void)
     paths[4].p0   = 2;
     paths[4].p1   = -1;
 
-<<<<<<< HEAD
     bodys[0].p0 = 0;
     bodys[0].p1 = -1;
     bodys[1].p0 = 2;
     bodys[1].p1 = -1;
     bodys[2].p0 = 4;
     bodys[2].p1 = -1;
-=======
-    bodies[0].p0 = 0;
-    bodies[0].p1 = -1;
-    bodies[1].p0 = 2;
-    bodies[1].p1 = -1;
-    bodies[2].p0 = 4;
-    bodies[2].p1 = -1;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     base.pc = 5;
     base.pv = paths;
     base.bc = 3;
-<<<<<<< HEAD
     base.bv = bodys;
-=======
-    base.bv = bodies;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     if (!sol_load_vary(&vary, &base))
         exit(1);
@@ -576,21 +461,13 @@ static void test_sol_mover_split_node_parents(void)
     struct s_base base;
     struct s_vary vary;
     struct b_path paths[4];
-<<<<<<< HEAD
     struct b_body bodys[2];
-=======
-    struct b_body bodies[2];
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
     float p[3];
 
     memset(&base, 0, sizeof (base));
     memset(&vary, 0, sizeof (vary));
     memset(paths, 0, sizeof (paths));
-<<<<<<< HEAD
     memset(bodys, 0, sizeof (bodys));
-=======
-    memset(bodies, 0, sizeof (bodies));
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     /* Node 0: unparented (static ground), starts at (0, 0, 0), inactive */
     paths[0].e[0] = 1.0f;
@@ -630,30 +507,17 @@ static void test_sol_mover_split_node_parents(void)
     paths[3].p1   = -1;
 
     /* Body 0: Platform (Path 2) */
-<<<<<<< HEAD
     bodys[0].p0 = 2;
     bodys[0].p1 = -1;
 
     /* Body 1: Traversing Node 0 -> Node 1 */
     bodys[1].p0 = 0;
     bodys[1].p1 = -1;
-=======
-    bodies[0].p0 = 2;
-    bodies[0].p1 = -1;
-
-    /* Body 1: Traversing Node 0 -> Node 1 */
-    bodies[1].p0 = 0;
-    bodies[1].p1 = -1;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     base.pc = 4;
     base.pv = paths;
     base.bc = 2;
-<<<<<<< HEAD
     base.bv = bodys;
-=======
-    base.bv = bodies;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     if (!sol_load_vary(&vary, &base))
         exit(1);
@@ -690,21 +554,13 @@ static void test_sol_mover_rotation_parent(void)
     struct s_base base;
     struct s_vary vary;
     struct b_path paths[3];
-<<<<<<< HEAD
     struct b_body bodys[2];
-=======
-    struct b_body bodies[2];
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
     float p[3];
 
     memset(&base, 0, sizeof (base));
     memset(&vary, 0, sizeof (vary));
     memset(paths, 0, sizeof (paths));
-<<<<<<< HEAD
     memset(bodys, 0, sizeof (bodys));
-=======
-    memset(bodies, 0, sizeof (bodies));
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     /* Node 0: platform start rotation (identity) */
     paths[0].e[0] = 1.0f;
@@ -736,30 +592,17 @@ static void test_sol_mover_rotation_parent(void)
     paths[2].p1   = 0;
 
     /* Body 0: Platform rotation */
-<<<<<<< HEAD
     bodys[0].p0 = -1;
     bodys[0].p1 = 0;
 
     /* Body 1: Child attached to Platform */
     bodys[1].p0 = 2;
     bodys[1].p1 = -1;
-=======
-    bodies[0].p0 = -1;
-    bodies[0].p1 = 0;
-
-    /* Body 1: Child attached to Platform */
-    bodies[1].p0 = 2;
-    bodies[1].p1 = -1;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     base.pc = 3;
     base.pv = paths;
     base.bc = 2;
-<<<<<<< HEAD
     base.bv = bodys;
-=======
-    base.bv = bodies;
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
 
     if (!sol_load_vary(&vary, &base))
         exit(1);
@@ -782,10 +625,7 @@ static void test_sol_mover_rotation_parent(void)
     if (!vec3_approx(p, 0.0f, 5.0f, 0.0f))
         exit(1);
 
-<<<<<<< HEAD
-=======
 
->>>>>>> f1523112b96a5c6e5bbd9c751fd186e2099fec1a
     sol_free_vary(&vary);
 }
 
@@ -806,6 +646,3 @@ int test_solid_all(void)
 
     return pass;
 }
-
-
-

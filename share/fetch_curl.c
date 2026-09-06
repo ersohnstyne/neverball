@@ -861,7 +861,7 @@ int fetch_init(void)
  */
 int fetch_reinit(void)
 {
-    return fetch_reinit();
+    return fetch_init();
 }
 
 /*

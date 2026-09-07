@@ -1119,7 +1119,7 @@ static void set_load_levels(void)
                 regular++;
             }
 
-            if (l->is_bonus) {
+            if (!l->is_bonus || l->is_master) {
                 /* === BEST TIME MERGER === */
 
                 default_set_maxtimelimit_hard += l->scores[SCORE_GOAL].timer[RANK_HARD];

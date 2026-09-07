@@ -148,9 +148,10 @@ static void gui_stats(int id)
 {
     int at;
 
-    stats_labels.completed = 0;
-    stats_labels.timeout   = 0;
-    stats_labels.fallout   = 0;
+    stats_labels.completed  = 0;
+    stats_labels.timeout    = 0;
+    stats_labels.fallout    = 0;
+    stats_labels.clear_rate = 0;
 
     if ((at = gui_vstack(id)))
     {

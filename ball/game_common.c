@@ -413,10 +413,18 @@ void game_view_init(struct game_view *view)
 
 void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, float k)
 {
+    float view_dir_to_goal = 0.0f;
+
+    if (vary->uc == 1 && vary->zc == 1)
+    {
+        view_dir_to_goal = V_DEG(fatan2f(vary->uv[0].p[0] - vary->base->zv[0].p[0],
+                                         vary->uv[0].p[2] - vary->base->zv[0].p[2]));
+    }
+
 #ifdef MAPC_INCLUDES_CHKP
-    float start_direction = last_active ? last_view[ui].a : 0.0f;
+    float start_direction = last_active ? last_view[ui].a : view_dir_to_goal;
 #else
-    float start_direction = 0;
+    float start_direction = view_dir_to_goal;
 #endif
 
     const float vsin = fsinf(start_direction * V_PI / 180);

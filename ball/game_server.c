@@ -776,6 +776,8 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
         return (server_state = 0);
     }
 
+    game_switchball_set_fixed_altitude(vary.uv[CURR_PLAYER].p[1]);
+
     /* Send initial update. */
 
     game_cmd_map(curr_file_name, version.x, version.y);
@@ -1263,6 +1265,8 @@ int game_server_init(const char *file_name, int t, int e)
         game_base_free(&server_base, NULL);
         return (server_state = 0);
     }
+
+    game_switchball_set_fixed_altitude(vary.uv[CURR_PLAYER].p[1]);
 
     /* Send initial update. */
 

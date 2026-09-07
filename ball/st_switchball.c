@@ -150,6 +150,7 @@ static int switchball_speeding_gui(void)
 
 static int switchball_speeding_enter(struct state *st, struct state *prev, int intent)
 {
+    video_clr_grab();
     hud_hide();
     return transition_slide(switchball_speeding_gui(), 1, intent);
 }

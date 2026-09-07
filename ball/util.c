@@ -59,10 +59,10 @@ static void set_score_color(int id, int hi,
 {
     if (hi >= RANK_HARD)
     {
-        if (hi < RANK_LAST)
-            gui_set_color(id, c0, c0);
-        else
-            gui_set_color(id, c1, c1);
+        /* HACK: Should be optimizing color value selection faster? */
+
+        const GLubyte *c = hi < RANK_LAST ? c0 : c1;
+        gui_set_color(id, c, c);
     }
 }
 
@@ -90,6 +90,15 @@ static void gui_scores(int id, int e)
     const char *s = "1234567";
 
     int j, jd, kd, ld;
+
+    score_label = 0;
+
+    for (j = RANK_HARD; j < RANK_LAST; j++)
+    {
+        score_coin[j] = 0;
+        score_name[j] = 0;
+        score_time[j] = 0;
+    }
 
     score_extra_row = e;
     stats_extra_row = e;
@@ -138,6 +147,10 @@ static void gui_scores(int id, int e)
 static void gui_stats(int id)
 {
     int at;
+
+    stats_labels.completed = 0;
+    stats_labels.timeout   = 0;
+    stats_labels.fallout   = 0;
 
     if ((at = gui_vstack(id)))
     {

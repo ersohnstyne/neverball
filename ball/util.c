@@ -891,4 +891,25 @@ int gui_back_button(int pd)
     return id;
 }
 
+void gui_scoreboard_free(void)
+{
+    stats_labels.completed  = 0;
+    stats_labels.timeout    = 0;
+    stats_labels.fallout    = 0;
+    stats_labels.clear_rate = 0;
+
+    coin_btn_id = 0;
+    time_btn_id = 0;
+    goal_btn_id = 0;
+
+    score_label = 0;
+
+    for (int i = 0; i < 4; i++)
+    {
+        score_coin[i] = 0;
+        score_name[i] = 0;
+        score_time[i] = 0;
+    }
+}
+
 /*---------------------------------------------------------------------------*/

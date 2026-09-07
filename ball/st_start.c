@@ -308,6 +308,7 @@ static int start_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+            gui_scoreboard_free();
             set_long_loading_cancel_all = 1;
             if (set_star_view || set_level_options)
             {
@@ -333,6 +334,7 @@ static int start_action(int tok, int val)
             break;
 
         case START_HARDCORE:
+            gui_scoreboard_free();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             progress_reinit(val ? MODE_HARDCORE : MODE_NORMAL);
             return goto_state(&st_start);
@@ -349,6 +351,7 @@ static int start_action(int tok, int val)
                 {
                     if (set_level_play(0))
                     {
+                        gui_scoreboard_free();
                         activity_services_mode_update(AS_MODE_HARDCORE);
 #if NB_HAVE_PB_BOTH==1
                         account_wgcl_autokick_state_prepare(&st_start);
@@ -434,6 +437,7 @@ static int start_action(int tok, int val)
 
                 if (set_level_play(0))
                 {
+                    gui_scoreboard_free();
                     activity_services_mode_update(curr_mode() == MODE_BOOST_RUSH ? AS_MODE_BOOST_RUSH :
                                                (curr_mode() == MODE_CHALLENGE ? AS_MODE_CHALLENGE :
                                                                                 AS_MODE_NORMAL));
@@ -1026,6 +1030,7 @@ static int start_gui_options(void)
 #if NB_HAVE_PB_BOTH==1
 static int start_unavailable_enter(struct state *st, struct state *prev, int intent)
 {
+    gui_scoreboard_free();
     audio_play("snd/uierror.ogg", 1.0f);
 
     int id;
@@ -1153,6 +1158,7 @@ static int start_compat_gui()
 
 static int start_compat_enter(struct state *st, struct state *prev, int intent)
 {
+    gui_scoreboard_free();
     set_long_loading_cancel_all = 0;
 
     progress_reinit(MODE_BOOST_RUSH);
@@ -1567,6 +1573,7 @@ static int start_joinrequired_action(int tok, int val)
 
 static int start_upgraderequired_enter(struct state *st, struct state *prev, int intent)
 {
+    gui_scoreboard_free();
     int id, jd;
 
     if ((id = gui_vstack(0)))
@@ -1602,6 +1609,7 @@ static int start_upgraderequired_enter(struct state *st, struct state *prev, int
 
 static int start_signinrequired_enter(struct state *st, struct state *prev, int intent)
 {
+    gui_scoreboard_free();
     int id, jd;
 
     if ((id = gui_vstack(0)))
@@ -1635,6 +1643,7 @@ static int start_signinrequired_enter(struct state *st, struct state *prev, int 
 
 static int start_joinrequired_enter(struct state *st, struct state *prev, int intent)
 {
+    gui_scoreboard_free();
     int id, jd;
 
     if ((id = gui_vstack(0)))

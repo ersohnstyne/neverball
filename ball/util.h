@@ -82,6 +82,8 @@ char gui_keyboard_char(char);
 int gui_start_button(int, int);
 int gui_back_button(int);
 
+void gui_scoreboard_free(void);
+
 /*---------------------------------------------------------------------------*/
 
 #endif

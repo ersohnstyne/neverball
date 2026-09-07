@@ -81,6 +81,7 @@ static int over_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
+            gui_scoreboard_free();
 #if NB_HAVE_PB_BOTH==1
             if (dailychallenge_active_mode() != 0)
                 dailychallenge_exit();
@@ -93,6 +94,7 @@ static int over_action(int tok, int val)
             return exit_state(&st_start);
 
         case GUI_NAME:
+            gui_scoreboard_free();
             return goto_name(&st_over, &st_over, 0, 0, 0);
 
         case GUI_SCORE:
@@ -101,6 +103,7 @@ static int over_action(int tok, int val)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
         case OVER_TO_GROUP:
+            gui_scoreboard_free();
             if (campaign_used()) {
                 campaign_hardcore_quit();
                 campaign_theme_quit();
@@ -111,6 +114,7 @@ static int over_action(int tok, int val)
 
 #if NB_HAVE_PB_BOTH==1
         case OVER_SHOP:
+            gui_scoreboard_free();
             if (dailychallenge_active_mode() != 0)
                 dailychallenge_exit();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

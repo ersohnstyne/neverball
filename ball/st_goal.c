@@ -137,13 +137,16 @@ static int goal_action(int tok, int val)
     {
         case GUI_BACK:
         case GOAL_LAST:
+            gui_scoreboard_free();
             return goto_exit();
 
         case GOAL_SAVE:
+            gui_scoreboard_free();
             progress_stop();
             return goto_save(&st_goal, &st_goal);
 
         case GUI_NAME:
+            gui_scoreboard_free();
             progress_stop();
 #ifdef CONFIG_INCLUDES_ACCOUNT
             return goto_shop_rename(&st_goal, &st_goal, 0);
@@ -152,6 +155,7 @@ static int goal_action(int tok, int val)
 #endif
 
         case GOAL_DONE:
+            gui_scoreboard_free();
             return goto_exit();
 
         case GUI_SCORE:
@@ -162,6 +166,7 @@ static int goal_action(int tok, int val)
         case GOAL_NEXT:
             if (progress_next())
             {
+                gui_scoreboard_free();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 if (campaign_used() && campaign_hardcore())
                     campaign_hardcore_nextlevel();
@@ -172,8 +177,12 @@ static int goal_action(int tok, int val)
 
         case GOAL_SAME:
             if (progress_same() && !challenge_has_active_chkp)
+            {
+                gui_scoreboard_free();
                 return goto_play_level();
-            else {
+            }
+            else
+            {
                 /* Can't do yet, play buzzer sound. */
 
                 audio_play(AUD_DISABLED, 1.0f);

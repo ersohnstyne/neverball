@@ -1159,11 +1159,11 @@ static void set_load_levels(void)
 
         if (s->coin_score.coins[r] < fixed_coinhs[r])
             s->coin_score.coins[r] = fixed_coinhs[r];
-        if (s->coin_score.timer[r] > fixed_timehs[r])
+        if (s->coin_score.timer[r] > fixed_timehs[r] && fixed_timehs[r] > 0)
             s->coin_score.timer[r] = fixed_timehs[r];
         if (s->time_score.coins[r] < fixed_coinhs[r])
             s->time_score.coins[r] = fixed_coinhs[r];
-        if (s->time_score.timer[r] > fixed_timehs[r])
+        if (s->time_score.timer[r] > fixed_timehs[r] && fixed_timehs[r] > 0)
             s->time_score.timer[r] = fixed_timehs[r];
     }
 }

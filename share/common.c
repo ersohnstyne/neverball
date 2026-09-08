@@ -289,7 +289,7 @@ time_t make_time_from_utc(struct tm *tm)
 
 const char *date_to_str(time_t i)
 {
-    char str[sizeof ("dd.mm.YYYY HH:MM:SS")];
+    char str[21]; /* Was: sizeof ("dd.mm.YYYY HH:MM:SS") */
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && _MSC_VER
     struct tm output_tm;
     localtime_s(&output_tm, &i);
@@ -297,7 +297,19 @@ const char *date_to_str(time_t i)
 #else
     strftime(str, sizeof (str), "%d.%m.%Y %H:%M:%S", localtime(&i));
 #endif
-    return str;
+
+    int date_dd = 1, date_mm = 1, date_yyyy = 1900,
+        date_h = 0, date_m = 0, date_s = 0;
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    const int date_valid = sscanf_s(str,
+#else
+    const int date_valid = sscanf(str,
+#endif
+                                  "%d.%d.%d %d:%d:%d",
+                                  &date_dd, &date_mm, &date_yyyy, &date_h, &date_m, &date_s) == 6;
+
+    return date_valid ? str : "--.--.---- --:--:--";
 }
 
 int file_exists(const char *path)

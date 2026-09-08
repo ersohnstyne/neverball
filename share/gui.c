@@ -1066,14 +1066,24 @@ void gui_set_image(int id, const char *file)
 
 void gui_set_label(int id, const char *text)
 {
-    FUNC_VOID_CHECK_LIMITS(id);
+    char *trunc_str, *full_str = strdup(text);
+
+    if (id < 0 || id > WIDGET_MAX) {
+        log_errorf("Widget index out of bounds!: %d\n", id);
+
+        if (full_str)
+        {
+            free(full_str);
+            full_str = NULL;
+        }
+
+        return;
+    }
 
     TTF_Font *ttf = fonts[widget[id].font].ttf[widget[id].size];
 
     int w = 0;
     int h = 0;
-
-    char *trunc_str, *full_str;
 
     glDeleteTextures(1, &widget[id].image);
 
@@ -1087,8 +1097,6 @@ void gui_set_label(int id, const char *text)
      * operation is important here: copy, free, assign.
      */
 
-    full_str = strdup(text);
-
     if (widget[id].text)
     {
         free(widget[id].text);
@@ -1099,7 +1107,7 @@ void gui_set_label(int id, const char *text)
     widget[id].text_w = 0;
     widget[id].text_h = 0;
 
-    widget[id].image = make_image_from_font(NULL, NULL,
+    widget[id].image = make_image_from_font(&w, &h,
                                             &widget[id].text_w,
                                             &widget[id].text_h,
                                             trunc_str, ttf, 0);

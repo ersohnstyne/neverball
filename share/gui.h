@@ -44,6 +44,7 @@
 
 #define GUI_ELLIPSIS       "…"
 #define GUI_AIRPLANE       "✈"
+#define GUI_ARROW_UP       "⬆️"
 #define GUI_ARROW_DN       "⬇"
 #define GUI_TRIANGLE_LEFT  "◀️"
 #define GUI_TRIANGLE_RIGHT "▶️"

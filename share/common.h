@@ -15,6 +15,23 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#if _WIN32
+#define _CRT_NB_STRFMT_DEPRECATED(_Type, _Params, _Func, _Replaces) \
+    __declspec(deprecated(                                        \
+        "This function or variable has been superseded by "       \
+        "newer string formats functionality. Consider "           \
+        "using " #_Replaces " instead."                           \
+    )) _Type _Func _Params
+#else
+#define _CRT_NB_STRFMT_DEPRECATED(_Type, _Params, _Func, _Replaces) \
+    _Type _Func _Params                                           \
+    __attribute__ ((deprecated(                                   \
+        "This function or variable has been superseded by "       \
+        "newer string formats functionality. Consider "           \
+        "using " #_Replaces " instead."                           \
+    )))
+#endif
+
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
 #include <sec_api/stdlib_s.h>
 #endif
@@ -243,8 +260,25 @@ extern int vsnprintf(char *, size_t, const char *, va_list);
 
 /* Time. */
 
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && _MSC_VER
+#define DATE_TO_STR_V2(_out_str, _pTime) \
+    do { \
+        struct tm _output_tm; \
+        localtime_s(&_output_tm, _pTime); \
+        strftime(_out_str, sizeof (_out_str), "%d.%m.%Y %H:%M:%S", &_output_tm); \
+    } while (0)
+#else
+#define DATE_TO_STR_V2(_out_str, _pTime) \
+    strftime(_out_str, sizeof (_out_str), "%d.%m.%Y %H:%M:%S", localtime(_pTime))
+#endif
+
 time_t make_time_from_utc(struct tm *);
+
+#if _WIN32
+_CRT_NB_STRFMT_DEPRECATED(const char *, (time_t), date_to_str, DATE_TO_STR_V2);
+#else
 const char *date_to_str(time_t);
+#endif
 
 /* Files. */
 

@@ -379,6 +379,7 @@ static struct thumb
     int shot_id;
     int name_id;
     int thumb_id;
+    int icon_id;
 } thumbs[DEMO_STEP];
 
 static int gui_demo_thumbs(int id)
@@ -387,8 +388,55 @@ static int gui_demo_thumbs(int id)
     int h = video.device_h;
 
     int jd, kd, ld, md;
-
+    
     struct thumb *thumb;
+
+    /* HACK: On mobile version, with portrait mode (coming in 2030?) */
+
+    /*if (w < h)
+    {
+        gui_space(id);
+
+        if ((jd = gui_hstack(id)))
+        {
+            gui_filler(jd);
+
+            if ((kd = gui_vstack(jd)))
+            {
+                for (int i = first; i < first + DEMO_STEP; i++)
+                {
+                    thumb = &thumbs[i % DEMO_STEP];
+                    thumb->shot_id  = 0;
+                    thumb->name_id  = 0;
+                    thumb->thumb_id = 0;
+                    thumb->icon_id  = 0;
+                    thumb->item     = i;
+
+                    if (i < total)
+                    {
+                        if ((ld = gui_hstack(kd)))
+                        {
+                            thumb->name_id  = gui_label(ld, "XXXXXXXXXXX", GUI_SML,
+                                                        GUI_COLOR_WHT);
+                            thumb->thumb_id = ld;
+
+                            thumb->icon_id  = gui_label(ld, GUI_TRIANGLE_RIGHT, GUI_SML,
+                                                        GUI_COLOR_GRN);
+                            gui_set_font(thumb->icon_id, "ttf/DejaVuSans-Bold.ttf");
+
+                            gui_set_label(thumb->name_id, " ");
+                            gui_set_trunc(thumb->name_id, TRUNC_TAIL);
+                            gui_set_state(ld, DEMO_SELECT, i);
+
+                            gui_set_rect(ld, GUI_ALL);
+                        }
+                    }
+                }
+            }
+            gui_filler(jd);
+        }
+        return jd;
+    }*/
 
     if ((jd = gui_hstack(id)))
     {
@@ -401,8 +449,11 @@ static int gui_demo_thumbs(int id)
                     for (int j = i + DEMO_LINE - 1; j >= i; j--)
                     {
                         thumb = &thumbs[j % DEMO_STEP];
-
-                        thumb->item = j;
+                        thumb->shot_id  = 0;
+                        thumb->name_id  = 0;
+                        thumb->thumb_id = 0;
+                        thumb->icon_id  = 0;
+                        thumb->item     = j;
 
                         if (j < total)
                         {
@@ -423,14 +474,7 @@ static int gui_demo_thumbs(int id)
                                 thumb->thumb_id = md;
                             }
                         }
-                        else
-                        {
-                            gui_space(ld);
-
-                            thumb->shot_id = 0;
-                            thumb->name_id = 0;
-                            thumb->thumb_id = 0;
-                        }
+                        else gui_space(ld);
                     }
                 }
 
@@ -486,16 +530,27 @@ static void gui_demo_update_thumbs(void)
         if (demo)
         {
             if (stat_max > stat_limit)
+            {
                 gui_set_image(thumbs[i].shot_id,
                               stat_max > 2 ?
                               "gui/filters/keep_filters.jpg" :
                               "gui/filters/single_filters.jpg");
+                gui_set_label(thumbs[i].icon_id, stat_max > 2 ? GUI_HEARTBROKEN : GUI_TIMEOUT);
+                gui_set_color(thumbs[i].icon_id, GUI_COLOR_RED);
+                gui_set_font(thumbs[i].icon_id, "ttf/DejaVuSans-Bold.ttf");
+            }
             else if (demo_requires_update)
+            {
                 gui_set_image(thumbs[i].shot_id, "gui/filters/upgrade.jpg");
+                gui_set_label(thumbs[i].icon_id, GUI_ARROW_UP);
+                gui_set_color(thumbs[i].icon_id, GUI_COLOR_BLK);
+            }
             else
             {
                 gui_set_image(thumbs[i].shot_id, demo ? demo->shot : "");
                 gui_set_color(thumbs[i].name_id, GUI_COLOR_WHT);
+                gui_set_label(thumbs[i].icon_id, GUI_TRIANGLE_RIGHT);
+                gui_set_color(thumbs[i].icon_id, GUI_COLOR_GRN);
             }
 
             if (demo->balls == 0 &&
@@ -513,7 +568,12 @@ static void gui_demo_update_thumbs(void)
                 gui_set_color(thumbs[i].name_id, gui_red, gui_blk);
             }
         }
-        else gui_set_image(thumbs[i].shot_id, "gui/filters/invalid.jpg");
+        else
+        {
+            gui_set_image(thumbs[i].shot_id, "gui/filters/invalid.jpg");
+            gui_set_label(thumbs[i].icon_id, "!");
+            gui_set_color(thumbs[i].icon_id, GUI_COLOR_RED);
+        }
     }
 
     demo_requires_update = 0;
@@ -533,6 +593,9 @@ static int gui_demo_status(int id)
     int jd, kd, ld;
     int s;
 
+    int w = video.device_w;
+    int h = video.device_h;
+
     /* Find the longest status string. */
 
     /*for (status = "", s = GAME_NONE; s < GAME_MAX + 1; s++)
@@ -549,34 +612,36 @@ static int gui_demo_status(int id)
     {
         gui_filler(jd);
 
-        if ((kd = gui_hstack(jd)))
-        {
-            if ((ld = gui_vstack(kd)))
+        if (w >= h) {
+            if ((kd = gui_hstack(jd)))
             {
-                gui_filler(ld);
+                if ((ld = gui_vstack(kd)))
+                {
+                    gui_filler(ld);
 
-                time_id   = gui_clock(ld, 35000,  GUI_SML);
-                coin_id   = gui_label(ld, "XXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
-                status_id = gui_label(ld, status, GUI_SML, GUI_COLOR_RED);
+                    time_id   = gui_clock(ld, 35000,    GUI_SML);
+                    coin_id   = gui_label(ld, "XXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
+                    status_id = gui_label(ld, status,   GUI_SML, GUI_COLOR_RED);
 
-                gui_filler(ld);
+                    gui_filler(ld);
+                }
+
+                if ((ld = gui_vstack(kd)))
+                {
+                    gui_filler(ld);
+
+                    gui_label(ld, _("Time"),   GUI_SML, GUI_COLOR_WHT);
+                    gui_label(ld, _("Coins"),  GUI_SML, GUI_COLOR_WHT);
+                    gui_label(ld, _("Status"), GUI_SML, GUI_COLOR_WHT);
+
+                    gui_filler(ld);
+                }
+
+                gui_set_rect(kd, GUI_ALL);
             }
 
-            if ((ld = gui_vstack(kd)))
-            {
-                gui_filler(ld);
-
-                gui_label(ld, _("Time"),   GUI_SML, GUI_COLOR_WHT);
-                gui_label(ld, _("Coins"),  GUI_SML, GUI_COLOR_WHT);
-                gui_label(ld, _("Status"), GUI_SML, GUI_COLOR_WHT);
-
-                gui_filler(ld);
-            }
-
-            gui_set_rect(kd, GUI_ALL);
+            gui_space(jd);
         }
-
-        gui_space(jd);
 
         if ((kd = gui_hstack(jd)))
         {
@@ -593,10 +658,10 @@ static int gui_demo_status(int id)
                 gui_set_trunc(name_id,   TRUNC_TAIL);
                 gui_set_trunc(player_id, TRUNC_TAIL);
                 gui_set_trunc(date_id,   TRUNC_TAIL);
-
+                
                 gui_set_label(name_id,   " ");
                 gui_set_label(player_id, " ");
-                gui_set_label(date_id,   date_to_str(time(NULL)));
+                gui_set_label(date_id,   " ");
             }
 
             if ((ld = gui_vstack(kd)))
@@ -631,7 +696,7 @@ static void gui_demo_update_status(int i)
     if (!DEMO_CHECK_GET(d, demo_items, i < total ? i : 0))
     {
         gui_set_label(name_id,   " ");
-        gui_set_label(date_id,   "01.01.2003 00:00:00");
+        gui_set_label(date_id,   "--.--.---- --:--:--");
         gui_set_label(player_id, " ");
         gui_set_label(status_id, status_to_str(GAME_MAX));
         gui_set_label(coin_id,   "-----");
@@ -648,9 +713,9 @@ static void gui_demo_update_status(int i)
 
     switch (d->status)
     {
-    case GAME_GOAL: set_max_game_stat(1); break;
-    case GAME_FALL: set_max_game_stat(3); break;
-    default:        set_max_game_stat(2);
+        case GAME_GOAL: set_max_game_stat(1); break;
+        case GAME_FALL: set_max_game_stat(3); break;
+        default:        set_max_game_stat(2);
     }
 
     time_max_minutes = d->timer / 6000;
@@ -677,17 +742,9 @@ static void gui_demo_update_status(int i)
             "%d", d->coins);
 
     stat_limit_busy = 0;
-
-    gui_set_label(name_id,   d->name);
-    gui_set_label(date_id,   date_to_str(d->date));
-    gui_set_label(player_id, d->player);
-
-    if (d->status == GAME_GOAL)
-        gui_set_color(status_id, GUI_COLOR_GRN);
-    else
-        gui_set_color(status_id, GUI_COLOR_RED);
-
-    gui_set_label(status_id, status_to_str(d->status));
+    
+    const GLubyte *c = d->status == GAME_GOAL ? gui_grn : gui_red;
+    gui_set_color(status_id, c, c);
 
     if (demo_status_invalid) {
         gui_set_color(coin_id, gui_gry, gui_red);
@@ -696,11 +753,6 @@ static void gui_demo_update_status(int i)
         gui_set_color(coin_id, GUI_COLOR_DEFAULT);
         gui_set_color(time_id, GUI_COLOR_DEFAULT);
     }
-
-    gui_set_label(coin_id, !demo_status_invalid ?
-                           coin_id_str : "-----");
-    gui_set_clock(time_id, !demo_status_invalid && d->status != GAME_TIME ?
-                           d->timer : -1);
 
     if (d->balls == 0 &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -739,6 +791,20 @@ static void gui_demo_update_status(int i)
         gui_set_color(date_id,   GUI_COLOR_DEFAULT);
         gui_set_color(player_id, GUI_COLOR_DEFAULT);
     }
+
+    gui_set_clock(time_id, !demo_status_invalid && d->status != GAME_TIME ?
+                           d->timer : -1);
+    gui_set_label(coin_id, !demo_status_invalid ?
+                           coin_id_str : "-----");
+    gui_set_label(status_id, status_to_str(d->status));
+
+    //char *curr_date = date_to_str(d->date);
+    char curr_date[21];
+    DATE_TO_STR_V2(curr_date, &d->date);
+
+    gui_set_label(date_id,   curr_date);
+    gui_set_label(name_id,   d->name);
+    gui_set_label(player_id, d->player);
 }
 
 static void demo_select(int demo)
@@ -947,7 +1013,7 @@ static void demo_scan_done_moon_taskloader(void *data, void *done_data)
 static int demo_gui(void)
 {
     int id, jd;
-    
+
     name_id   = 0;
     time_id   = 0;
     coin_id   = 0;
@@ -1013,9 +1079,7 @@ static int demo_gui(void)
             if ((jd = gui_vstack(id)))
             {
                 gui_demo_thumbs(jd);
-
                 gui_space(jd);
-
                 gui_demo_status(jd);
             }
 

@@ -779,6 +779,8 @@ static int package_leave(struct state *st, struct state *next, int id, int inten
         name_ids = NULL;
     }
 
+    back_free();
+
     if (next == &st_package)
         return transition_page(id, 0, intent);
 

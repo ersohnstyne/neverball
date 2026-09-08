@@ -1654,6 +1654,8 @@ static int transfer_leave(struct state *st, struct state *next, int id, int inte
     conf_common_leave(st, next, id);
     transfer_ui_transition_busy = 0;
 
+    back_free();
+
     return transition_slide(id, 0, intent);
 }
 

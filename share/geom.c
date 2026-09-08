@@ -576,7 +576,7 @@ void item_draw(struct s_rend *rend,
 
 #define BACK_STACK_MAX 8
 
-static struct
+static struct back_grad_stack
 {
     GLuint tex;
     char name[MAXSTR];
@@ -608,7 +608,6 @@ static int back_load_texture(const char *name)
     return tex;
 }
 
-
 void back_push(const char *name)
 {
     if (name && *name && back_depth < BACK_STACK_MAX)
@@ -620,6 +619,45 @@ void back_push(const char *name)
             SAFECPY(back_stack[back_depth].name, name);
             back_stack[back_depth].tex = tex;
             back_depth++;
+        }
+    }
+    else if (name && *name)
+    {
+        for (int i = 0; i < BACK_STACK_MAX; i++)
+        {
+            if (i == 0)
+            {
+                /* Delete first index, if overflow */
+
+                if (back_stack[i].tex)
+                {
+                    glDeleteTextures(1, &back_stack[i].tex);
+                    back_stack[i].tex = 0;
+                    memset(back_stack[i].name, 0, sizeof (back_stack[i].name));
+                }
+            }
+            else
+            {
+                /* Move it back to the previous one, before creating new one */
+
+                if (back_stack[i].tex)
+                {
+                    int tmp = back_stack[i].tex;
+
+                    back_stack[i - 1].tex = tmp;
+                    back_stack[i]    .tex = 0;
+                    SAFECPY(back_stack[i - 1].name, back_stack[i].name);
+                    memset(back_stack[i].name, 0, sizeof (back_stack[i].name));
+                }
+            }
+        }
+
+        GLuint tex = back_load_texture(name);
+
+        if (tex)
+        {
+            SAFECPY(back_stack[back_depth - 1].name, name);
+            back_stack[back_depth - 1].tex = tex;
         }
     }
 }
@@ -634,6 +672,7 @@ void back_pop(void)
         {
             glDeleteTextures(1, &back_stack[back_depth].tex);
             back_stack[back_depth].tex = 0;
+            memset(back_stack[back_depth].name, 0, sizeof (back_stack[back_depth].name));
         }
     }
 }

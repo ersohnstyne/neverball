@@ -1293,16 +1293,13 @@ static int play_loop_keybd(int c, int d)
                 if (progress_same())
                     goto_state(&st_play_ready);
             }*/
-            if (c == KEY_EXIT)
+            if (KEY_IS_PAUSE(c))
             {
                 play_freeze_all = 1;
                 hud_speedup_reset();
                 goto_pause(curr_state());
             }
         }
-
-        if (KEY_IS_PAUSE(c))
-            goto_state(&st_pause);
     }
     else
     {

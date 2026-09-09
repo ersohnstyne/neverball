@@ -1739,16 +1739,8 @@ static int demo_play_keybd(int c, int d)
 {
     if (d)
     {
-<<<<<<< HEAD
         if (KEY_IS_PAUSE(c) && !speed_manual)
             return demo_pause_goto(1);
-=======
-        if (KEY_IS_PAUSE(c))
-        {
-            demo_paused = 1;
-            return goto_state(&st_demo_end);
-        }
->>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
 
         if ((c == KEY_POSE || c == KEY_TOGGLESHOWHUD) && !speed_manual)
             toggle_hud_visibility(!hud_visibility());
@@ -2004,20 +1996,10 @@ static int demo_end_keybd(int c, int d)
 
     if (d && KEY_IS_PAUSE(c))
     {
-<<<<<<< HEAD
         if (demo_paused)
             return demo_end_action(continue_allowed ? GUI_BACK : GUI_NONE, 0);
         else if (c == KEY_EXIT)
             return demo_end_action(standalone ? DEMO_QUIT : GUI_BACK, 0);
-=======
-        if (KEY_IS_PAUSE(c))
-        {
-            if (demo_paused)
-                return demo_end_action(DEMO_CONTINUE, 0);
-            else if (c == KEY_EXIT)
-                return demo_end_action(standalone ? DEMO_QUIT : DEMO_KEEP, 0);
-        }
->>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
     }
 
     return 1;

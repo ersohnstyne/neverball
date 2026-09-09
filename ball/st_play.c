@@ -395,33 +395,12 @@ static void play_ready_timer(int id, float dt)
 
     /* Powerful screen animations! */
 
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_shown() && !config_get_d(CONFIG_SCREEN_ANIMATIONS))
         hud_cam_timer(dt);
     else
 #endif
         hud_timer(dt);
-=======
-        if (KEY_IS_PAUSE(c))
-            goto_state(&st_pause);
-    }
-    return 1;
-}
-
-static int play_ready_buttn(int b, int d)
-{
-    if (d)
-    {
-        buttn_camera(b);
-
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return goto_state(&st_play_loop);
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-            return goto_state(&st_pause);
-    }
-    return 1;
->>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
 }
 
 /*---------------------------------------------------------------------------*/
@@ -678,7 +657,6 @@ static int play_prep_keybd(int c, int d)
         keybd_camera(c);
 #endif
 
-<<<<<<< HEAD
         if (KEY_IS_PAUSE(c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
@@ -688,10 +666,6 @@ static int play_prep_keybd(int c, int d)
             hud_speedup_reset();
             goto_pause(curr_state());
         }
-=======
-        if (KEY_IS_PAUSE(c))
-            goto_state(&st_pause);
->>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
     }
     return 1;
 }
@@ -1326,11 +1300,9 @@ static int play_loop_keybd(int c, int d)
                 goto_pause(curr_state());
             }
         }
-<<<<<<< HEAD
-=======
+
         if (KEY_IS_PAUSE(c))
             goto_state(&st_pause);
->>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
     }
     else
     {

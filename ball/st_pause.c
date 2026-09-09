@@ -430,6 +430,7 @@ static int pause_keybd(int c, int d)
 {
     if (d)
     {
+<<<<<<< HEAD
         if (KEY_IS_PAUSE(c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
@@ -443,6 +444,10 @@ static int pause_keybd(int c, int d)
             }
             else audio_play(AUD_DISABLED, 1.0f);
         }
+=======
+        if (KEY_IS_PAUSE(c))
+            return pause_action(PAUSE_CONTINUE, 0);
+>>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
 
         if (config_tst_d(CONFIG_KEY_RESTART, c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)

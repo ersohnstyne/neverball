@@ -47,9 +47,12 @@
 #define KEY_FULLSCREEN SDLK_F11
 #define KEY_SCREENSHOT SDLK_F12
 
+<<<<<<< HEAD
 #define KEY_PUTT_UPGRADE SDLK_PAGEUP
 #define KEY_PUTT_DNGRADE SDLK_PAGEDOWN
 
+=======
+>>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
 #if defined(__EMSCRIPTEN__)
 #define KEY_IS_PAUSE(c) ((c) == KEY_EXIT || (c) == SDLK_SPACE)
 #else

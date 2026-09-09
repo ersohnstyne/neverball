@@ -560,8 +560,16 @@ static int handle_key_dn(SDL_Event *e)
         return st_keybd(c, 1);
     }
 
+    if (KEY_IS_PAUSE(c))
+    {
+        if (e->key.repeat)
+            return d;
+        return st_keybd(c, 1);
+    }
+
     switch (c)
     {
+<<<<<<< HEAD
 #if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
         case KEY_SCREENSHOT:
             shot();
@@ -587,6 +595,32 @@ static int handle_key_dn(SDL_Event *e)
         case SDLK_KP_ENTER:
             d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
             break;
+=======
+    case KEY_SCREENSHOT:
+        shot();
+        break;
+    case KEY_FPS:
+        config_tgl_d(CONFIG_FPS);
+        break;
+    case KEY_WIREFRAME:
+        if (config_cheat())
+            toggle_wire();
+        break;
+    case KEY_RESOURCES:
+        if (config_cheat())
+        {
+            light_load();
+            mtrl_reload();
+        }
+        break;
+    case SDLK_RETURN:
+    case SDLK_KP_ENTER:
+        d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
+        break;
+    case KEY_FULLSCREEN:
+        video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
+        break;
+>>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
 
         case KEY_FULLSCREEN:
 #if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
@@ -638,6 +672,7 @@ static int handle_key_up(SDL_Event *e)
 
     switch (c)
     {
+<<<<<<< HEAD
         case SDLK_RETURN:
         case SDLK_KP_ENTER:
             d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
@@ -670,6 +705,21 @@ static int handle_key_up(SDL_Event *e)
                 arrow_downcounter[3]  = CLAMP(0, arrow_downcounter[3], 1);
                 st_stick(config_get_d(CONFIG_JOYSTICK_AXIS_X0), 0);
             }
+=======
+    case SDLK_RETURN:
+    case SDLK_KP_ENTER:
+        d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
+        break;
+    default:
+        if (config_tst_d(CONFIG_KEY_FORWARD, c))
+            dir = 0;
+        else if (config_tst_d(CONFIG_KEY_BACKWARD, c))
+            dir = 1;
+        else if (config_tst_d(CONFIG_KEY_LEFT, c))
+            dir = 2;
+        else if (config_tst_d(CONFIG_KEY_RIGHT, c))
+            dir = 3;
+>>>>>>> 9c46f3799bb637cbc3947c6b9a8a79af5e7588b5
 
             if (dir != -1)
             {

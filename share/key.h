@@ -50,4 +50,10 @@
 #define KEY_PUTT_UPGRADE SDLK_PAGEUP
 #define KEY_PUTT_DNGRADE SDLK_PAGEDOWN
 
+#if defined(__EMSCRIPTEN__)
+#define KEY_IS_PAUSE(c) ((c) == KEY_EXIT || (c) == SDLK_SPACE)
+#else
+#define KEY_IS_PAUSE(c) ((c) == KEY_EXIT)
+#endif
+
 #endif

@@ -971,11 +971,20 @@ clean-sols :
 clean : clean-src clean-sols
 	@$(RM) $(DESKTOPS)
 	@$(MAKE) -C po clean
+	
+#------------------------------------------------------------------------------
+
+web : sols
+	docker build -t neverball-emscripten emscripten
+	docker run -rm -v "$(CURDIR):/src" -w /src neverball-emscripten make -j$$(nproc) -f emscripten/ball.mk BUILD=$(BUILD)
+
+web-serve : web
+	python3 -m http.server 0 -d js -b 127.0.0.1
 
 #------------------------------------------------------------------------------
 
 .PHONY : ball putt mapc publish test sols csols locales desktops clean-src \
-	clean-sols clean
+	clean-sols clean test web-web-serve
 
 -include $(BALL_DEPS) $(PUTT_DEPS) $(MAPC_DEPS) $(wildcard tests/*.d)
 

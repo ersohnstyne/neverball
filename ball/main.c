@@ -553,6 +553,13 @@ static int handle_key_dn(SDL_Event *e)
 #endif
 #endif
 
+    if (KEY_IS_PAUSE(c))
+    {
+        if (e->key.repeat)
+            return d;
+        return st_keybd(c, 1);
+    }
+
     switch (c)
     {
 #if NB_STEAM_API==0 && !defined(__EMSCRIPTEN__)
@@ -591,9 +598,6 @@ static int handle_key_dn(SDL_Event *e)
 #endif
             goto_state(curr_state());
             break;
-        case KEY_EXIT:
-            d = st_keybd(KEY_EXIT, 1);
-            break;
 
         default:
             if (config_tst_d(CONFIG_KEY_FORWARD, c))
@@ -628,6 +632,9 @@ static int handle_key_up(SDL_Event *e)
     int c = SDL_GET_KEYSYM(e); // Was: e->key.keysym.sym
 
     int dir = -1;
+
+    if (KEY_IS_PAUSE(c))
+        return st_keybd(c, 0);
 
     switch (c)
     {

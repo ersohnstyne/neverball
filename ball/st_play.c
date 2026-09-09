@@ -657,7 +657,7 @@ static int play_prep_keybd(int c, int d)
         keybd_camera(c);
 #endif
 
-        if (c == KEY_EXIT
+        if (KEY_IS_PAUSE(c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif

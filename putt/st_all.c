@@ -1343,7 +1343,6 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
 
         if ((jd = gui_harray(id)))
         {
-<<<<<<< HEAD
             if ((kd = gui_hstack(jd)))
             {
                 if ((ld = gui_hstack(kd)))
@@ -1399,10 +1398,6 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
 
                 gui_focus(kd);
             }
-=======
-            gui_state(jd, _("Quit"), GUI_SML, PAUSE_QUIT, 0);
-            gui_start(jd, _("Continue"), GUI_SML, PAUSE_CONTINUE, 1);
->>>>>>> 85fa4c619e967fdbd3f66a48743d2bf01c37eab1
         }
 
         gui_pulse(td, 1.2f);
@@ -1451,7 +1446,7 @@ static int pause_keybd(int c, int d)
         return 1;
     }
 
-    if (d && c == KEY_EXIT)
+    if (d && KEY_IS_PAUSE(c))
         return pause_action(PAUSE_CONTINUE);
 
     return 1;
@@ -1481,7 +1476,7 @@ static int shared_keybd(int c, int d)
         return 1;
     }
 
-    if (d && (c == KEY_EXIT))
+    if (d && KEY_IS_PAUSE(c))
         return goto_pause(1);
 
     return 1;
@@ -1593,7 +1588,7 @@ static int next_keybd(int c, int d)
     {
         if (c == KEY_POSE)
             return goto_state(&st_poser);
-        if (c == KEY_EXIT)
+        if (KEY_IS_PAUSE(c))
             return goto_pause(1);
 
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
@@ -1874,7 +1869,7 @@ static int stroke_keybd(int c, int d)
 {
     if (d)
     {
-        if (c == KEY_EXIT)
+        if (KEY_IS_PAUSE(c))
             return goto_pause(1);
         if (c == KEY_PUTT_UPGRADE && stroke_type < 3)
         {
@@ -2461,7 +2456,7 @@ static int score_keybd(int c, int d)
     if (d &&
         (joy_get_cursor_actions(0) || !party_indiv_controllers))
     {
-        if (c == KEY_EXIT)
+        if (KEY_IS_PAUSE(c))
             return goto_pause(1);
     }
     return 1;

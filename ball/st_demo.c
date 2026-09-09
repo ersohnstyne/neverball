@@ -1739,7 +1739,7 @@ static int demo_play_keybd(int c, int d)
 {
     if (d)
     {
-        if (c == KEY_EXIT && !speed_manual)
+        if (KEY_IS_PAUSE(c) && !speed_manual)
             return demo_pause_goto(1);
 
         if ((c == KEY_POSE || c == KEY_TOGGLESHOWHUD) && !speed_manual)
@@ -1791,6 +1791,13 @@ enum
     DEMO_CONTINUE
 };
 
+/*
+ * This enum will be redirected to GUI_BACK for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `GUI_BACK` to `DEMO_KEEP`.
+ */
+#define DEMO_KEEP GUI_BACK
+
 static int demo_end_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
@@ -1835,7 +1842,7 @@ static int demo_end_action(int tok, int val)
 static int demo_end_gui(void)
 {
     int id, jd, kd, ld;
-    
+
     if ((id = gui_vstack(0)))
     {
         if ((jd = gui_hstack(id)))
@@ -1861,7 +1868,7 @@ static int demo_end_gui(void)
         /* Only that is limit underneath it */
         const int continue_allowed = (get_max_game_stat() <= get_limit_game_stat() &&
                                       allow_exact_versions);
-        
+
         if ((jd = gui_harray(id)))
         {
             if (demo_paused || !console_gui_shown())
@@ -1983,9 +1990,17 @@ static int demo_end_keybd(int c, int d)
     const int continue_allowed = (get_max_game_stat() <= get_limit_game_stat() &&
                                   allow_exact_versions);
 
-    if (d && c == KEY_EXIT)
+    /*if (d && c == KEY_EXIT)
         return demo_end_action(!demo_paused || continue_allowed ?
-                               GUI_BACK : GUI_NONE, 0);
+                               GUI_BACK : GUI_NONE, 0);*/
+
+    if (d && KEY_IS_PAUSE(c))
+    {
+        if (demo_paused)
+            return demo_end_action(continue_allowed ? GUI_BACK : GUI_NONE, 0);
+        else if (c == KEY_EXIT)
+            return demo_end_action(standalone ? DEMO_QUIT : GUI_BACK, 0);
+    }
 
     return 1;
 }

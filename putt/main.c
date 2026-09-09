@@ -621,6 +621,13 @@ static int loop(void)
                 }
 #endif
 
+                if (KEY_IS_PAUSE(c))
+                {
+                    if (e->key.repeat)
+                        return d;
+                    return st_keybd(c, 1);
+                }
+
                 switch (c)
                 {
 #if !defined(STEAM_GAMES)
@@ -670,6 +677,9 @@ static int loop(void)
 
             case SDL_KEYUP:
                 c = e.key.keysym.sym;
+
+                if (KEY_IS_PAUSE(c))
+                    return st_keybd(c, 0);
 
                 switch (c)
                 {

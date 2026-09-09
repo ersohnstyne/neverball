@@ -430,7 +430,7 @@ static int pause_keybd(int c, int d)
 {
     if (d)
     {
-        if (c == KEY_EXIT
+        if (KEY_IS_PAUSE(c)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
          && current_platform == PLATFORM_PC
 #endif

@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v6.0.3
       - name: Make script executable
         run: |
-          chmod +x "./.devcontainer/install-gl4es.sh"
+          chmod +x "./emscripten/install-gl4es.sh"
           chmod +x "./scripts/install-devel-linux.sh"
           chmod +x "./scripts/translate-desktop.sh"
           chmod +x "./scripts/version.sh"
@@ -35,7 +35,7 @@ jobs:
           sudo apt-get install -y libpng-dev libjpeg-dev pkg-config
           make -j2 sols
       - name: Build gl4es
-        run: "./.devcontainer/install-gl4es.sh"
+        run: "./emscripten/install-gl4es.sh"
       - name: Build web version
         run: |
           sudo apt-get install -y ffmpeg

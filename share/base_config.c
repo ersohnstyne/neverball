@@ -193,7 +193,7 @@ void config_log_userpath()
 
 #if defined(__EMSCRIPTEN__)
     /* Force persistent store created during Module['preInit']. */
-    user = strdup("/pennyball");
+    user = strdup("/neverball");
 #else
     const char *home = pick_home_path();
 

@@ -249,7 +249,7 @@ static int level_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Pennyball.wgclIsLevelLoading ? 1 : 0; })) return 1;
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
 #endif
 
     GENERIC_GAMEMENU_ACTION;
@@ -858,7 +858,7 @@ static void level_timer(int id, float dt)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     /* HACK: Do not attempt, when the level is loading. */
 
-    if (EM_ASM_INT({ return Pennyball.wgclIsLevelLoading ? 1 : 0; })) return;
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return;
 #endif
 
     /* HACK: This shouldn't have a bug. This has been fixed. */

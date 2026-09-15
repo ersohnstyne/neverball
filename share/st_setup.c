@@ -1202,11 +1202,7 @@ static int game_setup_preexisting_gui(void)
 
             if ((jd = gui_vstack(id)))
             {
-#if NB_HAVE_PB_BOTH==1
-                gui_title_header(jd, _("Pennyball is all you need"), GUI_MED, GUI_COLOR_DEFAULT);
-#else
                 gui_title_header(jd, _("Neverball is all you need"), GUI_MED, GUI_COLOR_DEFAULT);
-#endif
                 gui_multi(jd, _("You can simply install and run another games.\n"
                                 "When you're ready, move on to the next step."),
                               GUI_SML, GUI_COLOR_WHT);

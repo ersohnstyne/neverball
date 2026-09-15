@@ -185,12 +185,8 @@ static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
     curl_easy_setopt(handle, CURLOPT_URL,           url);
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA,     out_data);
-
-#if NB_HAVE_PB_BOTH==1
-    curl_easy_setopt(handle, CURLOPT_USERAGENT, "pennyball/" VERSION);
-#else
+    
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
-#endif
 
     curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
 
@@ -252,11 +248,7 @@ static CURL *account_wgcl_curl_prepare_post(const char *url, const char *in_json
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA,     out_data);
 
-#if NB_HAVE_PB_BOTH==1
-    curl_easy_setopt(handle, CURLOPT_USERAGENT, "pennyball/" VERSION);
-#else
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
-#endif
 
     curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
 
@@ -385,7 +377,7 @@ void account_wgcl_load(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
     fs_file wgcl_fin;
-    if ((wgcl_fin = fs_open_read("pennyball_wgcl.dat")))
+    if ((wgcl_fin = fs_open_read("neverball_wgcl.dat")))
     {
         if (session_uuid4 && *session_uuid4)
         {
@@ -451,7 +443,7 @@ void account_wgcl_save(void)
     if (session_uuid4 && *session_uuid4)
     {
         fs_file wgcl_fout;
-        if ((wgcl_fout = fs_open_write("pennyball_wgcl.dat")))
+        if ((wgcl_fout = fs_open_write("neverball_wgcl.dat")))
         {
             fs_write(session_uuid4, text_length(session_uuid4), wgcl_fout);
             fs_close(wgcl_fout);
@@ -691,7 +683,7 @@ account_wgcl_reload_fail:
     }
 
     EM_ASM({
-        Pennyball.gamecore_account_try_reload() ? 1 : 0;
+        Neverball.gamecore_account_try_reload() ? 1 : 0;
     });
 
     return 1;
@@ -857,7 +849,7 @@ int account_wgcl_logout(void)
 
     read_only = 0;
 
-    fs_remove("pennyball_wgcl.dat");
+    fs_remove("neverball_wgcl.dat");
     return 1;
 }
 
@@ -1016,7 +1008,7 @@ account_wgcl_try_add_fail:
     assets_add_is_pending = 0;
 
     int r = EM_ASM_INT({
-        return Pennyball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
+        return Neverball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
     }, session_uuid4,
        w_coins_curr + w_coins, w_gems_curr + w_gems,
        c_hp_curr + c_hp,
@@ -1169,7 +1161,7 @@ account_wgcl_try_set_fail:
     assets_set_is_pending = 0;
 
     int r = EM_ASM_INT({
-        return Pennyball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
+        return Neverball.gamecore_account_try_update(UTF8ToString($0), $1, $2, $3, $4, $5, $6) ? 1 : 0;
     }, session_uuid4,
        w_coins, w_gems,
        c_hp,
@@ -1309,7 +1301,7 @@ account_wgcl_try_buy_fail:
     managed_buy_is_pending = 0;
 
     int r = EM_ASM_INT({
-        return Pennyball.gamecore_account_try_buy(UTF8ToString($0), $1) ? 1 : 0;
+        return Neverball.gamecore_account_try_buy(UTF8ToString($0), $1) ? 1 : 0;
     }, session_uuid4, managed_buy_flags_pending);
 
     return 1;
@@ -1588,7 +1580,7 @@ account_wgcl_do_finish_challenge_fail:
         const player_uuid4 = UTF8ToString($0);
         const player_name  = UTF8ToString($1);
 
-        return Pennyball.gamecore_account_try_finish_challenge(player_uuid4, player_name, $2, $3, $4, $5, $6, $7, $8, $9);
+        return Neverball.gamecore_account_try_finish_challenge(player_uuid4, player_name, $2, $3, $4, $5, $6, $7, $8, $9);
     }, session_uuid4, config_get_s(CONFIG_PLAYER), coins, gems, balls, total_time_ms, reward, daily, hardcore, xppenalty);
 #else
     return 0;

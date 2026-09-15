@@ -1120,11 +1120,7 @@ unsigned int fetch_file(const char *url,
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS,       0);
 
             curl_easy_setopt(handle, CURLOPT_BUFFERSIZE,      102400L);
-#if NB_HAVE_PB_BOTH==1
-            curl_easy_setopt(handle, CURLOPT_USERAGENT,       "pennyball/" VERSION);
-#else
             curl_easy_setopt(handle, CURLOPT_USERAGENT,       "neverball/" VERSION);
-#endif
             curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
             curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION,  1);
             curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT,  ROUND(flerp(20.0f, 30.0f, 0.5f))); /* In seconds. */

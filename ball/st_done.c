@@ -171,7 +171,7 @@ static int done_gui_campaign(void)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_campaign.mp3");
         });
 #endif
@@ -260,7 +260,7 @@ static int done_gui_set(void)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_levelset_hs.mp3");
         });
 #elif NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
@@ -273,7 +273,7 @@ static int done_gui_set(void)
         /* FIXME: WGCL Narrator can do it! */
 
         EM_ASM({
-            if (Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese)
                 CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_finished_levelset.mp3");
         });
 #endif

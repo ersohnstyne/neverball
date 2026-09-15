@@ -2324,7 +2324,7 @@ void console_gui_toggle(int active)
     if (show_control_gui == active)
         return;
 
-#if PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API
+#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API
     show_control_gui = 1;
 #else
     show_control_gui = active;

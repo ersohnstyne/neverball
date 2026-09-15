@@ -3893,10 +3893,8 @@ static int conf_gui(void)
 
 static void conf_bg_paint(float t)
 {
-    if (game_server_state())
-    {
+    if (game_server_state() || demo_state())
         game_client_draw(0, t);
-    }
     else
     {
         video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);

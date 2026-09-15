@@ -266,6 +266,9 @@ static int play_ready_gui(void)
 
 static int play_ready_enter(struct state *st, struct state *prev, int intent)
 {
+    audio_ambient_play("bgm_ambient/ambient_03.ogg");
+    audio_ambient_fade_in(0.5f);
+
     devicemotion_tilt_can_autocalibrate = 1;
 
     if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
@@ -793,6 +796,9 @@ static float smoothfix_slowdown_time;
 
 static int play_loop_enter(struct state *st, struct state *prev, int intent)
 {
+    audio_ambient_play("bgm_ambient/ambient_03.ogg");
+    audio_ambient_fade_in(0.5f);
+
     game_client_toggle_sound(1);
     devicemotion_tilt_can_autocalibrate = 1;
 

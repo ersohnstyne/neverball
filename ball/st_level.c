@@ -1275,6 +1275,9 @@ static int check_perf_superwaifu_tilt_scenes = 1;
 
 int goto_play_level(void)
 {
+    audio_ambient_play("bgm_ambient/ambient_03.ogg");
+    audio_ambient_fade_in(0.5f);
+
     struct state *curr_st = curr_state();
     int         (*fn_state)(struct state *);
 

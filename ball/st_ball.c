@@ -383,6 +383,7 @@ static void ball_refresh_packages_done(void *data1, void *data2)
 
     if (dn->success)
     {
+        audio_ambient_fade_out(0.5f);
 #if NB_HAVE_PB_BOTH == 1
         goto_wgcl_addons_login(0, &st_ball, 0);
 #else
@@ -468,6 +469,7 @@ static int ball_action(int tok, int val)
             break;
 
         case GUI_BACK:
+            audio_ambient_fade_out(0.5f);
             game_fade(+4.0);
             free_balls();
             exit_state(ball_back ? ball_back : &st_conf);
@@ -476,11 +478,13 @@ static int ball_action(int tok, int val)
 
 #if NB_HAVE_PB_BOTH==1
         case MODEL_SETUP_FINISH:
+            audio_ambient_fade_out(0.5f);
             game_fade(+4.0);
             goto_game_setup_finish(setup_finish_state);
 
             break;
 #endif
+
         case MODEL_TAKESNAPSHOT:
 #if !defined(NDEBUG) && NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             if (config_cheat())
@@ -745,6 +749,13 @@ static int ball_gui(void)
 
 static int ball_enter(struct state *st, struct state *prev, int intent)
 {
+#if NB_HAVE_PB_BOTH==1
+    audio_ambient_play("bgm_ambient/ambient_03.ogg");
+#else
+    audio_ambient_play("bgm_ambient/ambient_04.ogg");
+#endif
+    audio_ambient_fade_in(0.5f);
+
     if (!ball_back)
         ball_back = prev;
 

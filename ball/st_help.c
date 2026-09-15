@@ -1466,6 +1466,8 @@ static int help_demo_enter(struct state *st, struct state *prev, int intent)
     demo_freeze_all         = 0;
     smoothfix_slowdown_time = 0;
 
+    audio_ambient_play("bgm_ambient/ambient_03.ogg");
+    audio_ambient_fade_in(0.5f);
     game_client_toggle_sound(0);
     game_client_fly(0.0f);
     demo_replay_speed(SPEED_NORMAL);
@@ -1474,6 +1476,7 @@ static int help_demo_enter(struct state *st, struct state *prev, int intent)
 
 static int help_demo_leave(struct state *st, struct state *next, int id, int intent)
 {
+    audio_ambient_fade_out(0.5f);
     demo_replay_stop(0);
     return 0;
 }

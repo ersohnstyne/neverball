@@ -1508,6 +1508,15 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
                                                      BGM_TITLE_CONF_LANGUAGE, 1);
+    
+#if NB_HAVE_PB_BOTH==1
+    audio_ambient_play(switchball_useable() ? "bgm_ambient/ambient_02.ogg" :
+                                              "bgm_ambient/ambient_03.ogg");
+#else
+    audio_ambient_play(switchball_useable() ? "bgm_ambient/ambient_02.ogg" :
+                                              "bgm_ambient/ambient_04.ogg");
+#endif
+    audio_ambient_fade_in(0.5f);
 
     const int title_gui_main = !title_lockscreen && title_check_wgcl() ? title_gui_wgcl() : title_gui();
 
@@ -1596,6 +1605,7 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
         }
     }
 
+    audio_ambient_fade_out(0.5f);
     demo_replay_stop(0);
 
     /* HACK: Faster way! - Ersohn Styne */

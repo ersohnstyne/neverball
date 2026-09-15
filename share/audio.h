@@ -33,6 +33,12 @@ void audio_music_fade_in(float);
 void audio_music_fade_out(float);
 void audio_music_stop(void);
 
+void audio_ambient_play(const char *);
+void audio_ambient_stop(void);
+void audio_ambient_fade_in(float);
+void audio_ambient_fade_out(float);
+
+
 void audio_volume(int, int, int, int);
 
 /*---------------------------------------------------------------------------*/

@@ -300,6 +300,24 @@ void audio_music_stop(void)
 
 /*---------------------------------------------------------------------------*/
 
+void audio_ambient_play(const char *filename)
+{
+}
+
+void audio_ambient_stop(void)
+{
+}
+
+void audio_ambient_fade_in(float t)
+{
+}
+
+void audio_ambient_fade_out(float t)
+{
+}
+
+/*---------------------------------------------------------------------------*/
+
 /*
  * Logarithmic volume control.
  */

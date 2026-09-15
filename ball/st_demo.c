@@ -1484,6 +1484,9 @@ static int demo_play_enter(struct state *st, struct state *prev, int intent)
 
     hud_update(0, 0.0f);
 
+    audio_ambient_play("bgm_ambient/ambient_03.ogg");
+    audio_ambient_fade_in(0.5f);
+
     if (demo_paused ||
         prev == &st_demo_play ||
         prev == &st_demo_look)
@@ -1943,6 +1946,7 @@ static int demo_end_enter(struct state *st, struct state *prev, int intent)
     if (!demo_paused)
         game_proxy_filter(NULL);
 
+    audio_ambient_fade_out(0.5f);
     audio_music_fade_out(demo_paused ? 0.2f : 2.0f);
 
     if (demo_paused && prev == &st_demo_play)
@@ -1959,7 +1963,6 @@ static int demo_end_enter(struct state *st, struct state *prev, int intent)
 static void demo_end_paint(int id, float t)
 {
     game_client_draw(0, t);
-
     gui_paint(id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -2140,6 +2143,7 @@ static int demo_del_gui(void)
 
 static int demo_del_enter(struct state *st, struct state *prev, int intent)
 {
+    audio_ambient_fade_out(0.5f);
     audio_music_fade_out(demo_paused ? 0.2f : 1.0f);
     audio_play(AUD_WARNING, 1.0f);
     return transition_slide(demo_del_gui(), 1, intent);

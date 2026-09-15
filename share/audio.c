@@ -130,6 +130,7 @@ static struct voice *voices_music     = NULL;
 static struct voice *voices_queue     = NULL;
 static struct voice *voices_sfx       = NULL;
 static struct voice *voices_narrators = NULL;
+static struct voice *voices_ambient   = NULL;
 static short        *buffer           = NULL;
 
 static ov_callbacks callbacks = {
@@ -541,6 +542,21 @@ static void audio_step(void *data, Uint8 *stream, int length)
         }
     }
 
+    /* Mix the background ambient. */
+
+    if (voices_ambient)
+    {
+        if (voices_ambient->play &&
+            voice_step(voices_ambient, 1.0f - music_vol, stream, length))
+        {
+#if defined(__WII__)
+            voices_ambient->play = 0;
+#else
+            voice_free(voices_ambient);
+#endif
+        }
+    }
+
     /* Iterate over all active sound voices. */
 
     for (int i = 0; i < SOUND_VOICE_COUNT; i++)
@@ -709,6 +725,12 @@ void audio_free(void)
         voices_music = NULL;
     }
 
+    if (voices_ambient)
+    {
+        voice_quit(voices_ambient);
+        voices_ambient = NULL;
+    }
+
     if (voices_sfx)
     {
         voice_quit(voices_sfx);
@@ -720,15 +742,24 @@ void audio_free(void)
         voice_quit(voices_narrators);
         voices_narrators = NULL;
     }
-
+    
     for (V = voices_music; V;)
     {
         struct voice *N = V ? V->next : NULL;
         voice_free(V);
         V = N;
     }
+    
+    voices_music   = NULL;
 
-    voices_music = NULL;
+    for (V = voices_ambient; V;)
+    {
+        struct voice *N = V ? V->next : NULL;
+        voice_free(V);
+        V = N;
+    }
+
+    voices_ambient = NULL;
 
     for (V = voices_sfx; V;)
     {
@@ -1047,6 +1078,92 @@ void audio_music_fade_to(float t, const char *filename, int loop)
         audio_music_play(filename, loop);
         audio_music_fade_in(clamped_time);
     }
+}
+
+/*---------------------------------------------------------------------------*/
+
+void audio_ambient_play(const char *filename)
+{
+    if (audio_state && !audio_paused)
+    {
+        if (!filename || !filename[0])
+        {
+            log_errorf("filename returned 0!\n");
+            return;
+        }
+
+        if (voices_ambient && voices_ambient->name &&
+            strcmp(filename, voices_ambient->name) == 0)
+            return;
+
+        while (lock_hold) {}
+        audio_ambient_stop();
+
+        lock_hold = 1;
+        {
+            if ((voices_ambient = voice_init(filename, 0.0f)))
+            {
+                voices_ambient->loop = 1;
+                voices_ambient->amp  = 0.0f;
+            }
+        }
+        lock_hold = 0;
+    }
+    else if (!audio_state && !audio_paused)
+    {
+        log_errorf("Failure to open audio file!: %s / Audio must be initialized!\n",
+                   filename);
+#if _DEBUG
+        SDL_TriggerBreakpoint();
+#endif
+    }
+}
+
+void audio_ambient_stop(void)
+{
+    if (audio_state)
+    {
+#if defined(__WII__)
+        if (voices_ambient)
+        {
+            voices_ambient->play = 0;
+            voices_ambient = NULL;
+        }
+#else
+        while (lock_hold) {}
+        lock_hold = 1;
+        if (voices_ambient)
+        {
+            voice_free(voices_ambient);
+            voices_ambient = NULL;
+        }
+        lock_hold = 0;
+#endif
+    }
+}
+
+void audio_ambient_fade_in(float t)
+{
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
+
+    while (lock_hold) {}
+    lock_hold = 1;
+    {
+        if (voices_ambient) voices_ambient->damp = +1.0f / (AUDIO_RATE * clamped_time);
+    }
+    lock_hold = 0;
+}
+
+void audio_ambient_fade_out(float t)
+{
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
+
+    while (lock_hold) {}
+    lock_hold = 1;
+    {
+        if (voices_ambient) voices_ambient->damp = -1.0f / (AUDIO_RATE * clamped_time);
+    }
+    lock_hold = 0;
 }
 
 /*---------------------------------------------------------------------------*/

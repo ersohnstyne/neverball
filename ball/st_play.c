@@ -1420,6 +1420,42 @@ void play_loop_touch_init(void)
     }
 }
 
+static void play_loop_touch_rotate(const SDL_TouchFingerEvent *event, float rmax)
+{
+    /* Discard accumulated input when moving in the opposite direction. */
+
+    if ((rotate < 0.0f && event->dx > 0.0f) || (event->dx < 0.0f && rotate > 0.0f))
+        rotate = 0.0f;
+
+    /* Filter the input for a smoother experience. */
+
+    rotate += event->dx * 0.6f;
+
+    /*
+     * touch_rotate gives the fraction of the screen that you need to swipe
+     * across to reach rotate_slow rotation speed. E.g., a value of 32
+     * is 1/32 of screen.
+     *
+     * To rotate slower, swipe a smaller distance than that.
+     * To rotate faster, swipe farther.
+     */
+
+    if (rotate != 0.0f)
+    {
+        const float sign = config_get_d(CONFIG_TOUCH_ROTATE_INVERT) ? -1.0f : +1.0f;
+        const float scaled_rotate = sign * (float) config_get_d(CONFIG_TOUCH_ROTATE) * rotate;
+        rot_set(DIR_L, CLAMP(-rmax, scaled_rotate, +rmax), 1);
+    }
+}
+
+static void play_loop_touch_tilt(const SDL_TouchFingerEvent *event)
+{
+    int dx = (int) ((float) video.device_w * event->dx);
+    int dy = (int) ((float) video.device_h * -event->dy);
+
+    game_set_pos(dx, dy);
+}
+
 static int play_loop_touch(const SDL_TouchFingerEvent *e)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
@@ -1428,7 +1464,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 
     devicemotion_timer_tilt = 0;
 
-#if NB_HAVE_PB_BOTH!=1 || !defined(WGCL_TOUCH_POINTERS)
+#if NB_HAVE_PB_BOTH!=1
     static SDL_FingerID rotate_finger = -1;
 
     static float rotate = 0.0f; /* Filtered input. */
@@ -1452,6 +1488,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     const float rf = config_get_d(CONFIG_ROTATE_FAST) / 100.0f;
     const float rmax = rf / rs;
 
+    int mode = config_get_d(CONFIG_TOUCH_MODE);
     int id;
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
@@ -1479,205 +1516,89 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 
         gui_focus(0);
     }
-    else if (e->type == SDL_FINGERDOWN)
+    else if (mode == TOUCH_MODE_DYNAMIC)
     {
-#if NB_HAVE_PB_BOTH==1 && defined(WGCL_TOUCH_POINTERS)
-        int touch_prep_done = 0, touch_prep_cam_mode = 0;
+        if (e->type == SDL_FINGERDOWN)
+        {
+            SDL_Finger* finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
 
-        for (int i = 0; i < WGCL_MAX_TOUCH_POINTERS && !touch_prep_done; i++) {
-            if (touch_control_mappings[i].controlmode == 0 &&
-                touch_control_mappings[i].finger_id   == -1) {
-                touch_control_mappings[i].touch_id    = -1;
-                touch_control_mappings[i].dx          =  0.0f;
-                touch_control_mappings[i].dy          =  0.0f;
-            } else {
-                const SDL_Finger *input_finger = SDL_GetTouchFinger(e->touchId, i);
+            if (finger && e->fingerId == finger->id)
+            {
+                rotate_finger = finger->id;
+                rotate = 0.0f;
+            }
+        }
+        else if (e->type == SDL_FINGERUP)
+        {
+            if (e->fingerId == rotate_finger)
+            {
+                rotate_finger = -1;
+                rot_clr(DIR_R | DIR_L);
+                rotate = 0.0f;
+            }
+        }
+        else if (e->type == SDL_FINGERMOTION)
+        {
+            if (e->fingerId == rotate_finger)
+                play_loop_touch_rotate(e, rmax);
+            else
+                play_loop_touch_tilt(e);
+        }
+    }
+    else
+    {
+        int is_tilt_side = (mode == TOUCH_MODE_LR) ? (e->x < 0.5f) : (e->x >= 0.5f);
 
-                if (input_finger                                       &&
-                    e->fingerId == input_finger->id                    &&
-                    e->fingerId != touch_control_mappings[i].finger_id) {
-                    touch_control_mappings[i].touch_id  = e->touchId;
-                    touch_control_mappings[i].finger_id = e->fingerId;
-
-                    touch_control_mappings[i].controlmode = touch_prep_cam_mode + 1;
-
-                    if (touch_prep_cam_mode) /* Stored on the camera rotate group */;
-                    else {
-                        lmb_holded    = 1;
-                        lmb_hold_time = 1000.0f;
-                        max_speed     = 1;
-                    }
-
-                    touch_prep_done = 1;
+        if (e->type == SDL_FINGERDOWN)
+        {
+            if (is_tilt_side)
+            {
+                tilt_finger = e->fingerId;
+            }
+            else
+            {
+                rotate_finger = e->fingerId;
+                rotate = 0.0f;
+            }
+        }
+        else if (e->type == SDL_FINGERUP)
+        {
+            if (e->fingerId == rotate_finger)
+            {
+                rotate_finger = -1;
+                rot_clr(DIR_R | DIR_L);
+                rotate = 0.0f;
+            }
+            else if (e->fingerId == tilt_finger)
+            {
+                tilt_finger = -1;
+            }
+        }
+        else if (e->type == SDL_FINGERMOTION)
+        {
+            if (e->fingerId == rotate_finger)
+            {
+                play_loop_touch_rotate(e, rmax);
+            }
+            else if (e->fingerId == tilt_finger)
+            {
+                play_loop_touch_tilt(e);
+            }
+            else
+            {
+                if (is_tilt_side && tilt_finger == -1)
+                {
+                    tilt_finger = e->fingerId;
+                    play_loop_touch_tilt(e);
+                }
+                else if (!is_tilt_side && rotate_finger == -1)
+                {
+                    rotate_finger = e->fingerId;
+                    rotate = 0.0f;
+                    play_loop_touch_rotate(e, rmax);
                 }
             }
-
-            if (!touch_prep_done                            &&
-                touch_control_mappings[i].finger_id   != -1 &&
-                touch_control_mappings[i].controlmode ==  1)
-                touch_prep_cam_mode = 1;
         }
-#else
-        SDL_Finger *camrot_finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
-
-        if (camrot_finger && e->fingerId == camrot_finger->id)
-        {
-            rotate_finger = camrot_finger->id;
-            rotate = 0.0f;
-        }
-        else
-        {
-            touch_arrow_enabled = 1;
-            lmb_holded    = 1;
-            lmb_hold_time = 1000.0f;
-            max_speed     = 1;
-        }
-#endif
-    }
-    else if (e->type == SDL_FINGERUP)
-    {
-#if NB_HAVE_PB_BOTH==1 && defined(WGCL_TOUCH_POINTERS)
-        int touch_release_done = 0, touch_tilt_hold = 0, touch_rotate_hold = 0;
-
-        for (int i = 0; i < WGCL_MAX_TOUCH_POINTERS && !touch_release_done; i++) {
-            if (touch_control_mappings[i].finger_id == e->fingerId) {
-                touch_control_mappings[i].finger_id   = -1;
-                touch_control_mappings[i].controlmode =  0;
-                touch_control_mappings[i].dx          =  0.0f;
-                touch_control_mappings[i].dy          =  0.0f;
-            }
-
-            switch (touch_control_mappings[i].controlmode) {
-                case 1: touch_tilt_hold   = 1; break;
-                case 2: touch_rotate_hold = 1; break;
-            }
-        }
-
-        if (!touch_tilt_hold) {
-            touch_arrow_enabled = 0;
-            lmb_holded    = 0;
-            lmb_hold_time = -0.01f;
-            max_speed     = 0;
-            tilt_x = 0; tilt_y = 0;
-
-            game_client_maxspeed(0.0f, 0);
-            game_set_pos(0, 0);
-        }
-
-        if (!touch_rotate_hold) rot_clr(DIR_R | DIR_L);
-#else
-        if (e->fingerId == rotate_finger)
-        {
-            rotate_finger = -1;
-            rot_clr(DIR_R | DIR_L);
-            rotate = 0.0f;
-        }
-        else
-        {
-            touch_arrow_enabled = 0;
-            lmb_holded    = 0;
-            lmb_hold_time = -0.01f;
-            max_speed     = 0;
-            tilt_x = 0; tilt_y = 0;
-
-            game_client_maxspeed(0.0f, 0);
-            game_set_pos(0, 0);
-        }
-#endif
-    }
-    else if (e->type == SDL_FINGERMOTION)
-    {
-#if NB_HAVE_PB_BOTH==1 && defined(WGCL_TOUCH_POINTERS)
-        /* The total tilt for touchscreen with 10 touch points */
-        float touch_total_tilt[2] = { 0.0f, 0.0f };
-
-        /* The total rotate for touchscreen with 10 touch points */
-        float touch_total_rotate = 0.0f;
-
-        for (int i = 0; i < WGCL_MAX_TOUCH_POINTERS; i++) {
-            if (e->fingerId == touch_control_mappings[i].finger_id) {
-                touch_control_mappings[i].dx = e->dx;
-                touch_control_mappings[i].dy = e->dy;
-            }
-
-            if (touch_control_mappings[i].controlmode == 2)
-                touch_total_rotate += touch_control_mappings[i].dx;
-            else {
-                touch_total_tilt[0] += touch_control_mappings[i].dx;
-                touch_total_tilt[1] += touch_control_mappings[i].dy;
-            }
-        }
-
-        if (touch_total_tilt[0] < -0.1f || touch_total_tilt[0] > 0.1f ||
-            touch_total_tilt[1] < -0.1f || touch_total_tilt[1] > 0.1f) {
-            int dx = (int) ((float) video.device_w * +touch_total_tilt[0]);
-            int dy = (int) ((float) video.device_h * -touch_total_tilt[1]);
-
-            tilt_x = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
-                           tilt_x + dx,
-                           ( ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
-            tilt_y = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
-                           tilt_y + dy,
-                           ( ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
-
-            game_client_maxspeed(V_DEG(fatan2f(dy, dx)), 1);
-            game_set_pos_max_speed(tilt_x * powerup_get_tilt_multiply(),
-                                   curr_mode() == MODE_BOOST_RUSH ? 0 : tilt_y * powerup_get_tilt_multiply());
-        } else game_set_pos_max_speed(0, 0);
-
-        if (touch_total_rotate < -0.01f && touch_total_rotate > 0.01f)
-            if (touch_total_rotate * 0.6f != 0.0f) {
-                rot_set(DIR_L,
-                        CLAMP(-rmax, (float) config_get_d(CONFIG_TOUCH_ROTATE) * touch_total_rotate * 0.6f, +rmax),
-                        1);
-            }
-#else
-        if (e->fingerId == rotate_finger)
-        {
-            /* Discard accumulated input when moving in the opposite direction. */
-
-            if ((rotate < 0.0f && e->dx > 0.0f) || (e->dx < 0.0f && rotate > 0.0f))
-                rotate = 0.0f;
-
-            /* Filter the input for a smoother experience. */
-
-            rotate += e->dx * 0.6f;
-
-            /*
-             * touch_rotate gives the fraction of the screen that you need to swipe
-             * across to reach rotate_slow rotation speed. E.g., a value of 32
-             * is 1/32 of screen.
-             *
-             * To rotate slower, swipe a smaller distance than that.
-             * To rotate faster, swipe farther.
-             */
-
-            if (rotate != 0.0f)
-            {
-                const float sign = config_get_d(CONFIG_TOUCH_ROTATE_INVERT) ? -1.0f : +1.0f;
-                const float scaled_rotate = sign * (float) config_get_d(CONFIG_TOUCH_ROTATE) * rotate;
-                rot_set(DIR_L, CLAMP(-rmax, scaled_rotate, +rmax), 1);
-            }
-        }
-        else
-        {
-            int dx = (int) ((float) video.device_w * +e->dx);
-            int dy = (int) ((float) video.device_h * -e->dy);
-
-            game_client_maxspeed(V_DEG(fatan2f(dy, dx)), touch_arrow_enabled);
-
-            tilt_x = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
-                           tilt_x + dx,
-                           ( ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
-            tilt_y = CLAMP((-ANGLE_BOUND * 20) * powerup_get_tilt_multiply(),
-                           tilt_y + dy,
-                           ( ANGLE_BOUND * 20) * powerup_get_tilt_multiply());
-
-            game_set_pos_max_speed(tilt_x * powerup_get_tilt_multiply(),
-                                   curr_mode() == MODE_BOOST_RUSH ? 0 : tilt_y * powerup_get_tilt_multiply());
-            /* game_set_pos(dx, dy); */
-        }
-#endif
     }
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1

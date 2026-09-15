@@ -109,7 +109,8 @@ typedef SDLKey SDL_Keycode;
 struct state st_conf_social;
 struct state st_conf_gameplay;
 struct state st_conf_notification;
-struct state st_conf_control;
+struct state st_conf_controls;
+struct state st_conf_touch;
 struct state st_conf_keybd;
 struct state st_conf_controllers;
 struct state st_conf_calibrate;
@@ -152,6 +153,13 @@ static int conf_join_confirm = 0;
 
 static struct state *st_conf_social_back;
 
+/*
+ * This variable name will be redirected to st_conf_social_back for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `st_conf_social_back` to `social_back`.
+ */
+#define social_back st_conf_social_back
+
 static int conf_goto_social(struct state *back)
 {
     st_conf_social_back = back;
@@ -168,6 +176,8 @@ static int conf_social_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    int r = 1;
+
 #ifndef __EMSCRIPTEN__
     char linkstr_cmd[MAXSTR], linkstr_code[64];
 #endif
@@ -176,9 +186,9 @@ static int conf_social_action(int tok, int val)
     {
         case GUI_BACK:
             conf_join_confirm = 0;
-            st_conf_social_back = NULL;
-
-            return exit_state(&st_conf);
+            r = exit_state(social_back);
+            social_back = NULL;
+            return r;
 
         case CONF_SOCIAL_DISCORD:
 #if NB_HAVE_PB_BOTH==1
@@ -228,8 +238,15 @@ static int conf_social_action(int tok, int val)
 #endif
             break;
     }
-    return 1;
+    return r;
 }
+
+/*
+ * This function name will be redirected to conf_social_action() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_social_action()` to `social_action()`.
+ */
+#define social_action conf_social_action
 
 static int conf_social_gui(void)
 {
@@ -300,14 +317,28 @@ static int conf_social_gui(void)
     return id;
 }
 
+/*
+ * This function name will be redirected to conf_social_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_social_gui()` to `social_gui()`.
+ */
+#define social_gui conf_social_gui
+
 static int conf_social_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
-    conf_common_init(conf_social_action, mainmenu_conf);
-    return transition_slide(conf_social_gui(), 1, intent);
+    conf_common_init(social_action, mainmenu_conf);
+    return transition_slide(social_gui(), 1, intent);
 }
+
+/*
+ * This function name will be redirected to conf_social_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_social_enter()` to `social_enter()`.
+ */
+#define social_enter conf_social_enter
 
 /*---------------------------------------------------------------------------*/
 
@@ -563,6 +594,13 @@ static int conf_account_action(int tok, int val)
 
     return 1;
 }
+
+/*
+ * This function name will be redirected to conf_account_action() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_account_action()` to `account_action()`.
+ */
+#define account_action conf_account_action
 
 static int time_remain_lbl_id;
 
@@ -845,6 +883,13 @@ static int conf_account_gui(void)
     return id;
 }
 
+/*
+ * This function name will be redirected to conf_account_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_account_gui()` to `account_gui()`.
+ */
+#define account_gui conf_account_gui
+
 static int conf_account_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_ball) game_fade(-6.0f);
@@ -852,9 +897,16 @@ static int conf_account_enter(struct state *st, struct state *prev, int intent)
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
-    conf_common_init(conf_account_action, mainmenu_conf);
-    return transition_slide(conf_account_gui(), 1, intent);
+    conf_common_init(account_action, mainmenu_conf);
+    return transition_slide(account_gui(), 1, intent);
 }
+
+/*
+ * This function name will be redirected to conf_account_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_account_enter()` to `account_enter()`.
+ */
+#define account_enter conf_account_enter
 
 static void conf_account_timer(int id, float dt)
 {
@@ -912,6 +964,13 @@ static void conf_account_timer(int id, float dt)
                           CONF_ACCOUNT_DEMO_LOCKED_DESC_NIGHT);
     }
 }
+
+/*
+ * This function name will be redirected to conf_account_timer() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_account_timer()` to `account_timer()`.
+ */
+#define account_timer conf_account_timer
 
 /*---------------------------------------------------------------------------*/
 
@@ -1010,6 +1069,13 @@ static int conf_gameplay_action(int tok, int val)
 
     return 1;
 }
+
+/*
+ * This function name will be redirected to conf_gameplay_action() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_gameplay_action()` to `gameplay_action()`.
+ */
+#define gameplay_action conf_gameplay_action
 
 static int conf_gameplay_gui(void)
 {
@@ -1130,6 +1196,13 @@ static int conf_gameplay_gui(void)
     return id;
 }
 
+/*
+ * This function name will be redirected to conf_gameplay_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_gameplay_gui()` to `gameplay_gui()`.
+ */
+#define gameplay_gui conf_gameplay_gui
+
 static int conf_gameplay_enter(struct state *st, struct state *prev, int intent)
 {
     if (!conf_gameplay_settings_entered) {
@@ -1140,9 +1213,16 @@ static int conf_gameplay_enter(struct state *st, struct state *prev, int intent)
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
-    conf_common_init(conf_gameplay_action, mainmenu_conf);
-    return transition_slide(conf_gameplay_gui(), 1, intent);
+    conf_common_init(gameplay_action, mainmenu_conf);
+    return transition_slide(gameplay_gui(), 1, intent);
 }
+
+/*
+ * This function name will be redirected to conf_gameplay_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_gameplay_enter()` to `gameplay_enter()`.
+ */
+#define gameplay_enter conf_gameplay_enter
 
 /*---------------------------------------------------------------------------*/
 
@@ -1167,17 +1247,95 @@ static int conf_gameplay_enter(struct state *st, struct state *prev, int intent)
 
 enum
 {
-    CONF_CONTROL_INPUT_PRESET = GUI_LAST,
-    CONF_CONTROL_TILTING_FLOOR,
-    CONF_CONTROL_CAMERA_ROTATE_MODE,
-    CONF_CONTROL_MOUSE_SENSE,
-    CONF_CONTROL_INVERT_MOUSE_Y,
-    CONF_CONTROL_INVERT_RS_Y,
-    CONF_CONTROL_CHANGEKEYBD,
-    CONF_CONTROL_CHANGECONTROLLERS,
-    CONF_CONTROL_AUTOCALIB_AXIS,
-    CONF_CONTROL_CALIBRATE
+    CONF_CONTROLS_INPUT_PRESET = GUI_LAST,
+    CONF_CONTROLS_TILTING_FLOOR,
+    CONF_CONTROLS_CAMERA_ROTATE_MODE,
+    CONF_CONTROLS_MOUSE_SENSE,
+    CONF_CONTROLS_INVERT_MOUSE_Y,
+    CONF_CONTROLS_INVERT_RS_Y,
+    CONF_CONTROLS_CHANGEKEYBD,
+    CONF_CONTROLS_CONTROLLERS,
+    CONF_CONTROLS_AUTOCALIB_AXIS,
+    CONF_CONTROLS_CONTROLLERS_CALIBRATE,
+    CONF_CONTROLS_TOUCH
 };
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_INPUT_PRESET for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_INPUT_PRESET` to `CONTROLS_INPUT_PRESET`.
+ */
+#define CONTROLS_INPUT_PRESET CONF_CONTROLS_INPUT_PRESET
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_TILTING_FLOOR for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_TILTING_FLOOR` to `CONTROLS_TILTING_FLOOR`.
+ */
+#define CONTROLS_TILTING_FLOOR CONF_CONTROLS_TILTING_FLOOR
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_CAMERA_ROTATE_MODE for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_CAMERA_ROTATE_MODE` to `CONTROLS_CAMERA_ROTATE_MODE`.
+ */
+#define CONTROLS_CAMERA_ROTATE_MODE CONF_CONTROLS_CAMERA_ROTATE_MODE
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_MOUSE_SENSE for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_MOUSE_SENSE` to `CONTROLS_MOUSE_SENSE`.
+ */
+#define CONTROLS_MOUSE_SENSE CONF_CONTROLS_MOUSE_SENSE
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_INVERT_MOUSE_Y for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_INVERT_MOUSE_Y` to `CONTROLS_INVERT_MOUSE_Y`.
+ */
+#define CONTROLS_INVERT_MOUSE_Y CONF_CONTROLS_INVERT_MOUSE_Y
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_INVERT_RS_Y for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_INVERT_RS_Y` to `CONTROLS_INVERT_RS_Y`.
+ */
+#define CONTROLS_INVERT_RS_Y CONF_CONTROLS_INVERT_RS_Y
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_CHANGEKEYBD for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_CHANGEKEYBD` to `CONTROLS_KEYBD`.
+ */
+#define CONTROLS_KEYBD CONF_CONTROLS_CHANGEKEYBD
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_CONTROLLERS for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_CONTROLLERS` to `CONTROLS_JOYSTICK`.
+ */
+#define CONTROLS_JOYSTICK CONF_CONTROLS_CONTROLLERS
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_AUTOCALIB_AXIS for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_AUTOCALIB_AXIS` to `CONTROLS_JOYSTICK_AUTOCALIB_AXIS`.
+ */
+#define CONTROLS_JOYSTICK_AUTOCALIB_AXIS CONF_CONTROLS_AUTOCALIB_AXIS
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_CONTROLLERS_CALIBRATE for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_CONTROLLERS_CALIBRATE` to `CONTROLS_JOYSTICK_CALIBRATE`.
+ */
+#define CONTROLS_JOYSTICK_CALIBRATE CONF_CONTROLS_CONTROLLERS_CALIBRATE
+
+/*
+ * This enum name will be redirected to CONF_CONTROLS_TOUCH for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLS_TOUCH` to `CONTROLS_TOUCH`.
+ */
+#define CONTROLS_TOUCH CONF_CONTROLS_TOUCH
 
 enum InputType
 {
@@ -1286,7 +1444,7 @@ static void control_set_input()
     audio_play(key_preset_id != CONTROL_NEVERBALL ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
 }
 
-static int conf_control_action(int tok, int val)
+static int conf_controls_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
@@ -1298,19 +1456,19 @@ static int conf_control_action(int tok, int val)
             exit_state(&st_null);
             return exit_state(&st_conf);
 
-        case CONF_CONTROL_INPUT_PRESET:
+        case CONTROLS_INPUT_PRESET:
             control_set_input();
             config_save();
             break;
 
-        case CONF_CONTROL_TILTING_FLOOR:
+        case CONTROLS_TILTING_FLOOR:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_TILTING_FLOOR, val);
             config_save();
-            goto_state(&st_conf_control);
+            goto_state(&st_conf_controls);
             break;
 
-        case CONF_CONTROL_CAMERA_ROTATE_MODE:
+        case CONTROLS_CAMERA_ROTATE_MODE:
 #ifdef SWITCHBALL_GUI
             if (camrot_mode_id)
             {
@@ -1325,7 +1483,7 @@ static int conf_control_action(int tok, int val)
 #endif
             break;
 
-        case CONF_CONTROL_MOUSE_SENSE:
+        case CONTROLS_MOUSE_SENSE:
             config_set_d(CONFIG_MOUSE_SENSE, MOUSE_RANGE_UNMAP(val));
 
 #ifdef SWITCHBALL_GUI
@@ -1338,44 +1496,55 @@ static int conf_control_action(int tok, int val)
             config_save();
             break;
 
-        case CONF_CONTROL_INVERT_MOUSE_Y:
+        case CONTROLS_INVERT_MOUSE_Y:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_MOUSE_INVERT, val);
             config_save();
-            goto_state(&st_conf_control);
+            goto_state(&st_conf_controls);
             break;
 
-        case CONF_CONTROL_INVERT_RS_Y:
+        case CONTROLS_INVERT_RS_Y:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT, val);
             config_save();
-            goto_state(&st_conf_control);
+            goto_state(&st_conf_controls);
             break;
 
-        case CONF_CONTROL_CHANGEKEYBD:
+        case CONTROLS_KEYBD:
             goto_state(&st_conf_keybd);
             break;
 
-        case CONF_CONTROL_CHANGECONTROLLERS:
+        case CONTROLS_JOYSTICK:
             goto_state(&st_conf_controllers);
             break;
 
-        case CONF_CONTROL_AUTOCALIB_AXIS:
+        case CONTROLS_JOYSTICK_AUTOCALIB_AXIS:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS, val);
             config_save();
-            goto_state(&st_conf_control);
+            goto_state(&st_conf_controls);
             break;
 
-        case CONF_CONTROL_CALIBRATE:
+        case CONTROLS_JOYSTICK_CALIBRATE:
             goto_state(&st_conf_calibrate);
+            break;
+
+        case CONTROLS_TOUCH:
+            goto_state(&st_conf_touch);
             break;
     }
 
     return 1;
 }
 
-static int conf_control_gui(void)
+/*
+ * This function name will be redirected to conf_controls_action() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controls_action()` to `controls_action()`.
+ */
+#define controls_action conf_controls_action
+
+static int conf_controls_gui(void)
 {
     int id;
 
@@ -1406,7 +1575,7 @@ static int conf_control_gui(void)
         }
 
         preset_id = conf_state(id, _("Preset"), "XXXXXXXXXXXXX",
-                                   CONF_CONTROL_INPUT_PRESET);
+                                   CONTROLS_INPUT_PRESET);
 
         const char *presetname = N_("Custom");
 
@@ -1430,11 +1599,11 @@ static int conf_control_gui(void)
         gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
+        conf_toggle_simple(id, _("Tilting Floor"), CONTROLS_TILTING_FLOOR,
                                config_get_d(CONFIG_TILTING_FLOOR),
                                1, 0);
 #else
-        conf_toggle(id, _("Tilting Floor"), CONF_CONTROL_TILTING_FLOOR,
+        conf_toggle(id, _("Tilting Floor"), CONTROLS_TILTING_FLOOR,
                         config_get_d(CONFIG_TILTING_FLOOR),
                         _("On"), 1, _("Off"), 0);
 #endif
@@ -1443,7 +1612,7 @@ static int conf_control_gui(void)
         const char *camrot_mode_text = config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
                                        N_("Inverted") : N_("Normal");
         camrot_mode_id = conf_state(id, _("Camera rotate"), camrot_mode_text,
-                                    CONF_CONTROL_CAMERA_ROTATE_MODE);
+                                    CONTROLS_CAMERA_ROTATE_MODE);
 #endif
 
         gui_space(id);
@@ -1454,35 +1623,35 @@ static int conf_control_gui(void)
         {
 
 #ifdef SWITCHBALL_GUI
-            mouse_id = conf_slider_v2(id, _("Mouse Sensitivity"), CONF_CONTROL_MOUSE_SENSE,
+            mouse_id = conf_slider_v2(id, _("Mouse Sensitivity"), CONTROLS_MOUSE_SENSE,
                                       mouse);
 #else
-            conf_slider(id, _("Mouse Sensitivity"), CONF_CONTROL_MOUSE_SENSE,
+            conf_slider(id, _("Mouse Sensitivity"), CONF_CONTROLS_MOUSE_SENSE,
                             mouse, mouse_id, ARRAYSIZE(mouse_id));
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Invert Y Axis"), CONF_CONTROL_INVERT_MOUSE_Y,
+            conf_toggle_simple(id, _("Invert Y Axis"), CONTROLS_INVERT_MOUSE_Y,
                                    config_get_d(CONFIG_MOUSE_INVERT),
                                    1, 0);
 #else
-            conf_toggle(id, _("Invert Y Axis"), CONF_CONTROL_INVERT_MOUSE_Y,
+            conf_toggle(id, _("Invert Y Axis"), CONF_CONTROLS_INVERT_MOUSE_Y,
                             config_get_d(CONFIG_MOUSE_INVERT),
                             _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
-            conf_state(id, _("Keyboard"), _("Change"), CONF_CONTROL_CHANGEKEYBD);
+            conf_state(id, _("Keyboard"), _("Configure"), CONTROLS_KEYBD);
         }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         else
 #endif
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Invert Y Axis (RS)"), CONF_CONTROL_INVERT_RS_Y,
+            conf_toggle_simple(id, _("Invert Y Axis (RS)"), CONTROLS_INVERT_RS_Y,
                                    config_get_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT),
                                    1, 0);
 #else
-            conf_toggle(id, _("Invert Y Axis (RS)"), CONF_CONTROL_INVERT_RS_Y,
+            conf_toggle(id, _("Invert Y Axis (RS)"), CONTROLS_INVERT_RS_Y,
                             config_get_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT),
                             _("On"), 1, _("Off"), 0);
 #endif
@@ -1496,20 +1665,28 @@ static int conf_control_gui(void)
             gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Auto-Calibrate Axis"), CONF_CONTROL_AUTOCALIB_AXIS,
+            conf_toggle_simple(id, _("Auto-Calibrate Axis"), CONTROLS_JOYSTICK_AUTOCALIB_AXIS,
                                    config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
                                    1, 0);
 #else
-            conf_toggle(id, _("Auto-Calibrate Axis"), CONF_CONTROL_AUTOCALIB_AXIS,
+            conf_toggle(id, _("Auto-Calibrate Axis"), CONTROLS_JOYSTICK_AUTOCALIB_AXIS,
                             config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
                             _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
-            conf_state(id, _("Gamepad"), _("Change"), CONF_CONTROL_CHANGECONTROLLERS);
+            conf_state(id, _("Gamepad"), _("Configure"), CONTROLS_JOYSTICK);
 
             if (!config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
-                conf_state(id, _("Axis"), _("Calibrate"), CONF_CONTROL_CALIBRATE);
+                conf_state(id, _("Axis"), _("Calibrate"), CONTROLS_JOYSTICK_CALIBRATE);
 #endif
+        }
+
+#ifdef NDEBUG
+        if (opt_touch || video_has_touch)
+#endif
+        {
+            gui_space(id);
+            conf_state(id, _("Touch"), _("Configure"), CONTROLS_TOUCH);
         }
 
         gui_layout(id, 0, 0);
@@ -1518,14 +1695,152 @@ static int conf_control_gui(void)
     return id;
 }
 
-static int conf_control_enter(struct state *st, struct state *prev, int intent)
+/*
+ * This function name will be redirected to conf_controls_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controls_gui()` to `controls_gui()`.
+ */
+#define controls_gui conf_controls_gui
+
+static int conf_controls_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
-    conf_common_init(conf_control_action, mainmenu_conf);
-    return transition_slide(conf_control_gui(), 1, intent);
+    conf_common_init(controls_action, mainmenu_conf);
+    return transition_slide(controls_gui(), 1, intent);
 }
+
+/*
+ * This function name will be redirected to conf_controls_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controls_enter()` to `controls_enter()`.
+ */
+#define controls_enter conf_controls_enter
+
+/*---------------------------------------------------------------------------*/
+
+enum
+{
+    CONF_TOUCH_MODE = GUI_LAST,
+    CONF_TOUCH_ROTATE_INVERT
+};
+
+/*
+ * This enum name will be redirected to CONF_TOUCH_MODE for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_TOUCH_MODE` to `TOUCH_MODE`.
+ */
+#define TOUCH_MODE CONF_TOUCH_MODE
+
+/*
+ * This enum name will be redirected to CONF_TOUCH_ROTATE_INVERT for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_TOUCH_ROTATE_INVERT` to `TOUCH_ROTATE_INVERT`.
+ */
+#define TOUCH_ROTATE_INVERT CONF_TOUCH_ROTATE_INVERT
+
+static struct state *touch_back;
+
+static int conf_touch_action(int tok, int val)
+{
+    int r = 1;
+
+    GENERIC_GAMEMENU_ACTION;
+
+    switch (tok)
+    {
+    case GUI_BACK:
+        r = exit_state(touch_back);
+        touch_back = NULL;
+        return r;
+
+    case TOUCH_MODE:
+        config_set_d(CONFIG_TOUCH_MODE, val);
+        return goto_state(&st_conf_touch);
+
+    case TOUCH_ROTATE_INVERT:
+        config_set_d(CONFIG_TOUCH_MODE, val);
+        return goto_state(&st_conf_touch);
+    }
+
+    return r;
+}
+
+/*
+ * This function name will be redirected to conf_touch_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_touch_enter()` to `touch_enter()`.
+ */
+#define touch_action conf_touch_action
+
+static int conf_touch_gui(void)
+{
+    int id, jd, kd, ld;
+
+    int curr = config_get_d(CONFIG_TOUCH_MODE);
+
+    if ((id = gui_vstack(0)))
+    {
+        conf_header(id, _("Touch"), GUI_BACK);
+
+        if ((jd = gui_harray(id)) && (kd = gui_vstack(jd)) && (ld = gui_vstack(jd)))
+        {
+            const char btn_texts[3][12] = { N_("Left Tilt"), N_("Right Tilt"), N_("Dynamic") };
+            int btn_enum_touch_modes[3] = { TOUCH_MODE_LR, TOUCH_MODE_RL, TOUCH_MODE_DYNAMIC };
+            int btns[3] = { 0, 0, 0 };
+
+            for (int i = 0; i < 3; i++)
+            {
+                btns[i] = gui_state(kd, _(btn_texts[i]), GUI_SML, TOUCH_MODE, btn_enum_touch_modes[i]);
+                gui_set_hilite(btns[i], (curr == btn_enum_touch_modes[i]));
+            }
+
+            gui_label(ld, _("Mode"), GUI_SML, 0, 0);
+            gui_filler(ld);
+        }
+
+        gui_space(id);
+
+#if NB_HAVE_PB_BOTH==1
+        conf_toggle_simple(id, _("Invert Rotation"), TOUCH_ROTATE_INVERT,
+                               config_get_d(CONFIG_TOUCH_ROTATE_INVERT),
+                               1, 0);
+#else
+        conf_toggle(id, _("Invert Rotation"),
+                        TOUCH_ROTATE_INVERT,
+                        config_get_d(CONFIG_TOUCH_ROTATE_INVERT),
+                        _("On"), 1, _("Off"), 0);
+#endif
+
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+/*
+ * This function name will be redirected to conf_touch_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_touch_enter()` to `touch_enter()`.
+ */
+#define touch_gui conf_touch_gui
+
+static int conf_touch_enter(struct state *st, struct state *prev, int intent)
+{
+    if (!touch_back)
+        touch_back = prev;
+
+    conf_common_init(touch_action, mainmenu_conf);
+    return transition_slide(touch_gui(), 1, intent);
+}
+
+/*
+ * This function name will be redirected to conf_touch_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_touch_enter()` to `touch_enter()`.
+ */
+#define touch_enter conf_touch_enter
 
 /*---------------------------------------------------------------------------*/
 
@@ -1534,13 +1849,46 @@ enum
     CONF_KEYBD_ASSIGN_KEY = GUI_LAST,
 };
 
+/*
+ * This enum name will be redirected to CONF_KEYBD_ASSIGN_KEY for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_KEYBD_ASSIGN_KEY` to `KEYBD_ASSIGN_KEY`.
+ */
+#define KEYBD_ASSIGN_KEY CONF_KEYBD_ASSIGN_KEY
+
 static struct state *conf_keybd_back;
 
+/*
+ * This variable name will be redirected to conf_keybd_back for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_back` to `keybd_back`.
+ */
+#define keybd_back conf_keybd_back
+
 static int conf_keybd_modal_key_id;
-
 static int conf_keybd_modal;
-
 static int conf_keybd_option_index;
+
+/*
+ * This variable name will be redirected to conf_keybd_modal_key_id for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_modal_key_id` to `keybd_modal_key_id`.
+ */
+#define keybd_modal_key_id conf_keybd_modal_key_id
+
+/*
+ * This variable name will be redirected to conf_keybd_modal for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_modal` to `keybd_modal`.
+ */
+#define keybd_modal conf_keybd_modal
+
+/*
+ * This variable name will be redirected to conf_keybd_option_index for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_option_index` to `keybd_option_index`.
+ */
+#define keybd_option_index conf_keybd_option_index
 
 static float keybd_modal_alpha = 0.0f;
 
@@ -1561,6 +1909,13 @@ static const char *conf_keybd_option_names[] = {
     N_("Rotate Right")
 };
 
+/*
+ * This variable name will be redirected to conf_keybd_option_names[] for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_option_names[]` to `keybd_option_names[]`.
+ */
+#define keybd_option_names conf_keybd_option_names
+
 static int *conf_keybd_options[] = {
     &CONFIG_KEY_CAMERA_TOGGLE,
     &CONFIG_KEY_CAMERA_1,
@@ -1578,48 +1933,76 @@ static int *conf_keybd_options[] = {
     &CONFIG_KEY_CAMERA_L
 };
 
-static int conf_keybd_option_ids[ARRAYSIZE(conf_keybd_options)];
+/*
+ * This variable name will be redirected to conf_keybd_options[] for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_options[]` to `conf_keybd_options[]`.
+ */
+#define keybd_options conf_keybd_options
+
+static int conf_keybd_option_ids[ARRAYSIZE(keybd_options)];
+
+/*
+ * This variable name will be redirected to conf_keybd_option_ids[] for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_option_ids[]` to `conf_keybd_option_ids[]`.
+ */
+#define keybd_option_ids conf_keybd_option_ids
 
 static void conf_keybd_set_label(int id, int value)
 {
     gui_set_label(id, value ? SDL_GetKeyName(value) : _("Unassigned"));
 }
 
+/*
+ * This function name will be redirected to conf_keybd_set_label() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_set_label()` to `keybd_set_label()`.
+ */
+#define keybd_set_label conf_keybd_set_label
+
 static void conf_keybd_set_option(int index, int value)
 {
-    for (int i = 0; i < ARRAYSIZE(conf_keybd_options); i++)
+    for (int i = 0; i < ARRAYSIZE(keybd_options); i++)
     {
-        int option_id = *conf_keybd_options[index];
+        int option_id = *keybd_options[index];
 
         if (value == config_get_d(option_id))
         {
             config_set_d(option_id, 0);
-            conf_keybd_set_label(option_id, 0);
+            keybd_set_label(option_id, 0);
         }
     }
 
-    if (index < ARRAYSIZE(conf_keybd_options))
+    if (index < ARRAYSIZE(keybd_options))
     {
-        int option_new = *conf_keybd_options[index];
+        int option_new = *keybd_options[index];
 
         config_set_d(option_new, value);
 
-        conf_keybd_set_label(conf_keybd_option_ids[index], value);
+        keybd_set_label(keybd_option_ids[index], value);
 
         /* Focus the next button. */
 
-        if (index < ARRAYSIZE(conf_keybd_options) - 1)
+        if (index < ARRAYSIZE(keybd_options) - 1)
         {
             /* Skip over marker, if any. */
 
-            if (index < ARRAYSIZE(conf_keybd_options) - 2 &&
-                conf_keybd_options[index + 1] == NULL)
-                gui_focus(conf_keybd_option_ids[index + 2]);
+            if (index < ARRAYSIZE(keybd_options) - 2 &&
+                keybd_options[index + 1] == NULL)
+                gui_focus(keybd_option_ids[index + 2]);
             else
-                gui_focus(conf_keybd_option_ids[index + 1]);
+                gui_focus(keybd_option_ids[index + 1]);
         }
     }
 }
+
+/*
+ * This function name will be redirected to conf_keybd_set_option() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_set_option()` to `keybd_set_option()`.
+ */
+#define keybd_set_option conf_keybd_set_option
 
 static int conf_keybd_action(int tok, int val)
 {
@@ -1628,27 +2011,34 @@ static int conf_keybd_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            if (conf_keybd_modal)
-                conf_keybd_modal = 0;
+            if (keybd_modal)
+                keybd_modal = 0;
             else
             {
-                exit_state(conf_keybd_back);
-                while (curr_state() != conf_keybd_back)
+                exit_state(keybd_back);
+                while (curr_state() != keybd_back)
                 {
-                    exit_state(conf_keybd_back);
-                    conf_keybd_back = NULL;
+                    exit_state(keybd_back);
+                    keybd_back = NULL;
                 }
             }
             break;
 
-        case CONF_KEYBD_ASSIGN_KEY:
-            conf_keybd_modal        = tok;
-            conf_keybd_option_index = val;
+        case KEYBD_ASSIGN_KEY:
+            keybd_modal        = tok;
+            keybd_option_index = val;
             break;
     }
 
     return 1;
 }
+
+/*
+ * This function name will be redirected to conf_keybd_action() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_action()` to `keybd_action()`.
+ */
+#define keybd_action conf_keybd_action
 
 static int conf_keybd_gui(void)
 {
@@ -1663,32 +2053,32 @@ static int conf_keybd_gui(void)
         int btn_id;
         int value;
 
-        for (int i = 0; i < ARRAYSIZE(conf_keybd_option_names); i++)
+        for (int i = 0; i < ARRAYSIZE(keybd_option_names); i++)
         {
-            if (conf_keybd_options[i])
+            if (keybd_options[i])
             {
                 char tmp_opt_name[MAXSTR];
 
-                if      (str_starts_with(conf_keybd_option_names[i], "KEYBD_KEY_CAM_1"))
+                if      (str_starts_with(keybd_option_names[i], "KEYBD_KEY_CAM_1"))
                     SAFECPY(tmp_opt_name, cam_to_str(CAM_1));
-                else if (str_starts_with(conf_keybd_option_names[i], "KEYBD_KEY_CAM_2"))
+                else if (str_starts_with(keybd_option_names[i], "KEYBD_KEY_CAM_2"))
                     SAFECPY(tmp_opt_name, cam_to_str(CAM_2));
-                else if (str_starts_with(conf_keybd_option_names[i], "KEYBD_KEY_CAM_3"))
+                else if (str_starts_with(keybd_option_names[i], "KEYBD_KEY_CAM_3"))
                     SAFECPY(tmp_opt_name, cam_to_str(CAM_3));
                 else
-                    SAFECPY(tmp_opt_name, _(conf_keybd_option_names[i]));
+                    SAFECPY(tmp_opt_name, _(keybd_option_names[i]));
 
-                value = config_get_d(*conf_keybd_options[i]);
+                value = config_get_d(*keybd_options[i]);
 
                 if ((btn_id = conf_state(id, tmp_opt_name,
                                              value ? SDL_GetKeyName(value) : _("Unassigned"),
-                                             CONF_KEYBD_ASSIGN_KEY)))
+                                             KEYBD_ASSIGN_KEY)))
                 {
-                    conf_keybd_option_ids[i] = btn_id;
+                    keybd_option_ids[i] = btn_id;
 
-                    gui_set_state(btn_id, CONF_KEYBD_ASSIGN_KEY, i);
+                    gui_set_state(btn_id, KEYBD_ASSIGN_KEY, i);
 
-                    conf_keybd_set_label(btn_id, value);
+                    keybd_set_label(btn_id, value);
                 }
             }
             else gui_space(id);
@@ -1699,6 +2089,13 @@ static int conf_keybd_gui(void)
 
     return id;
 }
+
+/*
+ * This function name will be redirected to conf_keybd_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_gui()` to `keybd_gui()`.
+ */
+#define keybd_gui conf_keybd_gui
 
 static int conf_keybd_modal_key_gui(void)
 {
@@ -1717,34 +2114,54 @@ static int conf_keybd_modal_key_gui(void)
     return id;
 }
 
+/*
+ * This function name will be redirected to conf_keybd_modal_key_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_modal_key_gui()` to `keybd_modal_key_gui()`.
+ */
+#define keybd_modal_key_gui conf_keybd_modal_key_gui
+
 static int conf_keybd_enter(struct state *st, struct state *prev, int intent)
 {
-    if (!conf_keybd_back)
-        conf_keybd_back = prev;
+    if (!keybd_back)
+        keybd_back = prev;
 
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
-    conf_common_init(conf_keybd_action, mainmenu_conf);
+    conf_common_init(keybd_action, mainmenu_conf);
 
-    conf_keybd_modal = 0;
+    keybd_modal        = 0;
+    keybd_modal_key_id = keybd_modal_key_gui();
 
-    conf_keybd_modal_key_id = conf_keybd_modal_key_gui();
-
-    return transition_slide(conf_keybd_gui(), 1, intent);
+    return transition_slide(keybd_gui(), 1, intent);
 }
+
+/*
+ * This function name will be redirected to conf_keybd_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_enter()` to `keybd_enter()`.
+ */
+#define keybd_enter conf_keybd_enter
 
 static int conf_keybd_leave(struct state *st, struct state *next, int id, int intent)
 {
     conf_common_leave(st, next, id, intent);
 
-    gui_delete(conf_keybd_modal_key_id);
-    conf_keybd_modal_key_id = 0;
+    gui_delete(keybd_modal_key_id);
+    keybd_modal_key_id = 0;
 
     keybd_modal_alpha = 0.0f;
 
     return transition_slide(id, 0, intent);
 }
+
+/*
+ * This function name will be redirected to conf_keybd_leave() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_leave()` to `keybd_leave()`.
+ */
+#define keybd_leave conf_keybd_leave
 
 static void conf_keybd_paint(int id, float t)
 {
@@ -1757,8 +2174,8 @@ static void conf_keybd_paint(int id, float t)
 
     gui_paint(id);
 
-    if (conf_keybd_modal == CONF_KEYBD_ASSIGN_KEY)
-        gui_paint(conf_keybd_modal_key_id);
+    if (conf_keybd_modal == KEYBD_ASSIGN_KEY)
+        gui_paint(keybd_modal_key_id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC || console_gui_shown())
@@ -1766,19 +2183,33 @@ static void conf_keybd_paint(int id, float t)
 #endif
 }
 
+/*
+ * This function name will be redirected to conf_keybd_paint() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_paint()` to `keybd_paint()`.
+ */
+#define keybd_paint conf_keybd_paint
+
 static void conf_keybd_timer(int id, float dt)
 {
     gui_timer(id, dt);
     gui_alpha(id, 1 - keybd_modal_alpha);
 
-    if (conf_keybd_modal == CONF_KEYBD_ASSIGN_KEY)
+    if (conf_keybd_modal == KEYBD_ASSIGN_KEY)
         keybd_modal_alpha = keybd_modal_alpha + (dt * 4);
     else
         keybd_modal_alpha = keybd_modal_alpha - (dt * 4);
 
     keybd_modal_alpha = CLAMP(0.0f, keybd_modal_alpha, 1.0f);
-    gui_alpha(conf_keybd_modal_key_id, keybd_modal_alpha);
+    gui_alpha(keybd_modal_key_id, keybd_modal_alpha);
 }
+
+/*
+ * This function name will be redirected to conf_keybd_timer() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_timer()` to `keybd_timer()`.
+ */
+#define keybd_timer conf_keybd_timer
 
 static int conf_keybd_keybd(int c, int d)
 {
@@ -1791,9 +2222,9 @@ static int conf_keybd_keybd(int c, int d)
             conf_keybd_modal = 0;
             return 1;
         }
-        else if (conf_keybd_modal == CONF_KEYBD_ASSIGN_KEY)
+        else if (conf_keybd_modal == KEYBD_ASSIGN_KEY)
         {
-            conf_keybd_set_option(conf_keybd_option_index, c);
+            keybd_set_option(keybd_option_index, c);
             conf_keybd_modal = 0;
             return 1;
         }
@@ -1801,6 +2232,13 @@ static int conf_keybd_keybd(int c, int d)
 
     return common_keybd(c, d);
 }
+
+/*
+ * This function name will be redirected to conf_keybd_keybd() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_keybd_keybd()` to `keybd_keybd()`.
+ */
+#define keybd_keybd conf_keybd_keybd
 
 /*---------------------------------------------------------------------------*/
 
@@ -1810,16 +2248,63 @@ enum
     CONF_CONTROLLERS_ASSIGN_AXIS,
 };
 
+/*
+ * This enum name will be redirected to CONF_CONTROLLERS_ASSIGN_BUTTON for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLLERS_ASSIGN_BUTTON` to `JOYSTICK_ASSIGN_BUTTON`.
+ */
+#define JOYSTICK_ASSIGN_BUTTON CONF_CONTROLLERS_ASSIGN_BUTTON
+
+/*
+ * This enum name will be redirected to CONF_CONTROLLERS_ASSIGN_AXIS for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_CONTROLLERS_ASSIGN_AXIS` to `JOYSTICK_ASSIGN_AXIS`.
+ */
+#define JOYSTICK_ASSIGN_AXIS CONF_CONTROLLERS_ASSIGN_AXIS
+
 static struct state *conf_controllers_back;
 
 static int conf_controllers_modal_button_id;
 static int conf_controllers_modal_axis_id;
-
 static int conf_controllers_modal;
-
 static int conf_controllers_option_index;
 
 static float controllers_modal_alpha = 0.0f;
+
+/*
+ * This variable name will be redirected to conf_controllers_back for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_back` to `joystick_back`.
+ */
+#define joystick_back conf_controllers_back
+
+/*
+ * This variable name will be redirected to conf_controllers_modal_button_id for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_modal_button_id` to `joystick_modal_button_id`.
+ */
+#define joystick_modal_button_id conf_controllers_modal_button_id
+
+/*
+ * This variable name will be redirected to conf_controllers_modal_axis_id for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_modal_axis_id` to `joystick_modal_axis_id`.
+ */
+#define joystick_modal_axis_id conf_controllers_modal_axis_id
+
+/*
+ * This variable name will be redirected to conf_controllers_modal for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_modal` to `joystick_modal`.
+ */
+#define joystick_modal conf_controllers_modal
+
+/*
+ * This variable name will be redirected to conf_controllers_option_index for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_index` to `joystick_option_index`.
+ */
+#define joystick_option_index conf_controllers_option_index
 
 /*
  * Xbox, Playstation and Nintendo contains
@@ -1846,6 +2331,13 @@ static int *conf_controllers_options[] = {
     NULL,
 };
 
+/*
+ * This variable name will be redirected to conf_controllers_options for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_options` to `joystick_options`.
+ */
+#define joystick_options conf_controllers_options
+
 static const char *conf_controllers_option_names[] = {
     N_("Button A"),
     N_("Button B"),
@@ -1867,6 +2359,13 @@ static const char *conf_controllers_option_names[] = {
     N_("Y Axis 2"),
     N_("Right Stick"),
 };
+
+/*
+ * This variable name will be redirected to conf_controllers_option_names for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_names` to `joystick_option_names`.
+ */
+#define joystick_option_names conf_controllers_option_names
 
 static const char *conf_controllers_option_values_energizelab[] = {
     "a",
@@ -1890,6 +2389,13 @@ static const char *conf_controllers_option_values_energizelab[] = {
     "",
 };
 
+/*
+ * This variable name will be redirected to conf_controllers_option_values_energizelab for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_values_energizelab` to `joystick_option_values_energizelab`.
+ */
+#define joystick_option_values_energizelab conf_controllers_option_values_energizelab
+
 static const char *conf_controllers_option_values_xbox[] = {
     "A",
     "B",
@@ -1911,6 +2417,13 @@ static const char *conf_controllers_option_values_xbox[] = {
     "Y (RS)",
     "RS",
 };
+
+/*
+ * This variable name will be redirected to conf_controllers_option_values_xbox for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_values_xbox` to `joystick_option_values_xbox`.
+ */
+#define joystick_option_values_xbox conf_controllers_option_values_xbox
 
 static const char *conf_controllers_option_values_ps[] = {
     "X",
@@ -1934,6 +2447,13 @@ static const char *conf_controllers_option_values_ps[] = {
     "R3",
 };
 
+/*
+ * This variable name will be redirected to conf_controllers_option_values_ps for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_values_ps` to `joystick_option_values_ps`.
+ */
+#define joystick_option_values_ps conf_controllers_option_values_ps
+
 static const char *conf_controllers_option_values_steamdeck[] = {
     "A",
     "B",
@@ -1955,6 +2475,13 @@ static const char *conf_controllers_option_values_steamdeck[] = {
     "Y (R3)",
     "R3",
 };
+
+/*
+ * This variable name will be redirected to conf_controllers_option_values_steamdeck for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_values_steamdeck` to `joystick_option_values_steamdeck`.
+ */
+#define joystick_option_values_steamdeck conf_controllers_option_values_steamdeck
 
 static const char *conf_controllers_option_values_switch[] = {
     "A",
@@ -1978,6 +2505,13 @@ static const char *conf_controllers_option_values_switch[] = {
     "RS",
 };
 
+/*
+ * This variable name will be redirected to conf_controllers_option_values_switch for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_values_switch` to `joystick_option_values_switch`.
+ */
+#define joystick_option_values_switch conf_controllers_option_values_switch
+
 static const char *conf_controllers_option_values_handset[] = {
     "A",
     "B",
@@ -1999,6 +2533,13 @@ static const char *conf_controllers_option_values_handset[] = {
     "",
     "",
 };
+
+/*
+ * This variable name will be redirected to conf_controllers_option_values_handset for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_values_handset` to `joystick_option_values_handset`.
+ */
+#define joystick_option_values_handset conf_controllers_option_values_handset
 
 static const char *conf_controllers_option_values_wii[] = {
     "A",
@@ -2022,7 +2563,21 @@ static const char *conf_controllers_option_values_wii[] = {
     "",
 };
 
-static int conf_controllers_option_ids[ARRAYSIZE(conf_controllers_options)];
+/*
+ * This variable name will be redirected to conf_controllers_option_values_wii for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_values_wii` to `joystick_option_values_wii`.
+ */
+#define joystick_option_values_wii conf_controllers_option_values_wii
+
+static int conf_controllers_option_ids[ARRAYSIZE(joystick_options)];
+
+/*
+ * This variable name will be redirected to conf_controllers_option_ids for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_option_ids` to `joystick_option_ids`.
+ */
+#define joystick_option_ids conf_controllers_option_ids
 
 static void conf_controllers_set_label(int id, int value)
 {
@@ -2036,75 +2591,75 @@ static void conf_controllers_set_label(int id, int value)
 
 #if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_FAMILY_API || \
     NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
-    if (conf_controllers_option_values_xbox[value % 100000])
+    if (joystick_option_values_xbox[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
-                "%s", conf_controllers_option_values_xbox[value % 100000]);
+                "%s", joystick_option_values_xbox[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API
-    if (conf_controllers_option_values_ps[value % 100000])
+    if (joystick_option_values_ps[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
-                "%s", conf_controllers_option_values_ps[value % 100000]);
+                "%s", joystick_option_values_ps[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
-    if (conf_controllers_option_values_steamdeck[value % 100000])
+    if (joystick_option_values_steamdeck[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
-                "%s", conf_controllers_option_values_steamdeck[value % 100000]);
+                "%s", joystick_option_values_steamdeck[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
-    if (conf_controllers_option_values_switch[value % 100000])
+    if (joystick_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
-                "%s", conf_controllers_option_values_switch[value % 100000]);
+                "%s", joystick_option_values_switch[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_HANDSET_FAMILY_API
-    if (conf_controllers_option_values_switch[value % 100000])
+    if (joystick_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
-                "%s", conf_controllers_option_values_switch[value % 100000]);
+                "%s", joystick_option_values_switch[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_WII_FAMILY_API || \
       NEVERBALL_FAMILY_API == NEVERBALL_WIIU_FAMILY_API
-    if (conf_controllers_option_values_wii[value % 100000])
+    if (joystick_option_values_wii[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
-                "%s", conf_controllers_option_values_wii[value % 100000]);
+                "%s", joystick_option_values_wii[value % 100000]);
     }
 #elif NEVERBALL_FAMILY_API == NEVERBALL_ENERGIZELAB_FAMILY_API
-    if (conf_controllers_option_values_energizelab[value % 100000])
+    if (joystick_option_values_energizelab[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(str, 20,
 #else
         sprintf(str,
 #endif
-            "%s", conf_controllers_option_values_energizelab[value % 100000]);
+            "%s", joystick_option_values_energizelab[value % 100000]);
     }
 #else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -2123,71 +2678,91 @@ static void conf_controllers_set_label(int id, int value)
     gui_set_font(id, "ttf/DejaVuSans-Bold.ttf");
 }
 
+/*
+ * This function name will be redirected to conf_controllers_set_label() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_set_label()` to `joystick_set_label()`.
+ */
+#define joystick_set_label conf_controllers_set_label
+
 static void conf_controllers_set_option(int index, int value)
 {
-    for (int i = 0; i < ARRAYSIZE(conf_controllers_options); i++)
+    for (int i = 0; i < ARRAYSIZE(joystick_options); i++)
     {
-        int option_id = *conf_controllers_options[index];
+        int option_id = *joystick_options[index];
 
         if (value == config_get_d(option_id))
         {
             config_set_d(option_id, -1);
-            conf_controllers_set_label(option_id, -1);
+            joystick_set_label(option_id, -1);
         }
     }
 
-    if (index < ARRAYSIZE(conf_controllers_options))
+    if (index < ARRAYSIZE(joystick_options))
     {
-        int option = *conf_controllers_options[index];
+        int option = *joystick_options[index];
 
         config_set_d(option, value);
 
-        conf_controllers_set_label(conf_controllers_option_ids[index], value + (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_AXIS ? 11 : 0));
+        joystick_set_label(joystick_option_ids[index], value + (joystick_modal == JOYSTICK_ASSIGN_AXIS ? 11 : 0));
 
         /* Focus the next button. */
 
-        if (index < ARRAYSIZE(conf_controllers_options) - 1)
+        if (index < ARRAYSIZE(joystick_options) - 1)
         {
             /* Skip over marker, if any. */
 
-            if (index < ARRAYSIZE(conf_controllers_options) - 2 &&
-                conf_controllers_options[index + 1] == NULL)
-                gui_focus(conf_controllers_option_ids[index + 2]);
+            if (index < ARRAYSIZE(joystick_options) - 2 &&
+                joystick_options[index + 1] == NULL)
+                gui_focus(joystick_option_ids[index + 2]);
             else
-                gui_focus(conf_controllers_option_ids[index + 1]);
+                gui_focus(joystick_option_ids[index + 1]);
         }
     }
 }
 
+/*
+ * This function name will be redirected to conf_controllers_set_option() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_set_option()` to `joystick_set_option()`.
+ */
+#define joystick_set_option conf_controllers_set_option
+
 static int conf_controllers_action(int tok, int val)
 {
+    int r = 1;
+
     GENERIC_GAMEMENU_ACTION;
 
     switch (tok)
     {
         case GUI_BACK:
-            if (conf_controllers_modal)
-                conf_controllers_modal = 0;
+            if (joystick_modal)
+                joystick_modal = 0;
             else
             {
-                exit_state(conf_controllers_back);
-                while (curr_state() != conf_controllers_back)
-                {
-                    exit_state(conf_controllers_back);
-                    conf_controllers_back = NULL;
-                }
+                r = exit_state(joystick_back);
+                joystick_back = NULL;
+                return r;
             }
             break;
 
-        case CONF_CONTROLLERS_ASSIGN_BUTTON:
-        case CONF_CONTROLLERS_ASSIGN_AXIS:
-            conf_controllers_modal = tok;
-            conf_controllers_option_index = val;
+        case JOYSTICK_ASSIGN_BUTTON:
+        case JOYSTICK_ASSIGN_AXIS:
+            joystick_modal        = tok;
+            joystick_option_index = val;
             break;
     }
 
-    return 1;
+    return r;
 }
+
+/*
+ * This function name will be redirected to conf_controllers_action() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_action()` to `joystick_action()`.
+ */
+#define joystick_action conf_controllers_action
 
 static int conf_controllers_gui(void)
 {
@@ -2206,9 +2781,9 @@ static int conf_controllers_gui(void)
             l_pane = gui_vstack(jd);
         }
 
-        int token = CONF_CONTROLLERS_ASSIGN_BUTTON;
+        int token = JOYSTICK_ASSIGN_BUTTON;
 
-        for (int i = 0; i < ARRAYSIZE(conf_controllers_options); ++i)
+        for (int i = 0; i < ARRAYSIZE(joystick_options); ++i)
         {
             int btn_id;
             int value;
@@ -2218,42 +2793,49 @@ static int conf_controllers_gui(void)
             if (i == 10)
             {
                 /* Switch the GUI token / assignment type. */
-                token = CONF_CONTROLLERS_ASSIGN_AXIS;
+                token = JOYSTICK_ASSIGN_AXIS;
 
                 gui_filler(id);
 
                 continue;
             }
 
-            if (conf_controllers_options[i] == 0)
+            if (joystick_options[i] == 0)
                 continue;
 
-            value = config_get_d(*conf_controllers_options[i]);
+            value = config_get_d(*joystick_options[i]);
 
             if (l_pane == 0 || r_pane == 0)
                 continue;
 
-            if ((btn_id = conf_state(token == CONF_CONTROLLERS_ASSIGN_AXIS ?
+            if ((btn_id = conf_state(token == JOYSTICK_ASSIGN_AXIS ?
                                      r_pane : l_pane,
-                                     _(conf_controllers_option_names[i]), "99", 0)))
+                                     _(joystick_option_names[i]), "99", 0)))
             {
-                conf_controllers_option_ids[i] = btn_id;
+                joystick_option_ids[i] = btn_id;
 
                 gui_set_state(btn_id, token, i);
 
-                conf_controllers_set_label(btn_id,
-                                           token == CONF_CONTROLLERS_ASSIGN_AXIS ?
-                                           value + 11 : value);
+                joystick_set_label(btn_id,
+                                   token == JOYSTICK_ASSIGN_AXIS ?
+                                   value + 11 : value);
             }
         }
 
-        gui_filler(token == CONF_CONTROLLERS_ASSIGN_AXIS ? r_pane : l_pane);
+        gui_filler(token == JOYSTICK_ASSIGN_AXIS ? r_pane : l_pane);
 
         gui_layout(id, 0, 0);
     }
 
     return id;
 }
+
+/*
+ * This function name will be redirected to conf_controllers_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_gui()` to `joystick_gui()`.
+ */
+#define joystick_gui conf_controllers_gui
 
 static int conf_controllers_modal_button_gui(void)
 {
@@ -2272,6 +2854,13 @@ static int conf_controllers_modal_button_gui(void)
     return id;
 }
 
+/*
+ * This function name will be redirected to conf_controllers_modal_button_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_modal_button_gui()` to `joystick_modal_button_gui()`.
+ */
+#define joystick_modal_button_gui conf_controllers_modal_button_gui
+
 static int conf_controllers_modal_axis_gui(void)
 {
     int id;
@@ -2289,38 +2878,59 @@ static int conf_controllers_modal_axis_gui(void)
     return id;
 }
 
+/*
+ * This function name will be redirected to conf_controllers_modal_axis_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_modal_axis_gui()` to `joystick_modal_axis_gui()`.
+ */
+#define joystick_modal_axis_gui conf_controllers_modal_axis_gui
+
 static int conf_controllers_enter(struct state *st, struct state *prev, int intent)
 {
-    if (!conf_controllers_back)
-        conf_controllers_back = prev;
+    if (!joystick_back)
+        joystick_back = prev;
 
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
-    conf_common_init(conf_controllers_action, mainmenu_conf);
+    conf_common_init(joystick_action, mainmenu_conf);
 
     conf_controllers_modal = 0;
 
-    conf_controllers_modal_button_id = conf_controllers_modal_button_gui();
-    conf_controllers_modal_axis_id   = conf_controllers_modal_axis_gui();
+    joystick_modal_button_id = joystick_modal_button_gui();
+    joystick_modal_axis_id   = joystick_modal_axis_gui();
 
-    return transition_slide(conf_controllers_gui(), 1, intent);
+    return transition_slide(joystick_gui(), 1, intent);
 }
+
+/*
+ * This function name will be redirected to conf_controllers_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_enter()` to `joystick_enter()`.
+ */
+#define joystick_enter conf_controllers_enter
 
 static int conf_controllers_leave(struct state *st, struct state *next, int id, int intent)
 {
     conf_common_leave(st, next, id, intent);
 
-    gui_delete(conf_controllers_modal_button_id);
-    gui_delete(conf_controllers_modal_axis_id);
+    gui_delete(joystick_modal_button_id);
+    gui_delete(joystick_modal_axis_id);
 
-    conf_controllers_modal_button_id = 0;
-    conf_controllers_modal_axis_id = 0;
+    joystick_modal_button_id = 0;
+    joystick_modal_axis_id   = 0;
 
     controllers_modal_alpha = 0.0f;
 
     return transition_slide(id, 0, intent);
 }
+
+/*
+ * This function name will be redirected to conf_controllers_leave() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_leave()` to `joystick_leave()`.
+ */
+#define joystick_leave conf_controllers_leave
 
 static void conf_controllers_paint(int id, float t)
 {
@@ -2333,11 +2943,11 @@ static void conf_controllers_paint(int id, float t)
 
     gui_paint(id);
 
-    if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_BUTTON)
-        gui_paint(conf_controllers_modal_button_id);
+    if (joystick_modal == JOYSTICK_ASSIGN_BUTTON)
+        gui_paint(joystick_modal_button_id);
 
-    if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_AXIS)
-        gui_paint(conf_controllers_modal_axis_id);
+    if (joystick_modal == JOYSTICK_ASSIGN_AXIS)
+        gui_paint(joystick_modal_axis_id);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC || console_gui_shown())
@@ -2345,22 +2955,29 @@ static void conf_controllers_paint(int id, float t)
 #endif
 }
 
+/*
+ * This function name will be redirected to conf_controllers_paint() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_paint()` to `joystick_paint()`.
+ */
+#define joystick_paint conf_controllers_paint
+
 static int conf_controllers_buttn(int b, int d)
 {
     if (d)
     {
-        if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_BUTTON)
+        if (joystick_modal == JOYSTICK_ASSIGN_BUTTON)
         {
-            conf_controllers_set_option(conf_controllers_option_index, b);
-            conf_controllers_modal = 0;
+            joystick_set_option(joystick_option_index, b);
+            joystick_modal = 0;
             return 1;
         }
-        else if (conf_controllers_modal)
+        else if (joystick_modal)
         {
             /* Allow backing out of other modal types with B. */
 
             if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-                conf_controllers_modal = 0;
+                joystick_modal = 0;
 
             return 1;
         }
@@ -2369,19 +2986,26 @@ static int conf_controllers_buttn(int b, int d)
     return common_buttn(b, d);
 }
 
+/*
+ * This function name will be redirected to conf_controllers_buttn() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_buttn()` to `joystick_buttn()`.
+ */
+#define joystick_buttn conf_controllers_buttn
+
 static void conf_controllers_stick(int id, int a, float v, int bump)
 {
-    if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_AXIS)
+    if (joystick_modal == JOYSTICK_ASSIGN_AXIS)
     {
         if (bump)
         {
-            conf_controllers_set_option(conf_controllers_option_index, a);
-            conf_controllers_modal = 0;
+            joystick_set_option(joystick_option_index, a);
+            joystick_modal = 0;
         }
 
         return;
     }
-    else if (conf_controllers_modal)
+    else if (joystick_modal)
     {
         /* Ignore stick motion if another type of modal is active. */
         return;
@@ -2390,33 +3014,47 @@ static void conf_controllers_stick(int id, int a, float v, int bump)
     gui_pulse(gui_stick(id, a, v, bump), 1.2f);
 }
 
+/*
+ * This function name will be redirected to conf_controllers_stick() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_stick()` to `joystick_stick()`.
+ */
+#define joystick_stick conf_controllers_stick
+
 static void conf_controllers_timer(int id, float dt)
 {
     gui_timer(id, dt);
-    gui_timer(conf_controllers_modal_button_id, dt);
-    gui_timer(conf_controllers_modal_axis_id, dt);
+    gui_timer(joystick_modal_button_id, dt);
+    gui_timer(joystick_modal_axis_id,   dt);
     gui_alpha(id, 1 - controllers_modal_alpha);
 
-    if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_BUTTON)
+    if (joystick_modal == JOYSTICK_ASSIGN_BUTTON)
     {
         controllers_modal_alpha = controllers_modal_alpha + (dt * 4);
         controllers_modal_alpha = CLAMP(0.0f, controllers_modal_alpha, 1.0f);
-        gui_alpha(conf_controllers_modal_button_id, controllers_modal_alpha);
+        gui_alpha(joystick_modal_button_id, controllers_modal_alpha);
     }
-    else if (conf_controllers_modal == CONF_CONTROLLERS_ASSIGN_AXIS)
+    else if (joystick_modal == JOYSTICK_ASSIGN_AXIS)
     {
         controllers_modal_alpha = controllers_modal_alpha + (dt * 4);
         controllers_modal_alpha = CLAMP(0.0f, controllers_modal_alpha, 1.0f);
-        gui_alpha(conf_controllers_modal_axis_id, controllers_modal_alpha);
+        gui_alpha(joystick_modal_axis_id, controllers_modal_alpha);
     }
     else
     {
         controllers_modal_alpha = controllers_modal_alpha - (dt * 4);
         controllers_modal_alpha = CLAMP(0.0f, controllers_modal_alpha, 1.0f);
-        gui_alpha(conf_controllers_modal_button_id, 0);
-        gui_alpha(conf_controllers_modal_axis_id, 0);
+        gui_alpha(joystick_modal_button_id, 0);
+        gui_alpha(joystick_modal_axis_id,  0);
     }
 }
+
+/*
+ * This function name will be redirected to conf_controllers_timer() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controllers_timer()` to `joystick_timer()`.
+ */
+#define joystick_timer conf_controllers_timer
 
 /*---------------------------------------------------------------------------*/
 
@@ -2429,9 +3067,9 @@ static int conf_calibrate_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return exit_state(&st_conf_control);
+            return exit_state(&st_conf_controls);
 
-        case CONF_CONTROL_CALIBRATE:
+        case CONF_CONTROLS_CONTROLLERS_CALIBRATE:
             axis_offset_target[0] = -axis_offset_current[0];
             axis_offset_target[1] = -axis_offset_current[1];
             axis_offset_target[2] = -axis_offset_current[2];
@@ -2452,7 +3090,7 @@ static int conf_calibrate_gui(void)
                                         GUI_SML, gui_wht, gui_yel);
 
         gui_space(id);
-        gui_start(id, _("Calibrate"), GUI_SML, CONF_CONTROL_CALIBRATE, 0);
+        gui_start(id, _("Calibrate"), GUI_SML, CONF_CONTROLS_CONTROLLERS_CALIBRATE, 0);
 
         gui_layout(id, 0, 0);
     }
@@ -2531,6 +3169,13 @@ static int conf_notification_action(int tok, int val)
     return 1;
 }
 
+/*
+ * This function name will be redirected to conf_notification_action() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_notification_action()` to `notification_action()`.
+ */
+#define notification_action conf_notification_action
+
 static int conf_notification_gui(void)
 {
     int id;
@@ -2569,14 +3214,28 @@ static int conf_notification_gui(void)
     return id;
 }
 
+/*
+ * This function name will be redirected to conf_notification_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_notification_gui()` to `notification_gui()`.
+ */
+#define notification_gui conf_notification_gui
+
 static int conf_notification_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
-    conf_common_init(conf_notification_action, mainmenu_conf);
-    return transition_slide(conf_notification_gui(), 1, intent);
+    conf_common_init(notification_action, mainmenu_conf);
+    return transition_slide(notification_gui(), 1, intent);
 }
+
+/*
+ * This function name will be redirected to conf_notification_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_notification_enter()` to `notification_enter()`.
+ */
+#define notification_enter conf_notification_enter
 
 /*---------------------------------------------------------------------------*/
 
@@ -2601,6 +3260,35 @@ enum
     CONF_AUDIO_SOUND_VOLUME,
     CONF_AUDIO_NARRATOR_VOLUME
 };
+
+/*
+ * This enum name will be redirected to CONF_AUDIO_MASTER_VOLUME for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_AUDIO_MASTER_VOLUME` to `AUDIO_MASTER_VOLUME`.
+ */
+#define AUDIO_MASTER_VOLUME CONF_AUDIO_MASTER_VOLUME
+
+/*
+ * This enum name will be redirected to CONF_AUDIO_MUSIC_VOLUME for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_AUDIO_MUSIC_VOLUME` to `AUDIO_MUSIC_VOLUME`.
+ */
+#define AUDIO_MUSIC_VOLUME CONF_AUDIO_MUSIC_VOLUME
+
+/*
+ * This enum name will be redirected to CONF_AUDIO_SOUND_VOLUME for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_AUDIO_SOUND_VOLUME` to `AUDIO_SOUND_VOLUME`.
+ */
+#define AUDIO_SOUND_VOLUME CONF_AUDIO_SOUND_VOLUME
+
+/*
+ * This enum name will be redirected to CONF_AUDIO_NARRATOR_VOLUME for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_AUDIO_NARRATOR_VOLUME` to `AUDIO_NARRATOR_VOLUME`.
+ */
+#define AUDIO_NARRATOR_VOLUME CONF_AUDIO_NARRATOR_VOLUME
+
 #endif
 
 static int conf_audio_action(int tok, int val)
@@ -2618,7 +3306,7 @@ static int conf_audio_action(int tok, int val)
             return exit_state(&st_conf);
 
 #if NB_HAVE_PB_BOTH==1
-        case CONF_AUDIO_MASTER_VOLUME:
+        case AUDIO_MASTER_VOLUME:
             config_set_d(CONFIG_MASTER_VOLUME, val);
             audio_volume(val, sound, music, narrator);
 
@@ -2633,7 +3321,7 @@ static int conf_audio_action(int tok, int val)
 
             break;
 
-        case CONF_AUDIO_MUSIC_VOLUME:
+        case AUDIO_MUSIC_VOLUME:
             config_set_d(CONFIG_MUSIC_VOLUME, val);
             audio_volume(master, sound, val, narrator);
 
@@ -2648,7 +3336,7 @@ static int conf_audio_action(int tok, int val)
 
             break;
 
-        case CONF_AUDIO_SOUND_VOLUME:
+        case AUDIO_SOUND_VOLUME:
             config_set_d(CONFIG_SOUND_VOLUME, val);
             audio_volume(master, val, music, narrator);
             audio_play(AUD_BUMPM, 1.0f);
@@ -2664,7 +3352,7 @@ static int conf_audio_action(int tok, int val)
 
             break;
 
-        case CONF_AUDIO_NARRATOR_VOLUME:
+        case AUDIO_NARRATOR_VOLUME:
             config_set_d(CONFIG_NARRATOR_VOLUME, val);
             audio_volume(master, sound, music, val);
 
@@ -2683,6 +3371,13 @@ static int conf_audio_action(int tok, int val)
 
     return 1;
 }
+
+/*
+ * This function name will be redirected to conf_audio_action() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_audio_action()` to `audio_action()`.
+ */
+#define audio_action conf_audio_action
 
 static int conf_audio_gui(void)
 {
@@ -2714,28 +3409,28 @@ static int conf_audio_gui(void)
 
 #if NB_HAVE_PB_BOTH==1
 #ifdef SWITCHBALL_GUI
-        master_id = conf_slider_v2(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME,
+        master_id = conf_slider_v2(id, _("Master Volume"), AUDIO_MASTER_VOLUME,
                                        master);
 #else
-        conf_slider(id, _("Master Volume"), CONF_AUDIO_MASTER_VOLUME, master,
+        conf_slider(id, _("Master Volume"), AUDIO_MASTER_VOLUME, master,
                         master_id, ARRAYSIZE(master_id));
 #endif
 
         gui_space(id);
 
 #ifdef SWITCHBALL_GUI
-        music_id = conf_slider_v2(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME,
+        music_id = conf_slider_v2(id, _("Music Volume"), AUDIO_MUSIC_VOLUME,
                                        music);
-        sound_id = conf_slider_v2(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME,
+        sound_id = conf_slider_v2(id, _("Sound Volume"), AUDIO_SOUND_VOLUME,
                                        sound);
-        narrator_id = conf_slider_v2(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME,
+        narrator_id = conf_slider_v2(id, _("Narrator Volume"), AUDIO_NARRATOR_VOLUME,
                                          narrator);
 #else
-        conf_slider(id, _("Music Volume"), CONF_AUDIO_MUSIC_VOLUME, music,
+        conf_slider(id, _("Music Volume"), AUDIO_MUSIC_VOLUME, music,
                     music_id, ARRAYSIZE(music_id));
-        conf_slider(id, _("Sound Volume"), CONF_AUDIO_SOUND_VOLUME, sound,
+        conf_slider(id, _("Sound Volume"), AUDIO_SOUND_VOLUME, sound,
                     sound_id, ARRAYSIZE(sound_id));
-        conf_slider(id, _("Narrator Volume"), CONF_AUDIO_NARRATOR_VOLUME, narrator,
+        conf_slider(id, _("Narrator Volume"), AUDIO_NARRATOR_VOLUME, narrator,
                     narrator_id, ARRAYSIZE(narrator_id));
 #endif
 #else
@@ -2750,14 +3445,28 @@ static int conf_audio_gui(void)
     return id;
 }
 
+/*
+ * This function name will be redirected to conf_audio_gui() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_audio_gui()` to `conf_audio_gui()`.
+ */
+#define audio_gui conf_audio_gui
+
 static int conf_audio_enter(struct state *st, struct state *prev, int intent)
 {
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
-    conf_common_init(conf_audio_action, mainmenu_conf);
-    return transition_slide(conf_audio_gui(), 1, intent);
+    conf_common_init(audio_action, mainmenu_conf);
+    return transition_slide(audio_gui(), 1, intent);
 }
+
+/*
+ * This function name will be redirected to conf_audio_enter() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_audio_enter()` to `audio_enter()`.
+ */
+#define audio_enter conf_audio_enter
 
 /*---------------------------------------------------------------------------*/
 
@@ -2766,10 +3475,10 @@ enum
     CONF_SYSTEMTRANSFER_TARGET = GUI_LAST,
     CONF_SYSTEMTRANSFER_SOURCE,
     CONF_SOCIAL,
-    CONF_MANAGE_ACCOUNT,
-    CONF_MANAGE_GAMEPLAY,
+    CONF_ACCOUNT,
+    CONF_GAMEPLAY,
 #if NB_HAVE_PB_BOTH==1
-    CONF_MANAGE_NOTIFICATIONS,
+    CONF_NOTIFICATIONS,
 #else
     CONF_BALL,
 #endif
@@ -2867,7 +3576,7 @@ static int conf_action(int tok, int val)
             conf_goto_social(curr_state());
             break;
 
-        case CONF_MANAGE_ACCOUNT:
+        case CONF_ACCOUNT:
 #if NB_HAVE_PB_BOTH==1
             if (!conf_check_playername(config_get_s(CONFIG_PLAYER)))
                 goto_name(&st_conf_account, &st_conf, 0, 0, 1);
@@ -2878,12 +3587,12 @@ static int conf_action(int tok, int val)
 #endif
             break;
 
-        case CONF_MANAGE_GAMEPLAY:
+        case CONF_GAMEPLAY:
             goto_state(&st_conf_gameplay);
             break;
 
 #if NB_HAVE_PB_BOTH==1
-        case CONF_MANAGE_NOTIFICATIONS:
+        case CONF_NOTIFICATIONS:
             goto_state(&st_conf_notification);
             break;
 #endif
@@ -2902,7 +3611,7 @@ static int conf_action(int tok, int val)
 #endif
 
         case CONF_CONTROLS:
-            goto_state(&st_conf_control);
+            goto_state(&st_conf_controls);
             break;
 
         case CONF_VIDEO:
@@ -3038,17 +3747,17 @@ static int conf_gui(void)
             const char *conf_account_btn_txt = !conf_check_playername(config_get_s(CONFIG_PLAYER)) ?
                                                N_("Register") : N_("Manage");
 
-            conf_state(id, _("Account"), _(conf_account_btn_txt), CONF_MANAGE_ACCOUNT);
+            conf_state(id, _("Account"), _(conf_account_btn_txt), CONF_ACCOUNT);
 #else
             if (conf_check_playername(config_get_s(CONFIG_PLAYER)))
-                conf_state(id, _("Account"), _("Manage"), CONF_MANAGE_ACCOUNT);
+                conf_state(id, _("Account"), _("Manage"), CONF_ACCOUNT);
 #endif
 
-            conf_state(id, _("Notifications"), _("Manage"), CONF_MANAGE_NOTIFICATIONS);
+            conf_state(id, _("Notifications"), _("Manage"), CONF_NOTIFICATIONS);
 #endif
 
             gui_space(id);
-            conf_state(id, _("Gameplay"), _("Configure"), CONF_MANAGE_GAMEPLAY);
+            conf_state(id, _("Gameplay"), _("Configure"), CONF_GAMEPLAY);
             gui_space(id);
 
             if (mainmenu_conf && !game_server_state() && !demo_state()) {
@@ -3095,7 +3804,7 @@ static int conf_gui(void)
             int name_id, ball_id;
             gui_space(id);
             name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
-                                     CONF_MANAGE_ACCOUNT);
+                                     CONF_ACCOUNT);
             gui_set_trunc(name_id, TRUNC_TAIL);
             ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
                                      CONF_BALL);
@@ -3107,8 +3816,13 @@ static int conf_gui(void)
 
 #if NB_HAVE_PB_BOTH!=1
 #if NB_EOS_SDK==0 || NB_STEAM_API==0
-            if (account_wgcl_name_read_only() || config_playername_locked() ||
+            if (game_server_state() || demo_state() || account_wgcl_name_read_only() ||
+#ifndef __EMSCRIPTEN__
+                config_playername_locked() ||
+#endif
                 online_mode)
+#else
+            if (game_server_state() || demo_state())
 #endif
             {
                 /*
@@ -3358,9 +4072,9 @@ static void conf_paint(int id, float t)
 /*---------------------------------------------------------------------------*/
 
 struct state st_conf_social = {
-    conf_social_enter,
-    conf_leave,
-    conf_paint,
+    social_enter,
+    conf_common_leave,
+    conf_common_paint,
     common_timer,
     common_point,
     common_stick,
@@ -3371,10 +4085,10 @@ struct state st_conf_social = {
 };
 
 struct state st_conf_account = {
-    conf_account_enter,
-    conf_leave,
-    conf_paint,
-    conf_account_timer,
+    account_enter,
+    conf_common_leave,
+    conf_common_paint,
+    account_timer,
     common_point,
     common_stick,
     NULL,
@@ -3384,9 +4098,9 @@ struct state st_conf_account = {
 };
 
 struct state st_conf_gameplay = {
-    conf_gameplay_enter,
-    conf_leave,
-    conf_paint,
+    gameplay_enter,
+    conf_common_leave,
+    conf_common_paint,
     common_timer,
     common_point,
     common_stick,
@@ -3397,9 +4111,9 @@ struct state st_conf_gameplay = {
 };
 
 struct state st_conf_notification = {
-    conf_notification_enter,
-    conf_leave,
-    conf_paint,
+    notification_enter,
+    conf_common_leave,
+    conf_common_paint,
     common_timer,
     common_point,
     common_stick,
@@ -3409,10 +4123,23 @@ struct state st_conf_notification = {
     common_buttn
 };
 
-struct state st_conf_control = {
-    conf_control_enter,
-    conf_leave,
-    conf_paint,
+struct state st_conf_controls = {
+    controls_enter,
+    conf_common_leave,
+    conf_common_paint,
+    common_timer,
+    common_point,
+    common_stick,
+    NULL,
+    common_click,
+    common_keybd,
+    common_buttn
+};
+
+struct state st_conf_touch = {
+    touch_enter,
+    conf_common_leave,
+    conf_common_paint,
     common_timer,
     common_point,
     common_stick,
@@ -3423,10 +4150,10 @@ struct state st_conf_control = {
 };
 
 struct state st_conf_keybd = {
-    conf_keybd_enter,
-    conf_leave,
-    conf_keybd_paint,
-    conf_keybd_timer,
+    keybd_enter,
+    keybd_leave,
+    keybd_paint,
+    keybd_timer,
     common_point,
     common_stick,
     NULL,
@@ -3435,22 +4162,22 @@ struct state st_conf_keybd = {
 };
 
 struct state st_conf_controllers = {
-    conf_controllers_enter,
-    conf_leave,
-    conf_controllers_paint,
-    conf_controllers_timer,
+    joystick_enter,
+    conf_common_leave,
+    joystick_paint,
+    joystick_timer,
     common_point,
-    conf_controllers_stick,
+    joystick_stick,
     NULL,
     common_click,
     common_keybd,
-    conf_controllers_buttn
+    joystick_buttn
 };
 
 struct state st_conf_calibrate = {
     conf_calibrate_enter,
-    conf_leave,
-    conf_paint,
+    conf_common_leave,
+    conf_common_paint,
     common_timer,
     common_point,
     conf_calibrate_stick,
@@ -3461,9 +4188,9 @@ struct state st_conf_calibrate = {
 };
 
 struct state st_conf_audio = {
-    conf_audio_enter,
-    conf_leave,
-    conf_paint,
+    audio_enter,
+    conf_common_leave,
+    conf_common_paint,
     common_timer,
     common_point,
     common_stick,

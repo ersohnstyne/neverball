@@ -23,7 +23,7 @@
 
  /* HACK: How about motion blur macro function? */
 #define config_motionblur() \
-	(config_get_d(CONFIG_MOTIONBLUR) && video_perf() < 90)
+    (config_get_d(CONFIG_MOTIONBLUR) && video_perf() < 90)
 
 /*---------------------------------------------------------------------------*/
 
@@ -178,6 +178,15 @@ extern int CONFIG_CAMERA_3_VELOCITY_XZ;
 extern int CONFIG_CAMERA_3_ROTATE_MAX;
 
 extern int CONFIG_TOUCH_ROTATE;
+extern int CONFIG_TOUCH_MODE;
+extern int CONFIG_TOUCH_ROTATE_INVERT;
+
+enum
+{
+    TOUCH_MODE_LR = 0,
+    TOUCH_MODE_RL,
+    TOUCH_MODE_DYNAMIC
+};
 
 extern int CONFIG_ONLINE;
 

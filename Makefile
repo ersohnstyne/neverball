@@ -981,9 +981,6 @@ web : sols
 HOST ?= 0.0.0.0
 PORT ?= 0
 
-HOST ?= 0.0.0.0
-PORT ?= 0
-
 web-serve : web
 	python3 -m http.server $(PORT) -d js -b $(HOST)
 

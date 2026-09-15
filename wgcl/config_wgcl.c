@@ -616,7 +616,7 @@ void WGCL_LoadGameSystemSettings(void)
     EM_ASM({ systemsettings_conf_replay_controls_save  = $0; }, config_get_d(CONFIG_ACCOUNT_SAVE));
     EM_ASM({ systemsettings_conf_replay_controls_load  = $0; }, config_get_d(CONFIG_ACCOUNT_LOAD));
     EM_ASM({ systemsettings_conf_input_sensitivity     = $0; }, MOUSE_RANGE_MAP(config_get_d(CONFIG_MOUSE_SENSE)));
-    EM_ASM({ systemsettings_conf_input_camrotation     = $0; }, config_get_d(CONFIG_CAMERA_ROTATE_MODE));
+    EM_ASM({ systemsettings_conf_input_camrotation     = $0; }, config_get_d(CONFIG_CAMERA_ROTATE_MODE) && config_get_d(CONFIG_TOUCH_ROTATE_INVERT));
 
     EM_ASM({ systemsettings_conf_wgclworkers_notifications_chkp       = $0; }, config_get_d(CONFIG_NOTIFICATION_CHKP));
     EM_ASM({ systemsettings_conf_wgclworkers_notifications_extraballs = $0; }, config_get_d(CONFIG_NOTIFICATION_REWARD));
@@ -651,6 +651,7 @@ void WGCL_SaveGameSystemSettings(void)
     config_set_d(CONFIG_ACCOUNT_LOAD,        EM_ASM_INT({ return systemsettings_conf_replay_controls_load;                 }));
     config_set_d(CONFIG_MOUSE_SENSE,         MOUSE_RANGE_UNMAP(EM_ASM_INT({ return systemsettings_conf_input_sensitivity; })));
     config_set_d(CONFIG_CAMERA_ROTATE_MODE,  EM_ASM_INT({ return systemsettings_conf_input_camrotation;                    }));
+    config_set_d(CONFIG_TOUCH_ROTATE_INVERT, EM_ASM_INT({ return systemsettings_conf_input_camrotation;                    }));
     config_set_d(CONFIG_NOTIFICATION_CHKP,   EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_chkp;       }));
     config_set_d(CONFIG_NOTIFICATION_REWARD, EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_extraballs; }));
     config_set_d(CONFIG_NOTIFICATION_SHOP,   EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_shop;       }));

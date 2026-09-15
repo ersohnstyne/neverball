@@ -763,6 +763,18 @@ static float rotation_offset;
 static float tilt_x;
 static float tilt_y;
 
+static SDL_FingerID tilt_finger   = -1;
+static SDL_FingerID rotate_finger = -1;
+static float rotate = 0.0f;
+
+static void play_loop_touch_reset(void)
+{
+    tilt_finger   = -1;
+    rotate_finger = -1;
+    rotate = 0.0f;
+    rot_clr(DIR_R | DIR_L);
+}
+
 static int play_loop_gui(void)
 {
     int id;
@@ -791,6 +803,11 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
     play_freeze_all         = 0;
     play_block_state        = 0;
     rot_init();
+<<<<<<< HEAD
+=======
+    fast_rotate = 0;
+    play_loop_touch_reset();
+>>>>>>> f24ec32f20e70c6cf343e98132b9d14282de8991
 
     if (opt_touch)
     {
@@ -898,8 +915,12 @@ static int play_loop_enter(struct state *st, struct state *prev, int intent)
 
 static int play_loop_leave(struct state *st, struct state *next, int id, int intent)
 {
+<<<<<<< HEAD
     game_client_maxspeed(0.0f, 0);
 
+=======
+    play_loop_touch_reset();
+>>>>>>> f24ec32f20e70c6cf343e98132b9d14282de8991
     hud_hide();
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     EM_ASM({ Neverball.WGCLhideGameHUD(); });
@@ -1365,6 +1386,7 @@ static int play_loop_buttn(int b, int d)
     return 1;
 }
 
+<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
 /*
@@ -1420,6 +1442,46 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     static float rotate = 0.0f; /* Filtered input. */
 #endif
 
+=======
+static void play_loop_touch_rotate(const SDL_TouchFingerEvent *event, float rmax)
+{
+    /* Discard accumulated input when moving in the opposite direction. */
+
+    if ((rotate < 0.0f && event->dx > 0.0f) || (event->dx < 0.0f && rotate > 0.0f))
+        rotate = 0.0f;
+
+    /* Filter the input for a smoother experience. */
+
+    rotate += event->dx * 0.6f;
+
+    /*
+     * touch_rotate gives the fraction of the screen that you need to swipe
+     * across to reach rotate_slow rotation speed. E.g., a value of 32
+     * is 1/32 of screen.
+     *
+     * To rotate slower, swipe a smaller distance than that.
+     * To rotate faster, swipe farther.
+     */
+
+    if (rotate != 0.0f)
+    {
+        const float sign = config_get_d(CONFIG_TOUCH_ROTATE_INVERT) ? -1.0f : +1.0f;
+        const float scaled_rotate = sign * (float) config_get_d(CONFIG_TOUCH_ROTATE) * rotate;
+        rot_set(DIR_L, CLAMP(-rmax, scaled_rotate, +rmax), 1);
+    }
+}
+
+static void play_loop_touch_tilt(const SDL_TouchFingerEvent *event)
+{
+    int dx = (int) ((float) video.device_w * event->dx);
+    int dy = (int) ((float) video.device_h * -event->dy);
+
+    game_set_pos(dx, dy);
+}
+
+static int play_loop_touch(const SDL_TouchFingerEvent *event)
+{
+>>>>>>> f24ec32f20e70c6cf343e98132b9d14282de8991
     /*
      * Make sure not to exceed rotate_fast rotation speed.
      *
@@ -1438,6 +1500,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     const float rf = config_get_d(CONFIG_ROTATE_FAST) / 100.0f;
     const float rmax = rf / rs;
 
+    int mode = config_get_d(CONFIG_TOUCH_MODE);
     int id;
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
@@ -1465,6 +1528,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 
         gui_focus(0);
     }
+<<<<<<< HEAD
     else if (e->type == SDL_FINGERDOWN)
     {
 #if NB_HAVE_PB_BOTH==1 && defined(WGCL_TOUCH_POINTERS)
@@ -1639,13 +1703,23 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
              */
 
             if (rotate != 0.0f)
+=======
+    else if (mode == TOUCH_MODE_DYNAMIC)
+    {
+        if (event->type == SDL_FINGERDOWN)
+        {
+            SDL_Finger *finger = SDL_GetTouchFinger(event->touchId, 1); /* Second finger. */
+
+            if (finger && event->fingerId == finger->id)
+>>>>>>> f24ec32f20e70c6cf343e98132b9d14282de8991
             {
-                const float scaled_rotate = (float) config_get_d(CONFIG_TOUCH_ROTATE) * rotate;
-                rot_set(DIR_L, CLAMP(-rmax, scaled_rotate, +rmax), 1);
+                rotate_finger = finger->id;
+                rotate = 0.0f;
             }
         }
-        else
+        else if (event->type == SDL_FINGERUP)
         {
+<<<<<<< HEAD
             int dx = (int) ((float) video.device_w * +e->dx);
             int dy = (int) ((float) video.device_h * -e->dy);
 
@@ -1661,6 +1735,76 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
             game_set_pos_max_speed(tilt_x * powerup_get_tilt_multiply(),
                                    curr_mode() == MODE_BOOST_RUSH ? 0 : tilt_y * powerup_get_tilt_multiply());
             /* game_set_pos(dx, dy); */
+=======
+            if (event->fingerId == rotate_finger)
+            {
+                rotate_finger = -1;
+                rot_clr(DIR_R | DIR_L);
+                rotate = 0.0f;
+            }
+        }
+        else if (event->type == SDL_FINGERMOTION)
+        {
+            if (event->fingerId == rotate_finger)
+                play_loop_touch_rotate(event, rmax);
+            else
+                play_loop_touch_tilt(event);
+        }
+    }
+    else
+    {
+        int is_tilt_side = (mode == TOUCH_MODE_LR) ? (event->x < 0.5f) : (event->x >= 0.5f);
+
+        if (event->type == SDL_FINGERDOWN)
+        {
+            if (is_tilt_side)
+            {
+                tilt_finger = event->fingerId;
+            }
+            else
+            {
+                rotate_finger = event->fingerId;
+                rotate = 0.0f;
+            }
+        }
+        else if (event->type == SDL_FINGERUP)
+        {
+            if (event->fingerId == rotate_finger)
+            {
+                rotate_finger = -1;
+                rot_clr(DIR_R | DIR_L);
+                rotate = 0.0f;
+            }
+            else if (event->fingerId == tilt_finger)
+            {
+                tilt_finger = -1;
+            }
+        }
+        else if (event->type == SDL_FINGERMOTION)
+        {
+            if (event->fingerId == rotate_finger)
+            {
+                play_loop_touch_rotate(event, rmax);
+            }
+            else if (event->fingerId == tilt_finger)
+            {
+                play_loop_touch_tilt(event);
+            }
+            else
+            {
+                if (is_tilt_side && tilt_finger == -1)
+                {
+                    tilt_finger = event->fingerId;
+                    play_loop_touch_tilt(event);
+                }
+                else if (!is_tilt_side && rotate_finger == -1)
+                {
+                    rotate_finger = event->fingerId;
+                    rotate = 0.0f;
+                    play_loop_touch_rotate(event, rmax);
+                }
+            }
+>>>>>>> f24ec32f20e70c6cf343e98132b9d14282de8991
         }
 #endif
     }

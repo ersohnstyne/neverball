@@ -2151,11 +2151,11 @@ static int game_step(const float g[3], float dt, int bt)
 #endif
                 b = sol_step(&vary, game_proxy_enq, h, dt, CURR_PLAYER, NULL);
 
-            if (b != 0.0f)
+            if (b <= 0.01f)
                 game_switchball_set_fixed_altitude(vary.uv[CURR_PLAYER].p[1]);
 
-            else if (vary.uv[CURR_PLAYER].p[1] < game_switchball_altitude() - 2.0f)
-                game_switchball_set_speeding(1);
+            else if (vary.uv[CURR_PLAYER].p[1] < game_switchball_altitude() - 3.0f)
+                game_switchball_set_speeding();
 
             /* Mix the sound of a ball bounce. */
 

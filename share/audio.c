@@ -1005,18 +1005,11 @@ void audio_music_fade_in(float t)
 
 void audio_music_fade_to(float t, const char *filename, int loop)
 {
-    float clamped_time = CLAMP(0.001f, t, 1.0f);
+    float clamped_time  = CLAMP(0.001f, t, 1.0f);
+    float splitted_time = clamped_time / 2.0f;
 
     if (voices_music)
     {
-        if (!voices_music->name || strcmp(filename, voices_music->name) != 0)
-        {
-            audio_music_stop();
-            audio_music_play(filename, loop);
-            audio_music_fade_in(clamped_time);
-            return;
-        }
-
         if (voices_music->name && strcmp(filename, voices_music->name) == 0)
         {
             /*
@@ -1037,10 +1030,14 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 
             audio_music_fade_in(clamped_time);
         }
-        else
+        else if (!voices_music->name || strcmp(filename, voices_music->name) != 0)
         {
-            audio_music_fade_out(clamped_time);
-            audio_music_queue(filename, clamped_time, loop);
+            /*
+             * Just fade music transitions!
+             */
+
+            audio_music_fade_out(splitted_time);
+            audio_music_queue(filename, splitted_time, loop);
         }
     }
     else

@@ -91,19 +91,15 @@ void game_switchball_set_fixed_altitude(float y)
 #endif
 }
 
-void game_switchball_set_speeding(int e)
+void game_switchball_set_speeding(void)
 {
 #if NB_HAVE_PB_BOTH==1 && _WIN32 && !defined(__EMSCRIPTEN__)
-    if (speeding_nowarning)
+    if (speeding_nowarning ||
+        !game_switchball_installed() ||
+        !config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING))
         return;
 
-    if (e && !game_switchball_installed())
-        return;
-
-    if (e && !config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING))
-        return;
-
-    speeding_detected = e;
+    speeding_detected = 1;
 #endif
 }
 

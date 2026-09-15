@@ -18,7 +18,7 @@
 int game_switchball_installed(void);
 
 void game_switchball_set_fixed_altitude(float);
-void game_switchball_set_speeding(int);
+void game_switchball_set_speeding(void);
 void game_switchball_ignore_speeding(void);
 
 float game_switchball_altitude(void);

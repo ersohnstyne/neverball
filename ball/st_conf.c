@@ -1473,6 +1473,7 @@ static int conf_controls_action(int tok, int val)
             if (camrot_mode_id)
             {
                 config_tgl_d(CONFIG_CAMERA_ROTATE_MODE);
+                config_set_d(CONFIG_TOUCH_ROTATE_INVERT, config_get_d(CONFIG_CAMERA_ROTATE_MODE));
 
                 const char *cam_rot_mode_text = config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ?
                                                 N_("Inverted") : N_("Normal");
@@ -1740,7 +1741,14 @@ enum
  */
 #define TOUCH_ROTATE_INVERT CONF_TOUCH_ROTATE_INVERT
 
-static struct state *touch_back;
+static struct state *conf_touch_back;
+
+/*
+ * This variable name will be redirected to conf_touch_back for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_touch_back` to `touch_back`.
+ */
+#define touch_back conf_touch_back
 
 static int conf_touch_action(int tok, int val)
 {
@@ -1760,7 +1768,9 @@ static int conf_touch_action(int tok, int val)
         return goto_state(&st_conf_touch);
 
     case TOUCH_ROTATE_INVERT:
-        config_set_d(CONFIG_TOUCH_MODE, val);
+        audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
+        config_set_d(CONFIG_TOUCH_ROTATE_INVERT, val);
+        config_set_d(CONFIG_CAMERA_ROTATE_MODE, val);
         return goto_state(&st_conf_touch);
     }
 

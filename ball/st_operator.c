@@ -20,6 +20,7 @@
 #include "transition.h"
 #include "common.h"
 #include "demo.h"
+#include "demo_dir.h"
 
 #include "audio.h"
 
@@ -32,6 +33,7 @@
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
 
+#include "st_conf.h"
 #include "st_operator.h"
 #include "account_wgcl.h"
 
@@ -267,6 +269,9 @@ static int operator_search_enter(struct state *st, struct state *prev, int inten
 
 static int operator_search_leave(struct state *st, struct state *next, int id, int intent)
 {
+    if (next == &st_null)
+        demo_replay_stop(0);
+
     return transition_slide(id, 0, intent);
 }
 
@@ -336,15 +341,13 @@ static int operator_incidents_alldone_enter(struct state *st, struct state *prev
 
     if ((id = gui_vstack(0)))
     {
+        const char *s0 = _("Nothing to be coming incidents.");
+
         if ((kd = gui_title_header(id, _("Case solved!"), GUI_MED, gui_grn, gui_grn)))
             gui_pulse(kd, 1.2f);
 
         gui_space(id);
-
-        const char *s0 = _("Nothing to be coming incidents.");
-
         gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
-
         gui_space(id);
 
         const int backbtn_id = gui_back_button(id);
@@ -366,16 +369,14 @@ static int operator_incidents_found_enter(struct state *st, struct state *prev, 
 
     if ((id = gui_vstack(0)))
     {
+        const char *s0 = _("Reported incidents have been\n"
+                           "added to WGCL server.");
+
         if ((kd = gui_title_header(id, _("We found them!"), GUI_MED, GUI_COLOR_GRN)))
             gui_pulse(kd, 1.2f);
 
         gui_space(id);
-
-        const char *s0 = _("Reported incidents have been\n"
-                           "added to WGCL server.");
-
         gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
-
         gui_space(id);
 
         if (operator_readytosnap)
@@ -401,21 +402,18 @@ static int operator_incidents_error_enter(struct state *st, struct state *prev, 
 
     if ((id = gui_vstack(0)))
     {
-        if ((kd = gui_title_header(id, _("Something went wrong!"), GUI_MED, gui_red, gui_blk)))
-            gui_pulse(kd, 1.2f);
-
-        gui_space(id);
-
         const char *s0 = _("Check internet connections\n"
                            "and on your WGCL server online.\n"
                            "If they already online,\n"
                            "then it's already exists.");
-
         const char *s1 = _("Only failure attempts with map name\n"
                            "are supported.");
 
-        gui_multi(id, operator_cansend_incidents ? s0 : s1, GUI_SML, GUI_COLOR_WHT);
+        if ((kd = gui_title_header(id, _("Something went wrong!"), GUI_MED, gui_red, gui_blk)))
+            gui_pulse(kd, 1.2f);
 
+        gui_space(id);
+        gui_multi(id, operator_cansend_incidents ? s0 : s1, GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
         const int backbtn_id = gui_back_button(id);
@@ -433,18 +431,16 @@ static int operator_incidents_snap_enter(struct state *st, struct state *prev, i
 
     if ((id = gui_vstack(0)))
     {
-        if ((kd = gui_title_header(id, _("Saved!"), GUI_MED, GUI_COLOR_GRN)))
-            gui_pulse(kd, 1.2f);
-
-        gui_space(id);
-
         const char *s0 = _("Your screenshot incidence\n"
                            "has been saved!");
-
         const char *s1 = _("Your screenshot incidence\n"
                            "has been saved!\n\n"
                            "You have awarded 30 additional gems!");
 
+        if ((kd = gui_title_header(id, _("Saved!"), GUI_MED, GUI_COLOR_GRN)))
+            gui_pulse(kd, 1.2f);
+
+        gui_space(id);
         gui_multi(id, operator_challenge && operator_curr_balls == 0 ? s1 : s0,
                       GUI_SML, GUI_COLOR_WHT);
         gui_space(id);

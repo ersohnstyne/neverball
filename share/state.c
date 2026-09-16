@@ -476,6 +476,10 @@ int st_touch(const SDL_TouchFingerEvent *event)
 
 int st_dpad(int b, int d, int *p)
 {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    console_gui_toggle(0);
+#endif
+
     /* If the state can handle it, do it. */
 
     if (state && state->dpad)

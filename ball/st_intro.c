@@ -387,7 +387,7 @@ static int intro_accn_disabled_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://pennyball.stynegame.de/communityguide"); });
+            EM_ASM({ window.open("https://pennyball.stynegame.de/communityguide", "_blank"); });
 #elif _WIN32
             system("explorer https://pennyball.stynegame.de/communityguide");
 #elif defined(__APPLE__)

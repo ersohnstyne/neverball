@@ -1520,7 +1520,7 @@ static int start_joinrequired_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://pennyball.stynegame.de/"); });
+            EM_ASM({ window.open("https://pennyball.stynegame.de/", "_blank");});
 #elif _WIN32
             system("explorer https://pennyball.stynegame.de/");
 #elif defined(__APPLE__)
@@ -1537,7 +1537,7 @@ static int start_joinrequired_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); });
+            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/", "_blank"); });
 #elif _WIN32
             system("explorer https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)

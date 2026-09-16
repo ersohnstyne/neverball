@@ -702,7 +702,7 @@ static void game_setup_openlink(const char *link)
     char buf[MAXSTR];
 
 #ifdef __EMSCRIPTEN__
-    EM_ASM({ window.open(UTF8ToString($0));}, link);
+    EM_ASM({ window.open(UTF8ToString($0), "_blank");}, link);
 #elif _WIN32
     SAFECPY(buf, "explorer ");
 #elif defined(__APPLE__)

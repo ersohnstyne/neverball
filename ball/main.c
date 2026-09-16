@@ -988,6 +988,8 @@ static int clamp_stick_axis(int val)
 }
 #endif
 
+static int main_loop_nowindowfocused = 0;
+
 static int loop(void)
 {
 #if defined(__GAMECUBE__) && defined(__WII__)
@@ -1313,6 +1315,7 @@ static int loop(void)
 #endif
                 {
                     case SDL_WINDOWEVENT_FOCUS_LOST:
+                        main_loop_nowindowfocused = 1;
 #ifndef __EMSCRIPTEN__
                         audio_suspend();
 #endif
@@ -1322,14 +1325,15 @@ static int loop(void)
                                 curr_state() == &st_play_set   ||
                                 curr_state() == &st_play_loop  ||
                                 curr_state() == &st_look)
-                                play_pause_goto(curr_state());
+                                d = play_pause_goto(curr_state());
                         }
                         else if (curr_state() == &st_demo_play ||
                                  curr_state() == &st_demo_look)
-                            demo_pause_goto(1);
+                            d = demo_pause_goto(1);
                         break;
 
                     case SDL_WINDOWEVENT_FOCUS_GAINED:
+                        main_loop_nowindowfocused = 0;
 #ifndef __EMSCRIPTEN__
                         audio_resume();
 #endif
@@ -1636,6 +1640,24 @@ static void step(void *data)
     struct main_loop *mainloop = (struct main_loop *) data;
 
     int running = loop();
+    
+    if (main_loop_nowindowfocused)
+    {
+#ifndef __EMSCRIPTEN__
+        audio_suspend();
+#endif
+        if (video_get_grab())
+        {
+            if (curr_state() == &st_play_ready ||
+                curr_state() == &st_play_set ||
+                curr_state() == &st_play_loop ||
+                curr_state() == &st_look)
+                running = play_pause_goto(curr_state());
+        }
+        else if (curr_state() == &st_demo_play ||
+                 curr_state() == &st_demo_look)
+                 running = demo_pause_goto(1);
+    }
 
     if (running)
     {

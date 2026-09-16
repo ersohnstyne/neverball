@@ -444,7 +444,7 @@ static int ball_action(int tok, int val)
 
         case MODEL_UPGRADE_EDITION:
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); });
+            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA", "_blank"); });
 #elif _WIN32
             system("explorer https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__APPLE__)

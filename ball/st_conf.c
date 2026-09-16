@@ -200,9 +200,9 @@ static int conf_social_action(int tok, int val)
     !defined(__SWITCH__)
 #ifdef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1
-                EM_ASM({ window.open("https://discord.gg/qnJR263Hm2"); });
+                EM_ASM({ window.open("https://discord.gg/qnJR263Hm2", "_blank"); });
 #else
-                EM_ASM({ window.open("https://discord.gg/HhMfr4N6H6"); });
+                EM_ASM({ window.open("https://discord.gg/HhMfr4N6H6", "_blank"); });
 #endif
 #else
 #if NB_HAVE_PB_BOTH==1
@@ -3349,7 +3349,7 @@ static int conf_audio_action(int tok, int val)
         case AUDIO_SOUND_VOLUME:
             config_set_d(CONFIG_SOUND_VOLUME, val);
             audio_volume(master, val, music, narrator);
-            audio_play(AUD_BUMPM, 1.0f);
+            audio_play(AUD_SWITCH, 1.0f);
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(sound_id, val);
@@ -3666,7 +3666,7 @@ static int conf_action(int tok, int val)
         case CONF_AUDIO_SOUND_VOLUME:
             config_set_d(CONFIG_SOUND_VOLUME, val);
             audio_volume(master, val, music, narrator);
-            audio_play(AUD_BUMPM, 1.0f);
+            audio_play(AUD_SWITCH, 1.0f);
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(sound_id, val);

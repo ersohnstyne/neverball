@@ -352,7 +352,7 @@ static int fail_action(int tok, int val)
         case FAIL_UPGRADE_EDITION:
             WGCL_fail_call_incident();
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA"); });
+            EM_ASM({ window.open("https://forms.office.com/r/upfWqaVVtA", "_blank"); });
 #elif _WIN32
             system("explorer https://forms.office.com/r/upfWqaVVtA");
 #elif defined(__APPLE__)
@@ -365,7 +365,7 @@ static int fail_action(int tok, int val)
         case FAIL_TRANSFER_MEMBER:
             WGCL_fail_call_incident();
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/"); });
+            EM_ASM({ window.open("https://discord.gg/qnJR263Hm2/", "_blank"); });
 #elif _WIN32
             system("explorer https://discord.gg/qnJR263Hm2/");
 #elif defined(__APPLE__)

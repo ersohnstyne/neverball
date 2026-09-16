@@ -547,7 +547,7 @@ static void audio_step(void *data, Uint8 *stream, int length)
     if (voices_ambient)
     {
         if (voices_ambient->play &&
-            voice_step(voices_ambient, 1.0f - music_vol, stream, length))
+            voice_step(voices_ambient, (1.0f - music_vol) * sound_vol, stream, length))
         {
 #if defined(__WII__)
             voices_ambient->play = 0;
@@ -1173,6 +1173,9 @@ void audio_ambient_fade_out(float t)
  */
 void audio_volume(int master, int sound, int music, int narrator)
 {
+    while (lock_hold) {}
+    lock_hold = 1;
+
     float master_logarithmic   = (float)  master   / 10.0f;
     float sound_logarithmic    = (float) (sound    / 10.0f) * master_logarithmic;
     float music_logarithmic    = (float) (music    / 10.0f) * master_logarithmic;
@@ -1182,6 +1185,8 @@ void audio_volume(int master, int sound, int music, int narrator)
     sound_vol    = LOGF_VOLUME(sound_logarithmic);
     music_vol    = LOGF_VOLUME(music_logarithmic);
     narrator_vol = LOGF_VOLUME(narrator_logarithmic);
+
+    lock_hold = 0;
 }
 
 /*---------------------------------------------------------------------------*/

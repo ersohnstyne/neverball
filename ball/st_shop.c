@@ -700,7 +700,7 @@ static int shop_rename_action(int tok, int val)
 
         case SHOP_RENAME_YES:
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ window.open("https://pennyball.stynegame.de/"); });
+            EM_ASM({ window.open("https://pennyball.stynegame.de/", "_blank"); });
 #else
             account_wgcl_save();
             return goto_name(ok_state, cancel_state, 0, 0, draw_back);

@@ -1315,6 +1315,7 @@ int goto_exit(void)
     if (curr_mode() != MODE_NONE)
         audio_play(AUD_QUITGAME, 1.0f);
 
+    audio_ambient_fade_out(0.5);
     activity_services_powerup_update(AS_POWERUP_NONE);
 
     struct state *curr = curr_state();

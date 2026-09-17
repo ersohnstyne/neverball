@@ -17,7 +17,7 @@
 
 #define CONFIG_INCLUDES_ACCOUNT
 
-#define ACCOUNT_WALLET_MAX_COINS 1000000
+#define ACCOUNT_WALLET_MAX_COINS 2000000000 // Was: 1000000
 
 #if NB_STEAM_API==1 && NB_EOS_SDK==1
 #error Security compilation error: Steam API and EOS SDK should not built at same time!

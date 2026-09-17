@@ -204,10 +204,7 @@ enum
 {
     CAM_PRESET_DEFAULT = 0,
     CAM_PRESET_1_4,
-<<<<<<< HEAD
     CAM_PRESET_1_5,
-=======
->>>>>>> ead62e8ee889f329fcf020b697b69d336888ba7e
     CAM_PRESET_1_6,
     CAM_PRESET_CUSTOM
 };

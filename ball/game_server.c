@@ -1413,15 +1413,7 @@ void game_update_view(float dt)
 
     const float SCL = vary.uv->r / vary.uv->sizes[1]; /* Was: view_zoom_curr */
 
-<<<<<<< HEAD
     /*  Read per-camera configuration parameters. */
-=======
-    float dc = view.dc * (jump_b > 0 ? 2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
-    float ball_spd = v_len(vary.uv->v);
-    float rot_mult = CLAMP(1.0f, 1.0f + ball_spd / 24.0f, rotate_max);
-    float da = 90.0f * input_get_r() * rot_mult * dt;
-    float k;
->>>>>>> ead62e8ee889f329fcf020b697b69d336888ba7e
 
     int cam = input_get_c() == CAM_AUTO ? automode : input_get_c();
     float spd = (float) input_get_c() == CAM_AUTO ? (automode == CAM_1 ? 0.25f : (automode == CAM_2 ? 0.0f : -0.001)) : cam_speed(cam) / 1000.0f;
@@ -1712,52 +1704,6 @@ void game_update_view(float dt)
                           (-cosf(V_PI * fix_cam_alpha[ui]) / 2) + 0.5f);
 #pragma endregion
     }
-<<<<<<< HEAD
-=======
-    else
-    {
-        view.e[2][0] = fsinf(V_RAD(view.a));
-        view.e[2][1] = 0.0f;
-        view.e[2][2] = fcosf(V_RAD(view.a));
-    }
-
-    /* Apply manual rotation. */
-
-    if (da != 0.0f)
-    {
-        m_rot(M, Y, V_RAD(da));
-        m_vxfm(v, M, view.e[2]);
-        v_cpy(view.e[2], v);
-    }
-
-    /* Orthonormalize the new view reference frame. */
-
-    v_crs(view.e[0], view.e[1], view.e[2]);
-    v_crs(view.e[2], view.e[0], view.e[1]);
-    v_nrm(view.e[0], view.e[0]);
-    v_nrm(view.e[2], view.e[2]);
-
-    /* Compute the new view position. */
-
-    k = 1.0f + v_dot(view.e[2], view_v) / 10.0f;
-
-    view_k = view_k + (k - view_k) * dt;
-
-    if (view_k < 0.5f) view_k = 0.5;
-
-    v_scl(v,    view.e[1], SCL * view.dp * view_k);
-    v_mad(v, v, view.e[2], SCL * view.dz * view_k);
-    v_add(view.p, v, vary.uv->p);
-
-    /* Compute the new view center. */
-
-    v_cpy(view.c, vary.uv->p);
-    v_mad(view.c, view.c, view.e[1], SCL * dc);
-
-    /* Note the current view angle. */
-
-    view.a = V_DEG(fatan2f(view.e[2][0], view.e[2][2]));
->>>>>>> ead62e8ee889f329fcf020b697b69d336888ba7e
 
     game_cmd_updview();
 }

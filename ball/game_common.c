@@ -140,10 +140,7 @@ const char *cam_to_str(int c)
     switch (cam_preset_get(c))
     {
     case CAM_PRESET_1_4:     return _("1.4 Classic");
-<<<<<<< HEAD
     case CAM_PRESET_1_5:     return _("1.5 Classic");
-=======
->>>>>>> ead62e8ee889f329fcf020b697b69d336888ba7e
     case CAM_PRESET_1_6:     return _("1.6 Classic");
     case CAM_PRESET_DEFAULT: return _("Chase Camera");
     }
@@ -224,13 +221,8 @@ int cam_preset_get(int c)
     if (speed == 250 && torque == 1 && free_rot == 0 && vxz == 0 && rot_max == 100)
         return CAM_PRESET_1_4;
 
-<<<<<<< HEAD
     if (speed == 250 && torque == 0 && free_rot == 1 && vxz == 1 && rot_max == 150)
         return CAM_PRESET_1_5;
-=======
-    if (torque == 0 && free_rot == 1 && vxz == 1 && rot_max == 100)
-        return CAM_PRESET_1_6;
->>>>>>> ead62e8ee889f329fcf020b697b69d336888ba7e
 
     if (speed == 250 && torque == 0 && free_rot == 1 && vxz == 1 && rot_max == 100)
         return CAM_PRESET_1_6;

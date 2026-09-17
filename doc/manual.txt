@@ -219,12 +219,12 @@ values follow.
                 camera_1_velocity_xz = 0
                 camera_1_rotate_max  = 100
 
-            To configure any camera slot (e.g., camera 1) for 1.5 Classic:
+            To configure any camera slot (e.g., camera 1) for 1.6 Classic:
                 camera_1_speed       = 250
                 camera_1_torque      = 0
                 camera_1_free_rotate = 1
                 camera_1_velocity_xz = 1
-                camera_1_rotate_max  = 150
+                camera_1_rotate_max  = 100
 
             To configure any camera slot (e.g., camera 1) for 1.6 Classic:
                 camera_1_speed       = 250
@@ -282,6 +282,17 @@ values follow.
             view_dp  400
             view_dc  0
             view_dz  600
+
+    view_fov_nostalgic 1
+
+        Little known fact, view_fov actually defines the vertical field
+        of view while the horizontal FOV is dynamically calculated from
+        the window width. This means that Neverball on a 16:9 screen or
+        window feels meaningfully different than it did back in 2004 in
+        its default 800x600 sized window with a default vertical FOV of
+        50 degrees. This setting is designed to recreate the horizontal
+        FOV feel on modern displays that Neverball had back in the day.
+        And yes this paragraph lines up without any extra spaces added.
 
     rotate_fast 300
     rotate_slow 150

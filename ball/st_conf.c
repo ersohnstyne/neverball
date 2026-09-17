@@ -976,6 +976,7 @@ static void conf_account_timer(int id, float dt)
 
 enum
 {
+<<<<<<< HEAD
     CONF_GAMEPLAY_AUTORETRY = GUI_LAST,
     CONF_GAMEPLAY_FASTERRESET,
     CONF_GAMEPLAY_TUTORIAL,
@@ -989,6 +990,12 @@ enum
     CONF_GAMEPLAY_CAMERA_1_5,
     CONF_GAMEPLAY_CAMERA_1_6,
     CONF_GAMEPLAY_LOCK_GOALS
+=======
+    GAMEPLAY_CAMERA_DEFAULT = GUI_LAST,
+    GAMEPLAY_CAMERA_1_4,
+    GAMEPLAY_CAMERA_1_6,
+    GAMEPLAY_LOCK_GOALS
+>>>>>>> ead62e8ee889f329fcf020b697b69d336888ba7e
 };
 
 /*
@@ -1084,12 +1091,19 @@ static int conf_gameplay_action(int tok, int val)
             config_save();
             break;
 
+<<<<<<< HEAD
         case GAMEPLAY_TUTORIAL:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
             config_save();
             goto_state(curr_state());
             break;
+=======
+    case GAMEPLAY_CAMERA_1_6:
+        cam_preset_set(CAM_1, CAM_PRESET_1_6);
+        goto_state(&st_conf_gameplay);
+        break;
+>>>>>>> ead62e8ee889f329fcf020b697b69d336888ba7e
 
         case GAMEPLAY_HINT:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
@@ -1250,6 +1264,7 @@ static int conf_gameplay_gui(void)
         {
             int btn0 = gui_state(kd, _("Default"),     GUI_SML, GAMEPLAY_CAMERA_DEFAULT, 0);
             int btn1 = gui_state(kd, _("1.4 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_4,     0);
+<<<<<<< HEAD
             int btn2 = gui_state(kd, _("1.5 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_5,     0);
             int btn3 = gui_state(kd, _("1.6 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_6,     0);
 
@@ -1257,6 +1272,13 @@ static int conf_gameplay_gui(void)
             gui_set_hilite(btn1, (curr == CAM_PRESET_1_4));
             gui_set_hilite(btn2, (curr == CAM_PRESET_1_5));
             gui_set_hilite(btn3, (curr == CAM_PRESET_1_6));
+=======
+            int btn2 = gui_state(kd, _("1.6 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_6,     0);
+
+            gui_set_hilite(btn0, (curr == CAM_PRESET_DEFAULT));
+            gui_set_hilite(btn1, (curr == CAM_PRESET_1_4));
+            gui_set_hilite(btn2, (curr == CAM_PRESET_1_6));
+>>>>>>> ead62e8ee889f329fcf020b697b69d336888ba7e
 
             gui_label(ld, _("Camera Preset"), GUI_SML, 0, 0);
             gui_filler(ld);

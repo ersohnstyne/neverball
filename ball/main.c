@@ -560,11 +560,25 @@ static int handle_key_dn(SDL_Event *e)
         return st_keybd(c, 1);
     }
 
-    if (KEY_IS_PAUSE(c))
+    if (KEY_IS_ENTER(c))
     {
         if (e->key.repeat)
             return d;
-        return st_keybd(c, 1);
+        return st_keybd(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
+    }
+
+    if (KEY_IS_FULLSCREEN(c))
+    {
+        if (e->key.repeat)
+            return d;
+#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
+        video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
+#if ENABLE_DUALDISPLAY==1
+        video_dualdisplay_fullscreen(config_get_d(CONFIG_FULLSCREEN));
+#endif
+        config_save();
+#endif
+        return goto_state(curr_state());
     }
 
     switch (c)
@@ -590,21 +604,6 @@ static int handle_key_dn(SDL_Event *e)
             }
         break;
 #endif
-        case SDLK_RETURN:
-        case SDLK_KP_ENTER:
-            d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
-            break;
-
-        case KEY_FULLSCREEN:
-#if NB_HAVE_PB_BOTH!=1 || !defined(__EMSCRIPTEN__)
-            video_fullscreen(!config_get_d(CONFIG_FULLSCREEN));
-#if ENABLE_DUALDISPLAY==1
-            video_dualdisplay_fullscreen(config_get_d(CONFIG_FULLSCREEN));
-#endif
-            config_save();
-#endif
-            goto_state(curr_state());
-            break;
 
         default:
             if (config_tst_d(CONFIG_KEY_FORWARD, c))
@@ -643,15 +642,11 @@ static int handle_key_up(SDL_Event *e)
     if (KEY_IS_PAUSE(c))
         return st_keybd(c, 0);
 
+    if (KEY_IS_ENTER(c))
+        return st_keybd(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
+
     switch (c)
     {
-        case SDLK_RETURN:
-        case SDLK_KP_ENTER:
-            d = st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
-            break;
-        case KEY_EXIT:
-            d = st_keybd(KEY_EXIT, 0);
-            break;
         default:
             if (config_tst_d(CONFIG_KEY_FORWARD, c))
             {

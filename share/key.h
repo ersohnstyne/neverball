@@ -56,4 +56,7 @@
 #define KEY_IS_PAUSE(c) ((c) == KEY_EXIT)
 #endif
 
+#define KEY_IS_ENTER(c) ((c) == SDLK_RETURN || (c) == SDLK_KP_ENTER)
+#define KEY_IS_FULLSCREEN(c) ((c) == KEY_FULLSCREEN)
+
 #endif

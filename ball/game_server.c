@@ -1419,7 +1419,7 @@ void game_update_view(float dt)
     float spd = (float) input_get_c() == CAM_AUTO ? (automode == CAM_1 ? 0.25f : (automode == CAM_2 ? 0.0f : -0.001)) : cam_speed(cam) / 1000.0f;
     int torque = input_get_c() == CAM_AUTO ? 1 : cam_torque(cam);
     int free_rotate = input_get_c() == CAM_AUTO ? 1 : cam_free_rotate(cam);
-    int velocity_xz = input_get_c() == CAM_AUTO ? 1 : cam_velocity_xz(cam);
+    int velocity_xz = input_get_c() == CAM_AUTO && automode == CAM_1 ? 1 : cam_velocity_xz(cam);
     float rotate_max = input_get_c() == CAM_AUTO ? 150.0f : cam_rotate_max(cam);
 
     struct game_view multiview1 = view;
@@ -1531,9 +1531,8 @@ void game_update_view(float dt)
         float dc = (multiview1.dc - flerp(0.25f, 0, zoom_diff)) *
                    (jump_b > 0 ? 2.0f * fabsf(jump_dt - 0.5f) : 1.0f);
         float ball_spd = v_len(vary.uv[ui].v);
-        float rot_mult = torque ? CLAMP(1.0f, 1.0f + ball_spd / 24.0f, rotate_max) : 1.0f;
+        float rot_mult = CLAMP(1.0f, 1.0f + ball_spd / 24.0f, rotate_max);
         float da = (90.0f * input_get_r() * rot_mult * dt) * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
-        float dx = (!velocity_xz && spd >= 0.0f) ? (input_get_r() * rot_mult * dt * 5.0f) : 0.0f;
         float k;
 
         float M[16], Y[3] = { 0.0f, 1.0f, 0.0f };
@@ -1612,10 +1611,9 @@ void game_update_view(float dt)
             multiview1.e[2][0] = fsinf(V_RAD(multiview1.a));
             multiview1.e[2][1] = 0.0f;
             multiview1.e[2][2] = fcosf(V_RAD(multiview1.a));
-            dx = 0.0f;
         }
 
-        if (spd > 0.1f)
+        if (spd > 0.1f && !(input_get_c() == CAM_AUTO && automode == CAM_1))
             view_alt_velocity = flerp(view_alt_velocity,
                                       vary.uv[ui].v[1], 0.01f);
         else
@@ -1677,7 +1675,6 @@ void game_update_view(float dt)
 
         v_scl(v,    multiview1.e[1], SCL * (multiview1.dp + flerp(3.25f, 0, zoom_diff)) * view_k);
         v_mad(v, v, multiview1.e[2], SCL * (multiview1.dz + flerp(4.0f,  0, zoom_diff)) * view_k);
-        v_mad(v, v, multiview1.e[0], SCL * dx * view_k);
         v_add(multiview1.p, v, vary.uv[ui].p);
 
         multiview1.p[1] -= view_alt_velocity;

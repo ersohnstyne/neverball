@@ -609,6 +609,7 @@ void WGCL_LoadGameSystemSettings(void)
     EM_ASM({ systemsettings_conf_gfx_shadows           = $0; }, config_get_d(CONFIG_SHADOW));
     EM_ASM({ systemsettings_conf_gfx_background        = $0; }, config_get_d(CONFIG_BACKGROUND));
     EM_ASM({ systemsettings_conf_gfx_camera_shake      = $0; }, config_get_d(CONFIG_CAMERA_SHAKE));
+    EM_ASM({ systemsettings_conf_gfx_camera_nostalgic  = $0; }, config_get_d(CONFIG_VIEW_FOV_NOSTALGIC));
     EM_ASM({ systemsettings_conf_audio_volume_master   = $0; }, config_get_d(CONFIG_MASTER_VOLUME));
     EM_ASM({ systemsettings_conf_audio_volume_sfx      = $0; }, config_get_d(CONFIG_SOUND_VOLUME));
     EM_ASM({ systemsettings_conf_audio_volume_music    = $0; }, config_get_d(CONFIG_MUSIC_VOLUME));
@@ -635,29 +636,30 @@ void WGCL_SaveGameSystemSettings(void)
     config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY,   EM_ASM_INT({ return systemsettings_conf_game_autoretry;   }));
     config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET, EM_ASM_INT({ return systemsettings_conf_game_fasterreset; }));
 
-    config_set_d(CONFIG_ACCOUNT_HINT,        EM_ASM_INT({ return systemsettings_conf_game_hint;                            }));
-    config_set_d(CONFIG_ACCOUNT_TUTORIAL,    EM_ASM_INT({ return systemsettings_conf_game_tutorial;                        }));
-    config_set_d(CONFIG_ACCOUNT_HINT,        EM_ASM_INT({ return systemsettings_conf_game_hint;                            }));
-    config_set_d(CONFIG_SCREEN_ANIMATIONS,   EM_ASM_INT({ return systemsettings_conf_screenanimations;                     }));
-    config_set_d(CONFIG_TRANSITIONS,         EM_ASM_INT({ return systemsettings_conf_screenanimations;                     }));
-    config_set_d(CONFIG_TEXTURES,            EM_ASM_INT({ return systemsettings_conf_gfx_textures;                         }));
-    config_set_d(CONFIG_SMOOTH_FIX,          EM_ASM_INT({ return systemsettings_conf_gfx_smoothfix_flags;                  }));
-    config_set_d(CONFIG_SHADOW,              EM_ASM_INT({ return systemsettings_conf_gfx_shadows;                          }));
-    config_set_d(CONFIG_BACKGROUND,          EM_ASM_INT({ return systemsettings_conf_gfx_background;                       }));
-    config_set_d(CONFIG_CAMERA_SHAKE,        EM_ASM_INT({ return systemsettings_conf_gfx_camera_shake;                     }));
-    config_set_d(CONFIG_MASTER_VOLUME,       EM_ASM_INT({ return systemsettings_conf_audio_volume_master;                  }));
-    config_set_d(CONFIG_SOUND_VOLUME,        EM_ASM_INT({ return systemsettings_conf_audio_volume_sfx;                     }));
-    config_set_d(CONFIG_MUSIC_VOLUME,        EM_ASM_INT({ return systemsettings_conf_audio_volume_music;                   }));
-    config_set_d(CONFIG_NARRATOR_VOLUME,     EM_ASM_INT({ return systemsettings_conf_audio_volume_narrator;                }));
-    config_set_d(CONFIG_ACCOUNT_SAVE,        EM_ASM_INT({ return systemsettings_conf_replay_controls_save;                 }));
-    config_set_d(CONFIG_ACCOUNT_LOAD,        EM_ASM_INT({ return systemsettings_conf_replay_controls_load;                 }));
-    config_set_d(CONFIG_MOUSE_SENSE,         MOUSE_RANGE_UNMAP(EM_ASM_INT({ return systemsettings_conf_input_sensitivity; })));
-    config_set_d(CONFIG_CAMERA_ROTATE_MODE,  EM_ASM_INT({ return systemsettings_conf_input_camrotation;                    }));
-    config_set_d(CONFIG_TOUCH_ROTATE_INVERT, EM_ASM_INT({ return systemsettings_conf_input_camrotation;                    }));
-    config_set_d(CONFIG_TOUCH_MODE,          EM_ASM_INT({ return systemsettings_conf_input_touchmode;                      }));
-    config_set_d(CONFIG_NOTIFICATION_CHKP,   EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_chkp;       }));
-    config_set_d(CONFIG_NOTIFICATION_REWARD, EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_extraballs; }));
-    config_set_d(CONFIG_NOTIFICATION_SHOP,   EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_shop;       }));
+    config_set_d(CONFIG_ACCOUNT_HINT,         EM_ASM_INT({ return systemsettings_conf_game_hint;                            }));
+    config_set_d(CONFIG_ACCOUNT_TUTORIAL,     EM_ASM_INT({ return systemsettings_conf_game_tutorial;                        }));
+    config_set_d(CONFIG_ACCOUNT_HINT,         EM_ASM_INT({ return systemsettings_conf_game_hint;                            }));
+    config_set_d(CONFIG_SCREEN_ANIMATIONS,    EM_ASM_INT({ return systemsettings_conf_screenanimations;                     }));
+    config_set_d(CONFIG_TRANSITIONS,          EM_ASM_INT({ return systemsettings_conf_screenanimations;                     }));
+    config_set_d(CONFIG_TEXTURES,             EM_ASM_INT({ return systemsettings_conf_gfx_textures;                         }));
+    config_set_d(CONFIG_SMOOTH_FIX,           EM_ASM_INT({ return systemsettings_conf_gfx_smoothfix_flags;                  }));
+    config_set_d(CONFIG_SHADOW,               EM_ASM_INT({ return systemsettings_conf_gfx_shadows;                          }));
+    config_set_d(CONFIG_BACKGROUND,           EM_ASM_INT({ return systemsettings_conf_gfx_background;                       }));
+    config_set_d(CONFIG_CAMERA_SHAKE,         EM_ASM_INT({ return systemsettings_conf_gfx_camera_shake;                     }));
+    config_set_d(CONFIG_VIEW_FOV_NOSTALGIC,   EM_ASM_INT({ return systemsettings_conf_gfx_camera_nostalgic;                 }));
+    config_set_d(CONFIG_MASTER_VOLUME,        EM_ASM_INT({ return systemsettings_conf_audio_volume_master;                  }));
+    config_set_d(CONFIG_SOUND_VOLUME,         EM_ASM_INT({ return systemsettings_conf_audio_volume_sfx;                     }));
+    config_set_d(CONFIG_MUSIC_VOLUME,         EM_ASM_INT({ return systemsettings_conf_audio_volume_music;                   }));
+    config_set_d(CONFIG_NARRATOR_VOLUME,      EM_ASM_INT({ return systemsettings_conf_audio_volume_narrator;                }));
+    config_set_d(CONFIG_ACCOUNT_SAVE,         EM_ASM_INT({ return systemsettings_conf_replay_controls_save;                 }));
+    config_set_d(CONFIG_ACCOUNT_LOAD,         EM_ASM_INT({ return systemsettings_conf_replay_controls_load;                 }));
+    config_set_d(CONFIG_MOUSE_SENSE,          MOUSE_RANGE_UNMAP(EM_ASM_INT({ return systemsettings_conf_input_sensitivity; })));
+    config_set_d(CONFIG_CAMERA_ROTATE_MODE,   EM_ASM_INT({ return systemsettings_conf_input_camrotation;                    }));
+    config_set_d(CONFIG_TOUCH_ROTATE_INVERT,  EM_ASM_INT({ return systemsettings_conf_input_camrotation;                    }));
+    config_set_d(CONFIG_TOUCH_MODE,           EM_ASM_INT({ return systemsettings_conf_input_touchmode;                      }));
+    config_set_d(CONFIG_NOTIFICATION_CHKP,    EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_chkp;       }));
+    config_set_d(CONFIG_NOTIFICATION_REWARD,  EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_extraballs; }));
+    config_set_d(CONFIG_NOTIFICATION_SHOP,    EM_ASM_INT({ return systemsettings_conf_wgclworkers_notifications_shop;       }));
 
     switch (EM_ASM_INT({ return systemsettings_conf_input_preset; }))
     {

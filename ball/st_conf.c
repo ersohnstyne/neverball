@@ -987,11 +987,79 @@ enum
     CONF_GAMEPLAY_CAMERA_DEFAULT,
     CONF_GAMEPLAY_CAMERA_1_4,
     CONF_GAMEPLAY_CAMERA_1_5,
+    CONF_GAMEPLAY_CAMERA_1_6,
     CONF_GAMEPLAY_LOCK_GOALS
 };
 
-static int conf_gameplay_settings_entered = 0;
-static int cam_preset_expected = CONF_GAMEPLAY_CAMERA_DEFAULT;
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_AUTORETRY for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_AUTORETRY` to `GAMEPLAY_AUTORETRY`.
+ */
+#define GAMEPLAY_AUTORETRY CONF_GAMEPLAY_AUTORETRY
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_FASTERRESET for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_FASTERRESET` to `GAMEPLAY_FASTERRESET`.
+ */
+#define GAMEPLAY_FASTERRESET CONF_GAMEPLAY_FASTERRESET
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_TUTORIAL for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_TUTORIAL` to `GAMEPLAY_TUTORIAL`.
+ */
+#define GAMEPLAY_TUTORIAL CONF_GAMEPLAY_TUTORIAL
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_HINT for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_HINT` to `GAMEPLAY_HINT`.
+ */
+#define GAMEPLAY_HINT CONF_GAMEPLAY_HINT
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING` to `GAMEPLAY_SWITCHBALL_DROPSPEEDING`.
+ */
+#define GAMEPLAY_SWITCHBALL_DROPSPEEDING CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_CAMERA_DEFAULT for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_CAMERA_DEFAULT` to `GAMEPLAY_CAMERA_DEFAULT`.
+ */
+#define GAMEPLAY_CAMERA_DEFAULT CONF_GAMEPLAY_CAMERA_DEFAULT
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_CAMERA_1_4 for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_CAMERA_1_4` to `GAMEPLAY_CAMERA_1_4`.
+ */
+#define GAMEPLAY_CAMERA_1_4 CONF_GAMEPLAY_CAMERA_1_4
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_CAMERA_1_5 for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_CAMERA_1_5` to `GAMEPLAY_CAMERA_1_5`.
+ */
+#define GAMEPLAY_CAMERA_1_5 CONF_GAMEPLAY_CAMERA_1_5
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_CAMERA_1_6 for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_CAMERA_1_6` to `GAMEPLAY_CAMERA_1_6`.
+ */
+#define GAMEPLAY_CAMERA_1_6 CONF_GAMEPLAY_CAMERA_1_6
+
+/*
+ * This enum name will be redirected to CONF_GAMEPLAY_LOCK_GOALS for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `CONF_GAMEPLAY_LOCK_GOALS` to `GAMEPLAY_LOCK_GOALS`.
+ */
+#define GAMEPLAY_LOCK_GOALS CONF_GAMEPLAY_LOCK_GOALS
 
 static int conf_gameplay_action(int tok, int val)
 {
@@ -1000,66 +1068,68 @@ static int conf_gameplay_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            conf_gameplay_settings_entered = 0;
             return exit_state(&st_conf);
 
-        case CONF_GAMEPLAY_AUTORETRY:
+        case GAMEPLAY_AUTORETRY:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY, val);
             goto_state(curr_state());
             config_save();
             break;
 
-        case CONF_GAMEPLAY_FASTERRESET:
+        case GAMEPLAY_FASTERRESET:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET, val);
             goto_state(curr_state());
             config_save();
             break;
 
-        case CONF_GAMEPLAY_TUTORIAL:
+        case GAMEPLAY_TUTORIAL:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
             config_save();
             goto_state(curr_state());
             break;
 
-        case CONF_GAMEPLAY_HINT:
+        case GAMEPLAY_HINT:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_HINT, val);
             config_save();
             goto_state(curr_state());
             break;
 
-        case CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING:
+        case GAMEPLAY_SWITCHBALL_DROPSPEEDING:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING, val);
             config_save();
             goto_state(curr_state());
             break;
 
-        case CONF_GAMEPLAY_CAMERA_DEFAULT:
-            cam_preset_expected = CAM_PRESET_DEFAULT;
+        case GAMEPLAY_CAMERA_DEFAULT:
             cam_preset_set(CAM_1, CAM_PRESET_DEFAULT);
             config_save();
             goto_state(&st_conf_gameplay);
             break;
 
-        case CONF_GAMEPLAY_CAMERA_1_4:
-            cam_preset_expected = CAM_PRESET_1_4;
+        case GAMEPLAY_CAMERA_1_4:
             cam_preset_set(CAM_1, CAM_PRESET_1_4);
             config_save();
             goto_state(curr_state());
             break;
 
-        case CONF_GAMEPLAY_CAMERA_1_5:
-            cam_preset_expected = CAM_PRESET_1_5;
+        case GAMEPLAY_CAMERA_1_5:
             cam_preset_set(CAM_1, CAM_PRESET_1_5);
             config_save();
             goto_state(curr_state());
             break;
 
-        case CONF_GAMEPLAY_LOCK_GOALS:
+        case GAMEPLAY_CAMERA_1_6:
+            cam_preset_set(CAM_1, CAM_PRESET_1_6);
+            config_save();
+            goto_state(curr_state());
+            break;
+
+        case GAMEPLAY_LOCK_GOALS:
             audio_play(val == 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_LOCK_GOALS, val);
             config_save();
@@ -1111,18 +1181,18 @@ static int conf_gameplay_gui(void)
 #endif
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Auto-Retry"), CONF_GAMEPLAY_AUTORETRY,
+            conf_toggle_simple(id, _("Auto-Retry"), GAMEPLAY_AUTORETRY,
                                    config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), 1, 0);
 
             if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
-                conf_toggle_simple(id, _("Faster Reset"), CONF_GAMEPLAY_FASTERRESET,
+                conf_toggle_simple(id, _("Faster Reset"), GAMEPLAY_FASTERRESET,
                                        config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), 1, 0);
 #else
-            conf_toggle(id, _("Auto-Retry"), CONF_GAMEPLAY_AUTORETRY,
+            conf_toggle(id, _("Auto-Retry"), GAMEPLAY_AUTORETRY,
                             config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), _("On"), 1, _("Off"), 0);
 
             if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
-                conf_toggle(id, _("Faster Reset"), CONF_GAMEPLAY_FASTERRESET,
+                conf_toggle(id, _("Faster Reset"), GAMEPLAY_FASTERRESET,
                                 config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), _("On"), 1, _("Off"), 0);
 #endif
 
@@ -1130,14 +1200,14 @@ static int conf_gameplay_gui(void)
         }
 
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Show Tutorial"), CONF_GAMEPLAY_TUTORIAL,
+        conf_toggle_simple(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
                                config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
-        conf_toggle_simple(id, _("Show Hint"), CONF_GAMEPLAY_HINT,
+        conf_toggle_simple(id, _("Show Hint"), GAMEPLAY_HINT,
                                config_get_d(CONFIG_ACCOUNT_HINT), 1, 0);
 #else
-        conf_toggle(id, _("Show Tutorial"), CONF_GAMEPLAY_TUTORIAL,
+        conf_toggle(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
                         config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Show Hint"), CONF_GAMEPLAY_HINT,
+        conf_toggle(id, _("Show Hint"), GAMEPLAY_HINT,
                         config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
 #endif
 
@@ -1146,10 +1216,10 @@ static int conf_gameplay_gui(void)
         if (game_switchball_installed())
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Drop Speeding Alert"), CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+            conf_toggle_simple(id, _("Drop Speeding Alert"), GAMEPLAY_SWITCHBALL_DROPSPEEDING,
                                    config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING), 1, 0);
 #else
-            conf_toggle(id, _("Drop Speeding Alert"), CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+            conf_toggle(id, _("Drop Speeding Alert"), GAMEPLAY_SWITCHBALL_DROPSPEEDING,
                             config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING), _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
@@ -1167,10 +1237,10 @@ static int conf_gameplay_gui(void)
              ))
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Completed Levels"), CONF_GAMEPLAY_LOCK_GOALS,
+            conf_toggle_simple(id, _("Completed Levels"), GAMEPLAY_LOCK_GOALS,
                                    config_get_d(CONFIG_LOCK_GOALS), 0, 1);
 #else
-            conf_toggle(id, _("Completed Levels"), CONF_GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+            conf_toggle(id, _("Completed Levels"), GAMEPLAY_LOCK_GOALS,
                             config_get_d(CONFIG_LOCK_GOALS), _("Locked"), 1, _("Unlocked"), 0);
 #endif
             gui_space(id);
@@ -1178,13 +1248,15 @@ static int conf_gameplay_gui(void)
 
         if ((jd = gui_harray(id)) && (kd = gui_vstack(jd)) && (ld = gui_vstack(jd)))
         {
-            int btn0 = gui_state(kd, _("Default"),     GUI_SML, CONF_GAMEPLAY_CAMERA_DEFAULT, 0);
-            int btn1 = gui_state(kd, _("1.4 Classic"), GUI_SML, CONF_GAMEPLAY_CAMERA_1_4,     0);
-            int btn2 = gui_state(kd, _("1.5 Classic"), GUI_SML, CONF_GAMEPLAY_CAMERA_1_5,     0);
+            int btn0 = gui_state(kd, _("Default"),     GUI_SML, GAMEPLAY_CAMERA_DEFAULT, 0);
+            int btn1 = gui_state(kd, _("1.4 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_4,     0);
+            int btn2 = gui_state(kd, _("1.5 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_5,     0);
+            int btn3 = gui_state(kd, _("1.6 Classic"), GUI_SML, GAMEPLAY_CAMERA_1_6,     0);
 
             gui_set_hilite(btn0, (curr == CAM_PRESET_DEFAULT));
             gui_set_hilite(btn1, (curr == CAM_PRESET_1_4));
             gui_set_hilite(btn2, (curr == CAM_PRESET_1_5));
+            gui_set_hilite(btn3, (curr == CAM_PRESET_1_6));
 
             gui_label(ld, _("Camera Preset"), GUI_SML, 0, 0);
             gui_filler(ld);
@@ -1205,11 +1277,6 @@ static int conf_gameplay_gui(void)
 
 static int conf_gameplay_enter(struct state *st, struct state *prev, int intent)
 {
-    if (!conf_gameplay_settings_entered) {
-        cam_preset_expected = cam_preset_get(CAM_1);
-        conf_gameplay_settings_entered = 1;
-    }
-
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 

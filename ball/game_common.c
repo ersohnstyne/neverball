@@ -141,6 +141,7 @@ const char *cam_to_str(int c)
     {
     case CAM_PRESET_1_4:     return _("1.4 Classic");
     case CAM_PRESET_1_5:     return _("1.5 Classic");
+    case CAM_PRESET_1_6:     return _("1.6 Classic");
     case CAM_PRESET_DEFAULT: return _("Chase Camera");
     }
 
@@ -211,18 +212,22 @@ int cam_rotate_max(int c)
 
 int cam_preset_get(int c)
 {
+    int speed    = cam_speed(c);
     int torque   = cam_torque(c);
     int free_rot = cam_free_rotate(c);
     int vxz      = cam_velocity_xz(c);
     int rot_max  = cam_rotate_max(c);
 
-    if (torque == 1 && free_rot == 0 && vxz == 0 && rot_max == 100)
+    if (speed == 250 && torque == 1 && free_rot == 0 && vxz == 0 && rot_max == 100)
         return CAM_PRESET_1_4;
 
-    if (torque == 0 && free_rot == 1 && vxz == 1)
+    if (speed == 250 && torque == 0 && free_rot == 1 && vxz == 1 && rot_max == 150)
         return CAM_PRESET_1_5;
 
-    if (torque == 1 && free_rot == 1 && vxz == 1 && rot_max == 150)
+    if (speed == 250 && torque == 0 && free_rot == 1 && vxz == 1 && rot_max == 100)
+        return CAM_PRESET_1_6;
+
+    if (speed == 250 && torque == 1 && free_rot == 1 && vxz == 1 && rot_max == 150)
         return CAM_PRESET_DEFAULT;
 
     return CAM_PRESET_CUSTOM;
@@ -236,27 +241,35 @@ void cam_preset_set(int c, int preset)
     switch (preset)
     {
     case CAM_PRESET_1_4:
-        config_set_d(CONFIG_CAMERA_1_SPEED, 250);
-        config_set_d(CONFIG_CAMERA_1_TORQUE, 1);
+        config_set_d(CONFIG_CAMERA_1_SPEED,       250);
+        config_set_d(CONFIG_CAMERA_1_TORQUE,      1);
         config_set_d(CONFIG_CAMERA_1_FREE_ROTATE, 0);
         config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 0);
-        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX, 100);
+        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  100);
         break;
 
     case CAM_PRESET_1_5:
-        config_set_d(CONFIG_CAMERA_1_SPEED, 250);
-        config_set_d(CONFIG_CAMERA_1_TORQUE, 0);
+        config_set_d(CONFIG_CAMERA_1_SPEED,       250);
+        config_set_d(CONFIG_CAMERA_1_TORQUE,      0);
         config_set_d(CONFIG_CAMERA_1_FREE_ROTATE, 1);
         config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 1);
-        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX, 150);
+        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  150);
+        break;
+
+    case CAM_PRESET_1_6:
+        config_set_d(CONFIG_CAMERA_1_SPEED,       250);
+        config_set_d(CONFIG_CAMERA_1_TORQUE,      0);
+        config_set_d(CONFIG_CAMERA_1_FREE_ROTATE, 1);
+        config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 1);
+        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  100);
         break;
 
     default:
-        config_set_d(CONFIG_CAMERA_1_SPEED, 250);
-        config_set_d(CONFIG_CAMERA_1_TORQUE, 1);
+        config_set_d(CONFIG_CAMERA_1_SPEED,       250);
+        config_set_d(CONFIG_CAMERA_1_TORQUE,      1);
         config_set_d(CONFIG_CAMERA_1_FREE_ROTATE, 1);
         config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 1);
-        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX, 150);
+        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  150);
         break;
     }
 }

@@ -910,7 +910,9 @@ static int conf_account_enter(struct state *st, struct state *prev, int intent)
 
 static void conf_account_timer(int id, float dt)
 {
-    game_step_fade(dt);
+    if (!game_server_state() && !demo_state())
+        game_step_fade(dt);
+
     gui_timer(id, dt);
 
     int sec;
@@ -926,10 +928,10 @@ static void conf_account_timer(int id, float dt)
         sec = MAX(0, sec);
 
         static char cv19_infoattr[MAXSTR];
-
+        
         int clock_hour = (int) MAX(0, (sec / 3600) % 24);
-        int clock_min  = (int) MAX(0, (sec / 60) % 60);
-        int clock_sec  = (int) MAX(0, (sec) % 60);
+        int clock_min  = (int) MAX(0, (sec / 60  ) % 60);
+        int clock_sec  = (int) MAX(0, (sec       ) % 60);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(cv19_infoattr, MAXSTR,
@@ -1694,7 +1696,7 @@ static int conf_controls_gui(void)
             mouse_id = conf_slider_v2(id, _("Mouse Sensitivity"), CONTROLS_MOUSE_SENSE,
                                       mouse);
 #else
-            conf_slider(id, _("Mouse Sensitivity"), CONF_CONTROLS_MOUSE_SENSE,
+            conf_slider(id, _("Mouse Sensitivity"), CONTROLS_MOUSE_SENSE,
                             mouse, mouse_id, ARRAYSIZE(mouse_id));
 #endif
 
@@ -1703,7 +1705,7 @@ static int conf_controls_gui(void)
                                    config_get_d(CONFIG_MOUSE_INVERT),
                                    1, 0);
 #else
-            conf_toggle(id, _("Invert Y Axis"), CONF_CONTROLS_INVERT_MOUSE_Y,
+            conf_toggle(id, _("Invert Y Axis"), CONTROLS_INVERT_MOUSE_Y,
                             config_get_d(CONFIG_MOUSE_INVERT),
                             _("On"), 1, _("Off"), 0);
 #endif
@@ -4007,7 +4009,9 @@ static int conf_leave(struct state *st, struct state *next, int id, int intent)
 
 static void conf_shared_timer(int id, float dt)
 {
-    game_step_fade(dt);
+    if (!game_server_state() && !demo_state())
+        game_step_fade(dt);
+
     gui_timer(id, dt);
 }
 

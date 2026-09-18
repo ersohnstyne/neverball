@@ -564,7 +564,7 @@ static int handle_key_dn(SDL_Event *e)
     {
         if (e->key.repeat)
             return d;
-        return st_keybd(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
+        return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
     }
 
     if (KEY_IS_FULLSCREEN(c))
@@ -643,7 +643,7 @@ static int handle_key_up(SDL_Event *e)
         return st_keybd(c, 0);
 
     if (KEY_IS_ENTER(c))
-        return st_keybd(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
+        return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
 
     switch (c)
     {

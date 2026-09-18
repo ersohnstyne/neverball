@@ -107,6 +107,7 @@ enum
 };
 #endif
 
+#if NB_HAVE_PB_BOTH==1
 static const char demos[][16] = {
     "gui/rules1.nbr",
     "gui/rules2.nbr",
@@ -120,6 +121,14 @@ static const char demos_xbox[][21] = {
     "gui/rules2_xbox.nbr",
     "gui/tricks1_xbox.nbr",
     "gui/tricks2_xbox.nbr"
+};
+#endif
+#else
+static const char demos[][16] = {
+    "",
+    "",
+    "gui/demo1.nbr",
+    "gui/demo2.nbr"
 };
 #endif
 
@@ -340,12 +349,7 @@ static int page_introduction(int id)
 #else
 static int help_allow_control_demos(int id)
 {
-//#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-//    return fs_exists(current_platform == PLATFORM_PC ?
-//                     demos[id] : demos_xbox[id]);
-//#else
-    return fs_exists(demos[id]);
-//#endif
+    return *demos[id] || demos[id][0] ? fs_exists(demos[id]) : 0;
 }
 
 static int page_rules(int id)
@@ -438,23 +442,31 @@ static int page_rules(int id)
         if ((kd = gui_varray(jd)))
         {
 #if defined(HELP_RULES_WITH_DEMO) || NB_HAVE_PB_BOTH==1
-            if (help_allow_control_demos(0) && help_allow_control_demos(1))
-            {
-                const int ww = MIN(w, h) / 4;
-                const int hh = ww / 4 * 3;
+            const int ww = MIN(w, h) / 4;
+            const int hh = ww / 4 * 3;
 
-                /* This rule guides contains replays and is used with Premium */
-                if ((ld = gui_vstack(kd)))
-                {
+            const int ww_old = MIN(w, h) * 5 / 12;
+            const int hh_old = ww / 4 * 3;
+
+            /* This guides contains replays */
+
+            if (fs_exists("map-easy/easy.sol") && help_allow_control_demos(0)) {
+                if ((ld = gui_vstack(kd))) {
                     gui_space(ld);
                     gui_image(ld, "gui/rules1.jpg", ww, hh);
                     gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
                     gui_filler(ld);
                     gui_set_state(ld, HELP_DEMO, 0);
                 }
+            }
+            else if ((ld = gui_vstack(kd))) {
+                gui_space(ld);
+                gui_image(ld, "gui/help1.jpg", ww_old, hh_old);
+                gui_filler(ld);
+            }
 
-                if ((ld = gui_vstack(kd)))
-                {
+            if (fs_exists("map-easy/coins.sol") && help_allow_control_demos(1)) {
+                if ((ld = gui_vstack(kd))) {
                     gui_space(ld);
                     gui_image(ld, "gui/rules2.jpg", ww, hh);
                     gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
@@ -462,26 +474,29 @@ static int page_rules(int id)
                     gui_set_state(ld, HELP_DEMO, 1);
                 }
             }
-            else
-#endif
-            {
-                const int ww = MIN(w, h) * 5 / 12;
-                const int hh = ww / 4 * 3;
-
-                if ((ld = gui_vstack(kd)))
-                {
-                    gui_space(ld);
-                    gui_image(ld, "gui/help1.jpg", ww, hh);
-                    gui_filler(ld);
-                }
-
-                if ((ld = gui_vstack(kd)))
-                {
-                    gui_space(ld);
-                    gui_image(ld, "gui/help2.jpg", ww, hh);
-                    gui_filler(ld);
-                }
+            else if ((ld = gui_vstack(kd))) {
+                gui_space(ld);
+                gui_image(ld, "gui/help2.jpg", ww_old, hh_old);
+                gui_filler(ld);
             }
+#else
+            const int ww = MIN(w, h) * 5 / 12;
+            const int hh = ww / 4 * 3;
+
+            if ((ld = gui_vstack(kd)))
+            {
+                gui_space(ld);
+                gui_image(ld, "gui/help1.jpg", ww, hh);
+                gui_filler(ld);
+            }
+
+            if ((ld = gui_vstack(kd)))
+            {
+                gui_space(ld);
+                gui_image(ld, "gui/help2.jpg", ww, hh);
+                gui_filler(ld);
+            }
+#endif
         }
 
         gui_filler(jd);
@@ -1176,28 +1191,43 @@ static int page_tricks(int id)
     const int ww = MIN(w, h) * 2 / 8;
     const int hh = ww / 4 * 3;
 
+    const int ww_old = MIN(w, h) * 5 / 12;
+    const int hh_old = ww / 4 * 3;
+
     if ((jd = gui_hstack(id)))
     {
         gui_filler(jd);
 
         if ((kd = gui_varray(jd)))
         {
-            if ((ld = gui_vstack(kd)))
-            {
+            if (fs_exists("map-medium/locks.sol") && help_allow_control_demos(2)) {
+                if ((ld = gui_vstack(kd))) {
+                    gui_space(ld);
+                    gui_image(ld, "gui/tricks1.jpg", ww, hh);
+                    gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
+                    gui_filler(ld);
+                    gui_set_state(ld, HELP_DEMO, 2);
+                }
+            }
+            else if ((ld = gui_vstack(kd))) {
                 gui_space(ld);
-                gui_image(ld, "gui/tricks1.jpg", ww, hh);
-                gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
+                gui_image(ld, "gui/help3.jpg", ww_old, hh_old);
                 gui_filler(ld);
-                gui_set_state(ld, HELP_DEMO, 2);
             }
 
-            if ((ld = gui_vstack(kd)))
-            {
+            if (fs_exists("map-easy/easy.sol") && help_allow_control_demos(3)) {
+                if ((ld = gui_vstack(kd))) {
+                    gui_space(ld);
+                    gui_image(ld, "gui/tricks2.jpg", ww, hh);
+                    gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
+                    gui_filler(ld);
+                    gui_set_state(ld, HELP_DEMO, 3);
+                }
+            }
+            else if ((ld = gui_vstack(kd))) {
                 gui_space(ld);
-                gui_image(ld, "gui/tricks2.jpg", ww, hh);
-                gui_state(ld, _("Watch demo"), GUI_SML, 0, 0);
+                gui_image(ld, "gui/help4.jpg", ww_old, hh_old);
                 gui_filler(ld);
-                gui_set_state(ld, HELP_DEMO, 3);
             }
         }
 

@@ -80,7 +80,8 @@ static int quit_uses_restart = 0;
             if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS)) \
                 st_autocalibrate_stick();                     \
             audio_music_fade_in(0.5f);                        \
-            if (st_continue != &st_level)                     \
+            if (st_continue == &st_play_ready ||              \
+                st_continue == &st_play_loop)                 \
                 video_set_grab(1);                            \
             return exit_state(st_continue);                   \
         } else {                                              \
@@ -94,12 +95,13 @@ int goto_pause(struct state *returnable)
 {
     audio_play("snd/2.2/game_pause.ogg", 1.0f);
 
-    if (!st_continue)
+    if (!st_continue && !returnable)
         st_continue = returnable;
 
     /* Set it up some those states? */
-    if (st_continue == &st_play_ready || st_continue == &st_play_set ||
-        st_continue == &st_play_loop  || st_continue == &st_look)
+    if (!st_continue &&
+        (st_continue == &st_play_ready || st_continue == &st_play_set ||
+         st_continue == &st_play_loop  || st_continue == &st_look))
     {
         if (st_continue == &st_play_set) st_continue = &st_play_ready;
         if (st_continue == &st_look)     st_continue = &st_play_loop;
@@ -110,6 +112,62 @@ int goto_pause(struct state *returnable)
 #endif
 
     return goto_state(&st_pause);
+}
+
+static int pause_restart(void)
+{
+    if (progress_same_avail())
+    {
+#ifdef MAPC_INCLUDES_CHKP
+        if (last_active)
+        {
+            if (quit_uses_resetpuzzle)
+            {
+                quit_uses_resetpuzzle = 0;
+                if (checkpoints_load() && progress_same())
+                {
+                    audio_music_fade_in(0.5f);
+                    return goto_play_level();
+                }
+            }
+            else if (!quit_uses_resetpuzzle)
+            {
+                quit_uses_resetpuzzle = 1;
+                return goto_state(&st_pause_quit);
+            }
+        }
+        else
+#endif
+        if (quit_uses_restart
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         || !campaign_used()
+#endif
+            )
+        {
+            quit_uses_restart = 0;
+#ifdef MAPC_INCLUDES_CHKP
+            checkpoints_stop();
+#endif
+            if (progress_same())
+            {
+                audio_music_fade_in(0.5f);
+                return goto_play_level();
+            }
+        }
+        else if (!quit_uses_restart)
+        {
+            quit_uses_restart = 1;
+            return goto_state(&st_pause_quit);
+        }
+    }
+    else
+    {
+        /* Can't do yet, play buzzer sound. */
+
+        audio_play(AUD_DISABLED, 1.0f);
+    }
+
+    return 1;
 }
 
 static int pause_action(int tok, int val)
@@ -199,6 +257,9 @@ static int pause_action(int tok, int val)
             {
                 if (curr_state() == &st_pause_quit)
                 {
+                    if (curr_status() == GAME_NONE)
+                        progress_stat(GAME_NONE);
+
                     if (campaign_hardcore())
                     {
                         if (campaign_hardcore_norecordings())
@@ -207,9 +268,8 @@ static int pause_action(int tok, int val)
                         campaign_hardcore_quit();
                     }
 
-                    if (curr_status() == GAME_NONE)
-                        progress_stat(GAME_NONE);
-                    if (curr_mode() != MODE_NONE) audio_music_stop();
+                    if (curr_mode() != MODE_NONE)
+                        audio_music_stop();
 
                     return goto_exit();
                 }
@@ -275,14 +335,16 @@ static int pause_gui(void)
          * If the wide button is drastic from width pixels by display,
          * use vertical instead.
          */
-        
+
         if ((jd = video.device_w <= video.device_h ? gui_vstack(id) : gui_harray(id)))
         {
             if ((kd = gui_hstack(jd)))
             {
+                const GLubyte *btn_color_text = campaign_used() || curr_times() > 0 ? gui_red : gui_wht;
+
                 gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
 
-                ld = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_RED);
+                ld = gui_label(kd, _(quit_btn_text), GUI_SML, btn_color_text, btn_color_text);
                 gui_set_fill(ld);
 
                 gui_set_state(kd, PAUSE_EXIT, 0);
@@ -449,21 +511,7 @@ static int pause_keybd(int c, int d)
          && current_platform == PLATFORM_PC
 #endif
             )
-        {
-            if (progress_same_avail() && progress_same())
-            {
-#if NB_HAVE_PB_BOTH==1
-                powerup_stop();
-#endif
-                return goto_play_level();
-            }
-            else
-            {
-                /* Can't do yet, play buzzer sound. */
-
-                audio_play(AUD_DISABLED, 1.0f);
-            }
-        }
+            return pause_restart();
     }
     return 1;
 }

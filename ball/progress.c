@@ -326,9 +326,14 @@ static int status        = GAME_NONE;
 static int status_oneuse = 0;
 static int coins         = 0;
 static int timer_offset  = 0;
+
 #ifdef MAPC_INCLUDES_CHKP
 /*
  * Precalculated total timer for each levels with checkpoints.
+ *
+ * This variable name will be redirected to timer_total for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `timer_total` to `timer`.
  */
 #define    timer timer_total
 
@@ -1696,6 +1701,8 @@ int  progress_dead(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     if (config_cheat()) return 0;
 #endif
+    
+    if (status != GAME_NONE) return 0;
 
     switch (mode)
     {
@@ -1817,15 +1824,9 @@ int progress_rfd_get_powerup(int t)
 {
     switch (t)
     {
-        case 0:
-            return curr.rfd_earninator;
-            break;
-        case 1:
-            return curr.rfd_floatifier;
-            break;
-        case 2:
-            return curr.rfd_speedifier;
-            break;
+        case 0: return curr.rfd_earninator; break;
+        case 1: return curr.rfd_floatifier; break;
+        case 2: return curr.rfd_speedifier; break;
     }
 
     return 0;
@@ -1840,19 +1841,23 @@ float curr_speed_percent(void) { return curr.speedpercent; }
 
 int curr_balls(void)
 {
-    int curr_rfd_balls = 0;
-
 #if ENABLE_RFD==1
-    curr_rfd_balls = curr.rfd_balls;
+    const int curr_rfd_balls = curr.rfd_balls;
+#else
+    const int curr_rfd_balls = 0;
 #endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (!replay)
         return curr.balls + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) +
-               curr_rfd_balls;
+        curr_rfd_balls;
 #endif
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    return mode == MODE_HARDCORE ? 0 : curr.balls;
+#else
     return curr.balls;
+#endif
 }
 
 int curr_score(void) { return curr.score; }
@@ -1873,23 +1878,23 @@ const char *mode_to_str(int m, int l)
 {
     switch (m)
     {
-        case MODE_CHALLENGE: return l ? _("Challenge Mode")  : _("Challenge");
-        case MODE_NORMAL:    return l ? _("Classic Mode")    : _("Classic");
-        case MODE_STANDALONE:return l ? _("Standalone Mode") : _("Standalone");
+        case MODE_CHALLENGE:  return l ? _("Challenge Mode")  : _("Challenge");
+        case MODE_NORMAL:     return l ? _("Classic Mode")    : _("Classic");
+        case MODE_STANDALONE: return l ? _("Standalone Mode") : _("Standalone");
 #ifdef LEVELGROUPS_INCLUDES_ZEN
-        case MODE_ZEN:       return l ? _("Zen Mode")        : _("Zen");
+        case MODE_ZEN:        return l ? _("Zen Mode")        : _("Zen");
 #endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        case MODE_HARDCORE:  return l ? _("Hardcore Mode")   : _("Hardcore");
+        case MODE_HARDCORE:   return l ? _("Hardcore Mode")   : _("Hardcore");
 #else
-        case MODE_ROGUE:     return l ? _("Roguelike Mode")  : _("Roguelike");
+        case MODE_ROGUE:      return l ? _("Roguelike Mode")  : _("Roguelike");
 #endif
-        case MODE_BOOST_RUSH:return l ? _("Boost Rush Mode") : _("Boost Rush");
+        case MODE_BOOST_RUSH: return l ? _("Boost Rush Mode") : _("Boost Rush");
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        case MODE_CAMPAIGN:  return l ? _("Campaign Mode")   : _("Campaign");
+        case MODE_CAMPAIGN:   return l ? _("Campaign Mode")   : _("Campaign");
 #endif
-        case MODE_DAILY:     return l ? _("Daily Challenge") : _("Daily");
-        default:             return l ? _("Unknown Mode")    : _("Unknown");
+        case MODE_DAILY:      return l ? _("Daily Challenge") : _("Daily");
+        default:              return l ? _("Unknown Mode")    : _("Unknown");
     }
 }
 

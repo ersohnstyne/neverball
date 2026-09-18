@@ -50,6 +50,39 @@
 #pragma comment(lib, "jpeg-static.lib")
 #endif
 
+#ifndef MIN
+#ifdef __min
+#define MIN __min
+#else
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
+#endif
+
+#ifndef MAX
+#ifdef __max
+#define MAX __max
+#else
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#endif
+#endif
+
+#ifndef str_ends_with
+#define str_ends_with(s, t) \
+    ((strlen(s) >= strlen(t)) && strcmp((s) + strlen(s) - strlen(t), (t)) == 0)
+#endif
+
+#ifndef SAFECPY
+/**
+ * Copy a string SRC into a zero-terminated fixed-size array of char DST.
+ */
+#define SAFECPY(dst, src) do { \
+    size_t _len = strlen(src); \
+    size_t _max = MIN(sizeof (dst) - 1, _len); \
+    memcpy((dst), (src), _max); \
+    (dst)[_max] = 0; \
+} while (0)
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 void image_size(int *W, int *H, int w, int h)
@@ -246,6 +279,31 @@ static void *image_load_jpg(const char *filename, int *width,
     return p;
 }
 
+static int image_replace_suffix(char *dst, size_t dst_size,
+                                const char *src, const char *replacement)
+{
+    if (!dst || !src || !replacement) return 0;
+
+    size_t len_str = strlen(dst);
+    size_t len_src = strlen(src);
+
+    if (!str_ends_with(dst, src)) return 0;
+
+    size_t len_replacement = strlen(replacement);
+    size_t new_len = len_str - len_src + len_replacement;
+
+    if (new_len >= dst_size) return 0;
+
+    dst[len_str - len_src] = '\0';
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    strncat_s(dst, dst_size, replacement, len_replacement);
+#else
+    strncat(dst, replacement, len_replacement);
+#endif
+
+    return 1;
+}
+
 void *image_load(const char *filename, int *width,
                                        int *height,
                                        int *bytes)
@@ -253,11 +311,38 @@ void *image_load(const char *filename, int *width,
     if (filename && strlen(filename) > 4)
     {
         const char *ext = filename + strlen(filename) - 4;
+        void *p;
+
+        char filename_replaces[MAXSTR]; SAFECPY(filename_replaces, filename);
 
         if      (strcmp(ext, ".png") == 0 || strcmp(ext, ".PNG") == 0)
-            return image_load_png(filename, width, height, bytes);
+        {
+            if ((p = image_load_png(filename, width, height, bytes)))
+                return p;
+            else
+            {
+                if (!image_replace_suffix(filename_replaces, sizeof (filename_replaces), ".png", ".jpg"))
+                    if (!image_replace_suffix(filename_replaces, sizeof (filename_replaces), ".PNG", ".JPG"))
+                        return NULL;
+
+                if ((p = image_load_jpg(filename_replaces, width, height, bytes)))
+                    return p;
+            }
+        }
         else if (strcmp(ext, ".jpg") == 0 || strcmp(ext, ".JPG") == 0)
-            return image_load_jpg(filename, width, height, bytes);
+        {
+            if ((p = image_load_jpg(filename, width, height, bytes)))
+                return p;
+            else
+            {
+                if (!image_replace_suffix(filename_replaces, sizeof (filename_replaces), ".jpg", ".png"))
+                    if (!image_replace_suffix(filename_replaces, sizeof (filename_replaces), ".JPG", ".PNG"))
+                        return NULL;
+
+                if ((p = image_load_png(filename_replaces, width, height, bytes)))
+                    return p;
+            }
+        }
     }
     return NULL;
 }

@@ -183,7 +183,7 @@ static int WGCL_fail_call_incident(void)
         video_clear();
         game_client_draw(POSE_LEVEL, 0);
 
-        EM_ASM({ Neverball.gamecore_mapmarker_incident_try_call(); });
+        EM_ASM({ Neverball.gamecore_mapmarker_incident_takescreenshot(); });
 
         game_disable_fade(0);
 #endif
@@ -880,7 +880,7 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
     if (!resume)
     {
         fail_intro_animation_time      = 0;
-        fail_intro_incidents_triggered = 0;
+        fail_intro_incidents_triggered = fail_intro_animation_phase == 1;
 
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
@@ -933,12 +933,7 @@ static void fail_paint(int id, float t)
 
 static void fail_timer(int id, float dt)
 {
-    /*
-     * HACK: Auto-Retry only.
-     */
-
     const int advancedconfig_autoretry = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY);
-
     const float fail_time_state = time_state();
 
     if (fail_intro_animation_phase == 1)

@@ -487,7 +487,7 @@ static int ball_action(int tok, int val)
 
         case MODEL_TAKESNAPSHOT:
 #if !defined(NDEBUG) && NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (config_cheat())
+            if (config_cheat() && !game_server_state())
             {
                 game_view_set_static_cam_view(1, snapshot_pos);
                 config_set_d(CONFIG_REFLECTION, 0);
@@ -716,12 +716,12 @@ static int ball_gui(void)
                 }
 
                 gui_space(id);
-
                 gui_layout(id, 0, -1);
             }
         }
 #if !defined(NDEBUG) && NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        else if (config_cheat() && !console_gui_shown())
+        else if (config_cheat() && !console_gui_shown() &&
+                 !game_server_state() && !demo_state())
         {
             if ((id = gui_vstack(root_id)))
             {
@@ -737,7 +737,6 @@ static int ball_gui(void)
                 }
 
                 gui_space(id);
-
                 gui_layout(id, 0, -1);
             }
         }
@@ -749,12 +748,15 @@ static int ball_gui(void)
 
 static int ball_enter(struct state *st, struct state *prev, int intent)
 {
+    if (!game_server_state() && !demo_state())
+    {
 #if NB_HAVE_PB_BOTH==1
-    audio_ambient_play("bgm_ambient/ambient_03.ogg");
+        audio_ambient_play("bgm_ambient/ambient_03.ogg");
 #else
-    audio_ambient_play("bgm_ambient/ambient_04.ogg");
+        audio_ambient_play("bgm_ambient/ambient_04.ogg");
 #endif
-    audio_ambient_fade_in(0.5f);
+        audio_ambient_fade_in(0.5f);
+    }
 
     if (!ball_back)
         ball_back = prev;
@@ -869,7 +871,7 @@ static int ball_keybd(int c, int d)
                     return ball_action(GUI_BACK, 0);
 
             case KEY_LEVELSHOTS:
-                if (!config_cheat()) return 1;
+                if (!config_cheat() || game_server_state()) return 1;
 
 #ifndef __EMSCRIPTEN__
                 game_view_set_static_cam_view(1, snapshot_pos);

@@ -1798,7 +1798,7 @@ enum
 };
 
 /*
- * This enum will be redirected to GUI_BACK for modern WGCL source project.
+ * This enum name will be redirected to GUI_BACK for modern WGCL source project.
  * To continue with legacy source project Neverball,
  * please change from `GUI_BACK` to `DEMO_KEEP`.
  */

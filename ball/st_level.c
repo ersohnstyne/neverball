@@ -217,6 +217,16 @@ static int level_loading_enter(struct state *st, struct state *prev, int intent)
 
 /*---------------------------------------------------------------------------*/
 
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+#define ST_LEVEL_CHECK_NODEMO                                       \
+    (check_nodemo == 1 && !demo_fp && nodemo_warnonlyonce &&        \
+     !campaign_hardcore_norecordings() && curr_mode() != MODE_NONE)
+#else
+#define ST_LEVEL_CHECK_NODEMO                                \
+    (check_nodemo == 1 && !demo_fp && nodemo_warnonlyonce && \
+     curr_mode() != MODE_NONE)
+#endif
+
 static int show_info = 0;
 
 #if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
@@ -868,15 +878,10 @@ static void level_timer(int id, float dt)
         !st_global_animating())
         goto_state(&st_level_signin_required);
 
-    if (nodemo_warnonlyonce && config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
+    if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
         !st_global_animating())
     {
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (check_nodemo == 1 && !demo_fp &&
-            !campaign_hardcore_norecordings() && curr_mode() != MODE_NONE)
-#else
-        if (check_nodemo == 1 && !demo_fp && curr_mode() != MODE_NONE)
-#endif
+        if (ST_LEVEL_CHECK_NODEMO)
             goto_state(&st_nodemo);
     }
 
@@ -1178,11 +1183,11 @@ static int level_signin_required_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            return goto_name(demo_fp ?
+            return goto_name(ST_LEVEL_CHECK_NODEMO ?
                              (campaign_used() ? &st_play_ready : &st_level) :
                              &st_nodemo, &st_level_signin_required, 0, 0, 0);
 #else
-            return goto_name(demo_fp ? &st_level : &st_nodemo,
+            return goto_name(ST_LEVEL_CHECK_NODEMO ? &st_level : &st_nodemo,
                              &st_level_signin_required, 0, 0, 0);
 #endif
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
@@ -1300,7 +1305,7 @@ int goto_play_level(void)
 #endif
 
     if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
-        curr_mode() != MODE_NONE && !demo_fp)
+        curr_mode() != MODE_NONE && ST_LEVEL_CHECK_NODEMO)
         return fn_state(&st_nodemo);
 
     return fn_state(

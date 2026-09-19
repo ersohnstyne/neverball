@@ -1841,6 +1841,10 @@ float curr_speed_percent(void) { return curr.speedpercent; }
 
 int curr_balls(void)
 {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (mode == MODE_HARDCORE) return 0;
+#endif
+
 #if ENABLE_RFD==1
     const int curr_rfd_balls = curr.rfd_balls;
 #else
@@ -1850,14 +1854,10 @@ int curr_balls(void)
 #ifdef CONFIG_INCLUDES_ACCOUNT
     if (!replay)
         return curr.balls + account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) +
-        curr_rfd_balls;
+               curr_rfd_balls;
 #endif
 
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    return mode == MODE_HARDCORE ? 0 : curr.balls;
-#else
     return curr.balls;
-#endif
 }
 
 int curr_score(void) { return curr.score; }

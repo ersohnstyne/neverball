@@ -148,6 +148,10 @@ static void gui_stats(int id)
 {
     int at;
 
+    if ((float) ((float) video.device_w / 
+                 (float) video.device_h) < (4.0f / 3.0f))
+        return;
+
     stats_labels.completed  = 0;
     stats_labels.timeout    = 0;
     stats_labels.fallout    = 0;
@@ -354,11 +358,15 @@ void gui_set_stats(const struct level *l)
 
 void gui_levelgroup_stats(const struct level *l)
 {
+    if ((float) ((float) video.device_w / 
+                 (float) video.device_h) < (4.0f / 3.0f))
+        return;
+
     char buffer[4][12];
-    
+
 #if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
     /* Gather all map markers (MSVC++ exclusive only) */
-    
+
     int mapmarker_count_xf = 0, mapmarker_count_xt = 0;
 
     mapmarkers_count_status(l->file, &mapmarker_count_xt, &mapmarker_count_xf);
@@ -367,7 +375,7 @@ void gui_levelgroup_stats(const struct level *l)
 
     const float total_attempts         = (float) (l->stats.completed + l->stats.timeout + l->stats.fallout + mapmarker_count_xf + mapmarker_count_xt);
     const float total_attempts_cleared = (float) (l->stats.completed);
-    
+
     const float clr_rate_val = total_attempts >= 1 ?
                                ((total_attempts_cleared / total_attempts) * 10000.0f) / 100.0f :
                                100.0f;
@@ -381,7 +389,7 @@ void gui_levelgroup_stats(const struct level *l)
 
     const float total_attempts         = (float) (l->stats.completed + l->stats.timeout + l->stats.fallout);
     const float total_attempts_cleared = (float) (l->stats.completed);
-    
+
     const float clr_rate_val = total_attempts >= 1 ?
                                ((total_attempts_cleared / total_attempts) * 10000.0f) / 100.0f :
                                100.0f;

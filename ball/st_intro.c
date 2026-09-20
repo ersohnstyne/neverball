@@ -213,7 +213,7 @@ static int intro_gui(void)
         /* Developer and publisher logos */
 
         int image_id;
-        
+
         const char intro_logo_image_path[2][MAXSTR] =
         {
             "gui/intro/pg_logo.jpg",
@@ -255,7 +255,7 @@ static int intro_enter(struct state *st, struct state *prev, int intent)
     {
         intro_init = 1;
         intro_page = 1;
-        
+
         audio_play(glext_get_hatsune_miku() ?
                    AUD_INTRO_HATSUNEMIKU_LOGO :
                    AUD_INTRO_LOGO, 1.0f);

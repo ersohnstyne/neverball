@@ -219,7 +219,7 @@ static int over_gui_hardcore(void)
 
         gui_space(id);
 
-        if ((jd = gui_harray(id)))
+        if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_varray(id) : gui_harray(id)))
         {
             if ((kd = gui_hstack(jd)))
             {
@@ -300,7 +300,7 @@ static int over_gui(void)
 #endif
         gui_space(id);
 
-        if ((jd = gui_harray(id)))
+        if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_varray(id) : gui_harray(id)))
         {
             if ((kd = gui_hstack(jd)))
             {

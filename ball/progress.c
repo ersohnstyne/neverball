@@ -1701,7 +1701,7 @@ int  progress_dead(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     if (config_cheat()) return 0;
 #endif
-    
+
     if (status != GAME_NONE) return 0;
 
     switch (mode)

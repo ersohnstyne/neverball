@@ -620,7 +620,7 @@ static int start_longload_gui(int id)
         gui_title_header(pd, _("Loading levels in progress..."), GUI_MED, GUI_COLOR_DEFAULT);
 
         gui_space(pd);
-        
+
         gui_multi(pd, _("Sometimes, it can take a long time\n"
                         "for the levels to load completely.\n\n"
                         "In the meantime, you will need to\n"
@@ -755,12 +755,14 @@ static int start_gui(void)
             }
             else SAFECPY(curr_setname_final, curr_setname);
 
-            int set_title_id = gui_label(jd, "XXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
+            if ((float) ((float) video.device_w / (float) video.device_h >= (4.0f / 3.0f)))
+            {
+                const int set_title_id = gui_label(jd, "XXXXXXXXXXXXXXXXXX", GUI_SML, GUI_COLOR_DEFAULT);
 
-            SAFECPY(set_name_final, curr_setname_final);
-
-            gui_set_trunc(set_title_id, TRUNC_TAIL);
-            gui_set_label(set_title_id, set_name_final);
+                SAFECPY(set_name_final, curr_setname_final);
+                gui_set_trunc(set_title_id, TRUNC_TAIL);
+                gui_set_label(set_title_id, set_name_final);
+            }
 
             gui_filler(jd);
             gui_space(jd);

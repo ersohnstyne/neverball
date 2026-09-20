@@ -1058,6 +1058,8 @@ void gui_set_image(int id, const char *file)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
+    if (id == cursor_id) return;
+
     glDeleteTextures(1, &widget[id].image);
     gui_img_used = 1;
     widget[id].image = make_image_from_file(file, IF_MIPMAP);
@@ -1066,6 +1068,8 @@ void gui_set_image(int id, const char *file)
 
 void gui_set_label(int id, const char *text)
 {
+    if (id == cursor_id) return;
+
     char *trunc_str, *full_str = strdup(text);
 
     if (id < 0 || id > WIDGET_MAX) {
@@ -1133,12 +1137,16 @@ void gui_set_count(int id, int value)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
+    if (id == cursor_id) return;
+
     widget[id].value = value;
 }
 
 void gui_set_clock(int id, int value)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     widget[id].value = value;
 }
@@ -1147,6 +1155,8 @@ void gui_set_color(int id, const GLubyte *c0,
                            const GLubyte *c1)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     if (id)
     {
@@ -1173,6 +1183,8 @@ void gui_set_color(int id, const GLubyte *c0,
 void gui_set_multi(int id, const char *text)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     const char *p;
 
@@ -1216,6 +1228,8 @@ void gui_set_trunc(int id, enum trunc trunc)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
+    if (id == cursor_id) return;
+
     widget[id].trunc = trunc;
 }
 
@@ -1223,12 +1237,16 @@ void gui_set_font(int id, const char *path)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
+    if (id == cursor_id) return;
+
     widget[id].font = gui_font_load(path);
 }
 
 void gui_set_fill(int id)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     widget[id].flags |= GUI_FILL;
 }
@@ -1253,6 +1271,8 @@ void gui_set_hilite(int id, int hilite)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
+    if (id == cursor_id) return;
+
     if (hilite)
         widget[id].flags |= GUI_HILITE;
     else
@@ -1263,6 +1283,8 @@ void gui_set_rect(int id, int rect)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
+    if (id == cursor_id) return;
+
     widget[id].rect   = rect;
     widget[id].flags |= GUI_RECT;
 }
@@ -1270,6 +1292,8 @@ void gui_set_rect(int id, int rect)
 void gui_clr_rect(int id)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     int jd;
 
@@ -1282,6 +1306,8 @@ void gui_clr_rect(int id)
 void gui_set_clip(int id)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     widget[id].flags |= GUI_CLIP;
 }
@@ -1306,6 +1332,8 @@ void gui_set_cursor(int st)
 void gui_set_hidden(int id, int hidden)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     if (id)
         widget[id].hidden = hidden ? 1u : 0;
@@ -1971,6 +1999,8 @@ void gui_set_slide(int id, int flags, float delay, float t, float stagger)
     const int animations_enabled = config_get_d(CONFIG_SCREEN_ANIMATIONS);
 
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     if (id)
     {
@@ -2921,6 +2951,8 @@ void gui_paint(int id)
 void gui_set_alpha(int id, float alpha, int direction)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     if (id)
     {

@@ -218,9 +218,7 @@ static int conf_social_action(int tok, int val)
 #elif defined(__linux__)
                 SAFECPY(linkstr_cmd, "x-www-browser https://discord.gg/");
 #endif
-
                 SAFECAT(linkstr_cmd, linkstr_code);
-
                 system(linkstr_cmd);
 
                 /* bye! */
@@ -300,7 +298,6 @@ static int conf_social_gui(void)
 #endif
             }
 
-
             gui_set_rect(jd, GUI_ALL);
         }
 
@@ -341,6 +338,15 @@ static int conf_social_enter(struct state *st, struct state *prev, int intent)
 #define social_enter conf_social_enter
 
 /*---------------------------------------------------------------------------*/
+
+static struct state *conf_acount_back;
+
+/*
+ * This variable name will be redirected to conf_acount_back for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_acount_back` to `account_back`.
+ */
+#define account_back conf_acount_back
 
 static int conf_covid_extended = 0;
 
@@ -428,15 +434,18 @@ static int conf_account_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    int r = 1;
+
     switch (tok)
     {
         case GUI_BACK:
-            return exit_state(&st_conf);
+            r = exit_state(account_back);
+            account_back = NULL;
+            return r;
 
         case CONF_ACCOUNT_COVID_EXTEND:
             conf_covid_extended = 1;
-            goto_state(&st_conf_account);
-            break;
+            return goto_state(&st_conf_account);
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -462,11 +471,10 @@ static int conf_account_action(int tok, int val)
 
         case CONF_ACCOUNT_PLAYER:
 #ifdef CONFIG_INCLUDES_ACCOUNT
-            goto_shop_rename(&st_conf_account, &st_conf_account, 1);
+            return goto_shop_rename(&st_conf_account, &st_conf_account, 1);
 #else
-            goto_name(&st_conf_account, &st_conf_account, 0, 0, 1);
+            return goto_name(&st_conf_account, &st_conf_account, 0, 0, 1);
 #endif
-            break;
 
 #if NB_HAVE_PB_BOTH==1
         case CONF_ACCOUNT_BALL:
@@ -475,7 +483,7 @@ static int conf_account_action(int tok, int val)
                 fs_exists("gui/ball.nbr"))
             {
                 game_fade(+6.0f);
-                goto_state(&st_ball);
+                return goto_state(&st_ball);
             }
             break;
 
@@ -484,7 +492,7 @@ static int conf_account_action(int tok, int val)
                  fs_exists("gui/beam-style.solx")))
             {
                 game_fade(+6.0f);
-                goto_state(&st_beam_style);
+                return goto_state(&st_beam_style);
             }
             break;
 #endif
@@ -735,7 +743,7 @@ static int conf_account_gui(void)
 #endif
 #endif
         }
-        
+
 #ifndef __EMSCRIPTEN__
 #if NB_HAVE_PB_BOTH==1
         if (server_policy_get_d(SERVER_POLICY_EDITION) != 0)
@@ -894,6 +902,9 @@ static int conf_account_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_ball) game_fade(-6.0f);
 
+    if (!account_back)
+        account_back = prev;
+
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
@@ -928,7 +939,7 @@ static void conf_account_timer(int id, float dt)
         sec = MAX(0, sec);
 
         static char cv19_infoattr[MAXSTR];
-        
+
         int clock_hour = (int) MAX(0, (sec / 3600) % 24);
         int clock_min  = (int) MAX(0, (sec / 60  ) % 60);
         int clock_sec  = (int) MAX(0, (sec       ) % 60);
@@ -1075,68 +1086,58 @@ static int conf_gameplay_action(int tok, int val)
         case GAMEPLAY_AUTORETRY:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY, val);
-            goto_state(curr_state());
             config_save();
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_FASTERRESET:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET, val);
-            goto_state(curr_state());
             config_save();
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_TUTORIAL:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
             config_save();
-            goto_state(curr_state());
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_HINT:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_HINT, val);
             config_save();
-            goto_state(curr_state());
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_SWITCHBALL_DROPSPEEDING:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING, val);
             config_save();
-            goto_state(curr_state());
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_CAMERA_DEFAULT:
             cam_preset_set(CAM_1, CAM_PRESET_DEFAULT);
             config_save();
-            goto_state(&st_conf_gameplay);
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_CAMERA_1_4:
             cam_preset_set(CAM_1, CAM_PRESET_1_4);
             config_save();
-            goto_state(curr_state());
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_CAMERA_1_5:
             cam_preset_set(CAM_1, CAM_PRESET_1_5);
             config_save();
-            goto_state(curr_state());
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_CAMERA_1_6:
             cam_preset_set(CAM_1, CAM_PRESET_1_6);
             config_save();
-            goto_state(curr_state());
-            break;
+            return goto_state(curr_state());
 
         case GAMEPLAY_LOCK_GOALS:
             audio_play(val == 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_LOCK_GOALS, val);
             config_save();
-            goto_state(curr_state());
-            break;
+            return goto_state(curr_state());
     }
 
     return 1;
@@ -1417,6 +1418,15 @@ enum InputType
     CONTROL_MAX
 };
 
+static struct state *conf_controls_back;
+
+/*
+ * This variable name will be redirected to conf_controls_back for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `conf_controls_back` to `controls_back`.
+ */
+#define controls_back conf_controls_back
+
 static int preset_id;
 static int key_preset_id;
 
@@ -1518,12 +1528,14 @@ static int conf_controls_action(int tok, int val)
     GENERIC_GAMEMENU_ACTION;
 
     int mouse = MOUSE_RANGE_MAP(config_get_d(CONFIG_MOUSE_SENSE));
+    int r = 1;
 
     switch (tok)
     {
         case GUI_BACK:
             exit_state(&st_null);
-            return exit_state(&st_conf);
+            r = exit_state(controls_back);
+            return r;
 
         case CONTROLS_INPUT_PRESET:
             control_set_input();
@@ -1534,8 +1546,7 @@ static int conf_controls_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_TILTING_FLOOR, val);
             config_save();
-            goto_state(&st_conf_controls);
-            break;
+            return goto_state(curr_state());
 
         case CONTROLS_CAMERA_ROTATE_MODE:
 #ifdef SWITCHBALL_GUI
@@ -1555,53 +1566,46 @@ static int conf_controls_action(int tok, int val)
 
         case CONTROLS_MOUSE_SENSE:
             config_set_d(CONFIG_MOUSE_SENSE, MOUSE_RANGE_UNMAP(val));
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(mouse_id, val);
-            goto_state(curr_state());
+            return goto_state(curr_state());
 #else
             gui_toggle(mouse_id[val]);
             gui_toggle(mouse_id[mouse]);
 #endif
-            config_save();
             break;
 
         case CONTROLS_INVERT_MOUSE_Y:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_MOUSE_INVERT, val);
             config_save();
-            goto_state(&st_conf_controls);
-            break;
+            return goto_state(curr_state());
 
         case CONTROLS_INVERT_RS_Y:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT, val);
             config_save();
-            goto_state(&st_conf_controls);
-            break;
+            return goto_state(curr_state());
 
         case CONTROLS_KEYBD:
-            goto_state(&st_conf_keybd);
-            break;
+            return goto_state(&st_conf_keybd);
 
         case CONTROLS_JOYSTICK:
-            goto_state(&st_conf_controllers);
-            break;
+            return goto_state(&st_conf_controllers);
 
         case CONTROLS_JOYSTICK_AUTOCALIB_AXIS:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS, val);
             config_save();
-            goto_state(&st_conf_controls);
-            break;
+            return goto_state(&st_conf_controls);
 
         case CONTROLS_JOYSTICK_CALIBRATE:
-            goto_state(&st_conf_calibrate);
-            break;
+            return goto_state(&st_conf_calibrate);
 
         case CONTROLS_TOUCH:
-            goto_state(&st_conf_touch);
-            break;
+            return goto_state(&st_conf_touch);
     }
 
     return 1;
@@ -1774,6 +1778,9 @@ static int conf_controls_gui(void)
 
 static int conf_controls_enter(struct state *st, struct state *prev, int intent)
 {
+    if (controls_back == NULL)
+        controls_back = prev;
+
     if (mainmenu_conf && !game_server_state() && !demo_state())
         game_client_free(NULL);
 
@@ -1834,13 +1841,13 @@ static int conf_touch_action(int tok, int val)
 
     case TOUCH_MODE:
         config_set_d(CONFIG_TOUCH_MODE, val);
-        return goto_state(&st_conf_touch);
+        return goto_state(curr_state());
 
     case TOUCH_ROTATE_INVERT:
         audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
         config_set_d(CONFIG_TOUCH_ROTATE_INVERT, val);
         config_set_d(CONFIG_CAMERA_ROTATE_MODE, val);
-        return goto_state(&st_conf_touch);
+        return goto_state(curr_state());
     }
 
     return r;
@@ -2087,6 +2094,8 @@ static int conf_keybd_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    int r = 1;
+
     switch (tok)
     {
         case GUI_BACK:
@@ -2094,10 +2103,10 @@ static int conf_keybd_action(int tok, int val)
                 keybd_modal = 0;
             else
             {
-                exit_state(keybd_back);
+                r = exit_state(keybd_back);
                 while (curr_state() != keybd_back)
                 {
-                    exit_state(keybd_back);
+                    r = exit_state(keybd_back);
                     keybd_back = NULL;
                 }
             }
@@ -2109,7 +2118,7 @@ static int conf_keybd_action(int tok, int val)
             break;
     }
 
-    return 1;
+    return r;
 }
 
 /*
@@ -3215,37 +3224,39 @@ static int conf_notification_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
+    int r = 1;
+
     switch (tok)
     {
         case GUI_BACK:
-            exit_state(&st_conf);
+            r = exit_state(&st_conf);
             while (curr_state() != &st_conf)
-                exit_state(&st_conf);
+                r = exit_state(&st_conf);
             break;
 
         case CONF_NOTIFICATION_CHKP:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_CHKP, val);
-            goto_state(curr_state());
             config_save();
+            r = goto_state(curr_state());
             break;
 
         case CONF_NOTIFICATION_REWARD:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_REWARD, val);
-            goto_state(curr_state());
             config_save();
+            r = goto_state(curr_state());
             break;
 
         case CONF_NOTIFICATION_SHOP:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_SHOP, val);
-            goto_state(curr_state());
             config_save();
+            r = goto_state(curr_state());
             break;
     }
 
-    return 1;
+    return r;
 }
 
 /*
@@ -3379,6 +3390,8 @@ static int conf_audio_action(int tok, int val)
     int music    = config_get_d(CONFIG_MUSIC_VOLUME);
     int narrator = config_get_d(CONFIG_NARRATOR_VOLUME);
 
+    int r = 1;
+
     switch (tok)
     {
         case GUI_BACK:
@@ -3388,30 +3401,30 @@ static int conf_audio_action(int tok, int val)
         case AUDIO_MASTER_VOLUME:
             config_set_d(CONFIG_MASTER_VOLUME, val);
             audio_volume(val, sound, music, narrator);
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(master_id, val);
-            goto_state(curr_state());
+            r = goto_state(curr_state());
 #else
             gui_toggle(master_id[val]);
             gui_toggle(master_id[master]);
 #endif
-            config_save();
 
             break;
 
         case AUDIO_MUSIC_VOLUME:
             config_set_d(CONFIG_MUSIC_VOLUME, val);
             audio_volume(master, sound, val, narrator);
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(music_id, val);
-            goto_state(curr_state());
+            r = goto_state(curr_state());
 #else
             gui_toggle(music_id[val]);
             gui_toggle(music_id[master]);
 #endif
-            config_save();
 
             break;
 
@@ -3419,31 +3432,29 @@ static int conf_audio_action(int tok, int val)
             config_set_d(CONFIG_SOUND_VOLUME, val);
             audio_volume(master, val, music, narrator);
             audio_play(AUD_SWITCH, 1.0f);
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(sound_id, val);
-            goto_state(curr_state());
+            r = goto_state(curr_state());
 #else
             gui_toggle(sound_id[val]);
             gui_toggle(sound_id[master]);
 #endif
-            config_save();
-
             break;
 
         case AUDIO_NARRATOR_VOLUME:
             config_set_d(CONFIG_NARRATOR_VOLUME, val);
             audio_volume(master, sound, music, val);
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(narrator_id, val);
-            goto_state(curr_state());
+            r = goto_state(curr_state());
 #else
             gui_toggle(narrator_id[val]);
             gui_toggle(narrator_id[master]);
 #endif
-            config_save();
-
             break;
 #endif
     }
@@ -3588,18 +3599,15 @@ static void demo_transfer_request_addreplay_dispatch_event(int status_limit)
             struct demo *demo_data = ((struct demo *) ((struct dir_item *) array_get(items, i))->data);
             struct demo *df;
 
-            if (!demo_data)
+            if (!demo_data) {
+                transfer_addreplay_unsupported();
                 continue;
+            }
 
-            int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
-            int max = 0;
-
-            if (demo_data->status == 3)
-                max = 3;
-            else if (demo_data->status == 1 || demo_data->status == 0)
-                max = 2;
-            else if (demo_data->status == 2)
-                max = 1;
+            const int limit = config_get_d(CONFIG_ACCOUNT_LOAD);
+            const int max = demo_data->status == 3 ? 3 : (
+                                (demo_data->status == 1 || demo_data->status == 0) ? 2 :
+                                (demo_data->status == 2) ? 1 : 0);
 
             if (max <= limit)
             {
@@ -3617,8 +3625,6 @@ static void demo_transfer_request_addreplay_dispatch_event(int status_limit)
 
 static int conf_action(int tok, int val)
 {
-    int r = 1;
-
 #if NB_HAVE_PB_BOTH!=1
     int master   = config_get_d(CONFIG_MASTER_VOLUME);
     int sound    = config_get_d(CONFIG_SOUND_VOLUME);
@@ -3647,33 +3653,29 @@ static int conf_action(int tok, int val)
         case CONF_SYSTEMTRANSFER_SOURCE:
             transfer_add_dispatch_event(demo_transfer_request_addreplay_dispatch_event);
 #endif
-            goto_game_transfer(curr_state());
-            break;
+            return goto_game_transfer(curr_state());
 #endif
 
         case CONF_SOCIAL:
-            conf_goto_social(curr_state());
-            break;
+            return conf_goto_social(curr_state());
 
         case CONF_ACCOUNT:
 #if NB_HAVE_PB_BOTH==1
             if (!conf_check_playername(config_get_s(CONFIG_PLAYER)))
-                goto_name(&st_conf_account, &st_conf, 0, 0, 1);
+                return goto_name(&st_conf_account, &st_conf, 0, 0, 1);
             else
-                goto_state(&st_conf_account);
+                return goto_state(&st_conf_account);
 #else
-            goto_name(&st_conf_account, &st_conf, 0, 0, 1);
+            return goto_name(&st_conf_account, &st_conf, 0, 0, 1);
 #endif
             break;
 
         case CONF_GAMEPLAY:
-            goto_state(&st_conf_gameplay);
-            break;
+            return goto_state(&st_conf_gameplay);
 
 #if NB_HAVE_PB_BOTH==1
         case CONF_NOTIFICATIONS:
-            goto_state(&st_conf_notification);
-            break;
+            return goto_state(&st_conf_notification);
 #endif
 
 #if NB_HAVE_PB_BOTH!=1
@@ -3684,92 +3686,84 @@ static int conf_action(int tok, int val)
                  fs_exists("gui/ball.nbrx")))
             {
                 game_fade(+6.0);
-                goto_state(&st_ball);
+                return goto_state(&st_ball);
             }
             break;
 #endif
 
         case CONF_CONTROLS:
-            goto_state(&st_conf_controls);
-            break;
+            return goto_state(&st_conf_controls);
 
         case CONF_VIDEO:
-            goto_video(&st_conf);
-            break;
+            return goto_video(&st_conf);
 
 #if NB_HAVE_PB_BOTH==1
         case CONF_AUDIO:
-            goto_state(&st_conf_audio);
-            break;
+            return goto_state(&st_conf_audio);
 #else
         case CONF_AUDIO_MASTER_VOLUME:
             config_set_d(CONFIG_MASTER_VOLUME, val);
             audio_volume(val, sound, music, narrator);
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(master_id, val);
-            goto_state(curr_state());
+            return goto_state(curr_state());
 #else
             gui_toggle(master_id[val]);
             gui_toggle(master_id[master]);
 #endif
-            config_save();
-
             break;
 
         case CONF_AUDIO_MUSIC_VOLUME:
             config_set_d(CONFIG_MUSIC_VOLUME, val);
             audio_volume(master, sound, val, narrator);
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(music_id, val);
-            goto_state(curr_state());
+            return goto_state(curr_state());
 #else
             gui_toggle(music_id[val]);
             gui_toggle(music_id[master]);
 #endif
-            config_save();
-
             break;
 
         case CONF_AUDIO_SOUND_VOLUME:
             config_set_d(CONFIG_SOUND_VOLUME, val);
             audio_volume(master, val, music, narrator);
             audio_play(AUD_SWITCH, 1.0f);
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(sound_id, val);
-            goto_state(curr_state());
+            return goto_state(curr_state());
 #else
             gui_toggle(sound_id[val]);
             gui_toggle(sound_id[master]);
 #endif
-            config_save();
-
             break;
 
         case CONF_AUDIO_NARRATOR_VOLUME:
             config_set_d(CONFIG_NARRATOR_VOLUME, val);
             audio_volume(master, sound, music, val);
+            config_save();
 
 #ifdef SWITCHBALL_GUI
             conf_set_slider_v2(narrator_id, val);
-            goto_state(curr_state());
+            return goto_state(curr_state());
 #else
             gui_toggle(narrator_id[val]);
             gui_toggle(narrator_id[master]);
 #endif
-            config_save();
-
             break;
 #endif
 
         case CONF_LANGUAGE:
-            goto_state(&st_lang);
-            break;
+            return goto_state(&st_lang);
     }
 
-    return r;
+    return 1;
 }
 
 static int conf_gui(void)

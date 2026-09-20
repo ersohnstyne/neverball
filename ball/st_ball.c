@@ -215,7 +215,7 @@ static void scan_balls(void)
 
     free_balls();
     balls = array_new(sizeof (struct model_ball));
-    
+
     /*
      * First, load the model listed in the model file, preserving order.
      */
@@ -407,13 +407,33 @@ static unsigned int ball_refresh_packages(void)
 
 static struct state *ball_back;
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
+#define ST_BALL_GETMORE_AVAILABLE                        \
+    (!game_server_state() &&                             \
+     (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||       \
+      server_policy_get_d(SERVER_POLICY_EDITION) < 0) && \
+     !console_gui_shown() &&                             \
+     !game_setup_process() &&                            \
+     account_wgcl_name_read_only() &&                    \
+     config_get_d(CONFIG_ONLINE))
+#else
+#define ST_BALL_GETMORE_AVAILABLE \
+    (!game_server_state() &&      \
+     !console_gui_shown() &&      \
+     !game_setup_process() &&     \
+     config_get_d(CONFIG_ONLINE))
+#endif
+
 static int ball_action(int tok, int val)
 {
-    if (game_setup_process() && tok == GUI_BACK)
+    if ((tok == GUI_BACK && game_setup_process()) ||
+        (tok == MODEL_ONLINE && !ST_BALL_GETMORE_AVAILABLE))
     {
         audio_play(AUD_DISABLED, 1.0f);
         return 1;
     }
+
+    int r = 1;
 
     GENERIC_GAMEMENU_ACTION;
 
@@ -469,11 +489,13 @@ static int ball_action(int tok, int val)
             break;
 
         case GUI_BACK:
-            audio_ambient_fade_out(0.5f);
+            if (ST_BALL_GETMORE_AVAILABLE)
+                audio_ambient_fade_out(0.5f);
             game_fade(+4.0);
             free_balls();
-            exit_state(ball_back ? ball_back : &st_conf);
+            r = exit_state(ball_back ? ball_back : &st_conf);
             ball_back = NULL;
+            return r;
             break;
 
 #if NB_HAVE_PB_BOTH==1
@@ -625,26 +647,13 @@ static int ball_gui(void)
 #endif
                                           N_("Upgrade to Home Edition!");
 
-            if (!game_server_state() &&
-                (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
-                 server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
-                !console_gui_shown() &&
-                !game_setup_process()
-#ifdef CONFIG_INCLUDES_ACCOUNT
-             && account_wgcl_name_read_only()
-#endif
-             && config_get_d(CONFIG_ONLINE)
-                ) {
-                gui_space(id);
-
+            if (ST_BALL_GETMORE_AVAILABLE) {
                 int online_id = 0;
+                gui_space(id);
                 if ((online_id = gui_label(id, _(more_balls_text),
-                                               GUI_SML, gui_wht, gui_grn))) {
-                    if (server_policy_get_d(SERVER_POLICY_EDITION) == -1)
-                        gui_set_state(online_id, MODEL_UPGRADE_EDITION, 0);
-                    else
-                        gui_set_state(online_id, MODEL_ONLINE, 0);
-                }
+                                               GUI_SML, gui_wht, gui_grn)))
+                    gui_set_state(online_id, server_policy_get_d(SERVER_POLICY_EDITION) == -1 ?
+                                             MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
             }
             else if (!game_server_state() && !console_gui_shown() && !game_setup_process())
             {
@@ -720,8 +729,7 @@ static int ball_gui(void)
             }
         }
 #if !defined(NDEBUG) && NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        else if (config_cheat() && !console_gui_shown() &&
-                 !game_server_state() && !demo_state())
+        else if (config_cheat() && ST_BALL_GETMORE_AVAILABLE)
         {
             if ((id = gui_vstack(root_id)))
             {
@@ -947,11 +955,9 @@ static int ball_buttn(int b, int d)
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && !defined(__EMSCRIPTEN__)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b) &&
-            (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1 ||
-             server_policy_get_d(SERVER_POLICY_EDITION) < 0) &&
-            !game_setup_process() && config_get_d(CONFIG_ONLINE))
+            ST_BALL_GETMORE_AVAILABLE)
             return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) < 0 ?
-                               MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
+                MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
 #endif
     }
     return 1;

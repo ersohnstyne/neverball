@@ -204,7 +204,7 @@ static int done_gui_campaign(void)
         gui_multi(id, _(sdesc), GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
 
-        if ((jd = gui_harray(id)))
+        if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_varray(id) : gui_harray(id)))
         {
             if ((kd = gui_hstack(jd)))
             {
@@ -375,8 +375,8 @@ static int done_gui_set(void)
                             high);
 #endif
         gui_space(id);
-        
-        if ((jd = gui_harray(id)))
+
+        if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_varray(id) : gui_harray(id)))
         {
             if ((kd = gui_hstack(jd)))
             {

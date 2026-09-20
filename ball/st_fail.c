@@ -1796,12 +1796,13 @@ static int raise_gems_prepare_gui(void)
 #endif
         }
 
-        if (!pay_debt_ready)
+        if (!pay_debt_ready && ((float) video.device_w / (float) video.device_h) > (4.0f / 3.0f))
+        {
             gui_multi(id, infoattr_full, GUI_SML,
                       allow_raise ? gui_wht : gui_red,
                       allow_raise ? gui_cya : gui_red);
-
-        gui_space(id);
+            gui_space(id);
+        }
 
         if ((jd = gui_hstack(id)))
         {
@@ -1880,9 +1881,10 @@ static int raise_gems_prepare_gui(void)
                                   GUI_SML, gui_wht, gui_cya);
                 }
 
-            if (((float) video.device_w / (float) video.device_h) > 1.0f)
+            if (((float) video.device_w / (float) video.device_h) > (4.0f / 3.0f) || pay_debt_ready)
             {
-                gui_space(jd);
+                if (!pay_debt_ready) gui_space(jd);
+
                 gui_image(jd, pay_debt_ready ? "gui/advisers/payment_ready.png" :
                               allow_raise    ? "gui/advisers/raising_gems.png"
                                              : "gui/advisers/payment_due.png",
@@ -1894,15 +1896,13 @@ static int raise_gems_prepare_gui(void)
 
         if (pay_debt_ready)
         {
-            if (((float) video.device_w / (float) video.device_h) > 1.0f)
-                gui_space(id);
-
+            gui_space(id);
             gui_multi(id, infoattr_full, GUI_SML, gui_wht, gui_cya);
         }
 
         gui_space(id);
 
-        if ((jd = gui_harray(id)))
+        if ((jd = ((float) video.device_w / (float) video.device_h) > (4.0f / 3.0f) ? gui_harray(id) : gui_vstack(id)))
         {
             int tmp_startbtn_id = gui_start(jd, _("Let's do this!"),
                                                 GUI_SML, RAISEGEMS_START, 0);

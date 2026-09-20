@@ -49,7 +49,6 @@
 #include "st_pause.h"
 #include "st_conf.h"
 #include "st_shared.h"
-#include "st_conf.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -72,6 +71,8 @@ static struct state *st_continue;
 static int quit_uses_resetpuzzle = 0;
 static int quit_uses_restart = 0;
 
+static int keybd_restart_shift = 0;
+
 /*---------------------------------------------------------------------------*/
 
 #define PAUSED_ACTION_CONTINUE                                \
@@ -83,7 +84,7 @@ static int quit_uses_restart = 0;
             if (st_continue == &st_play_ready ||              \
                 st_continue == &st_play_loop)                 \
                 video_set_grab(1);                            \
-            return exit_state(st_continue);                   \
+            exit_state(st_continue); st_continue = NULL;      \
         } else {                                              \
             quit_uses_resetpuzzle = 0;                        \
             quit_uses_restart     = 0;                        \
@@ -94,17 +95,18 @@ static int quit_uses_restart = 0;
 int goto_pause(struct state *returnable)
 {
     audio_play("snd/2.2/game_pause.ogg", 1.0f);
+    keybd_restart_shift = 0;
 
-    if (!st_continue && !returnable)
-        st_continue = returnable;
-
-    /* Set it up some those states? */
-    if (!st_continue &&
-        (st_continue == &st_play_ready || st_continue == &st_play_set ||
-         st_continue == &st_play_loop  || st_continue == &st_look))
+    if (!st_continue && returnable)
     {
-        if (st_continue == &st_play_set) st_continue = &st_play_ready;
-        if (st_continue == &st_look)     st_continue = &st_play_loop;
+        if (returnable == &st_play_ready || returnable == &st_play_set ||
+            returnable == &st_play_loop || returnable == &st_look)
+        {
+            if (returnable == &st_play_set) st_continue = &st_play_ready;
+            if (returnable == &st_look)     st_continue = &st_play_loop;
+        }
+        else if (returnable)
+            st_continue = returnable;
     }
 
 #if ENABLE_LIVESPLIT!=0
@@ -119,7 +121,7 @@ static int pause_restart(void)
     if (progress_same_avail())
     {
 #ifdef MAPC_INCLUDES_CHKP
-        if (last_active)
+        if (last_active && !keybd_restart_shift)
         {
             if (quit_uses_resetpuzzle)
             {
@@ -127,6 +129,7 @@ static int pause_restart(void)
                 if (checkpoints_load() && progress_same())
                 {
                     audio_music_fade_in(0.5f);
+                    st_continue = NULL;
                     return goto_play_level();
                 }
             }
@@ -151,6 +154,7 @@ static int pause_restart(void)
             if (progress_same())
             {
                 audio_music_fade_in(0.5f);
+                st_continue = NULL;
                 return goto_play_level();
             }
         }
@@ -168,6 +172,53 @@ static int pause_restart(void)
     }
 
     return 1;
+}
+
+static int pause_quit(void)
+{
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (curr_mode() == MODE_NONE || campaign_used() ||
+        curr_times() > 0)
+    {
+        if (curr_state() == &st_pause_quit)
+        {
+            if (curr_status() == GAME_NONE)
+                progress_stat(GAME_NONE);
+
+            if (campaign_hardcore())
+            {
+                if (campaign_hardcore_norecordings())
+                    demo_play_stop(1);
+
+                campaign_hardcore_quit();
+            }
+
+            if (curr_mode() != MODE_NONE)
+                audio_music_stop();
+
+            st_continue = NULL;
+            return goto_exit();
+        }
+        else return goto_state(&st_pause_quit);
+    }
+    else
+    {
+        if (curr_status() == GAME_NONE)
+            progress_stat(GAME_NONE);
+
+        audio_music_stop();
+        st_continue = NULL;
+        return goto_exit();
+    }
+
+    return 1;
+#else
+    if (curr_status() == GAME_NONE)
+        progress_stat(GAME_NONE);
+
+    st_continue = NULL;
+    return goto_exit();
+#endif
 }
 
 static int pause_action(int tok, int val)
@@ -195,6 +246,7 @@ static int pause_action(int tok, int val)
                     if (checkpoints_load() && progress_same())
                     {
                         audio_music_fade_in(0.5f);
+                        st_continue = NULL;
                         return goto_play_level();
                     }
                 }
@@ -218,6 +270,7 @@ static int pause_action(int tok, int val)
             if (progress_same())
             {
                 audio_music_fade_in(0.5f);
+                st_continue = NULL;
                 return goto_play_level();
             }
 #endif
@@ -239,6 +292,7 @@ static int pause_action(int tok, int val)
                     if (progress_same())
                     {
                         audio_music_fade_in(0.5f);
+                        st_continue = NULL;
                         return goto_play_level();
                     }
                 }
@@ -251,46 +305,7 @@ static int pause_action(int tok, int val)
             break;
 
         case PAUSE_EXIT:
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (curr_mode() == MODE_NONE || campaign_used() ||
-                curr_times() > 0)
-            {
-                if (curr_state() == &st_pause_quit)
-                {
-                    if (curr_status() == GAME_NONE)
-                        progress_stat(GAME_NONE);
-
-                    if (campaign_hardcore())
-                    {
-                        if (campaign_hardcore_norecordings())
-                            demo_play_stop(1);
-
-                        campaign_hardcore_quit();
-                    }
-
-                    if (curr_mode() != MODE_NONE)
-                        audio_music_stop();
-
-                    return goto_exit();
-                }
-                else return goto_state(&st_pause_quit);
-            }
-            else
-            {
-                if (curr_status() == GAME_NONE)
-                    progress_stat(GAME_NONE);
-
-                audio_music_stop();
-                return goto_exit();
-            }
-#else
-            if (curr_status() == GAME_NONE)
-                progress_stat(GAME_NONE);
-
-            return goto_exit();
-#endif
-
-        break;
+            return pause_quit();
     }
 
     return 1;
@@ -298,9 +313,175 @@ static int pause_action(int tok, int val)
 
 /*---------------------------------------------------------------------------*/
 
+static void pause_btns_horizontal_gui(int jd, const char *quit_btn_text)
+{
+    int kd, ld;
+
+    if ((kd = gui_hstack(jd)))
+    {
+        const GLubyte *btn_color_text = campaign_used() || curr_times() > 0 ? gui_red : gui_wht;
+
+        gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+
+        ld = gui_label(kd, _(quit_btn_text), GUI_SML, btn_color_text, btn_color_text);
+        gui_set_fill(ld);
+
+        gui_set_state(kd, PAUSE_EXIT, 0);
+        gui_set_rect(kd, GUI_ALL);
+    }
+
+    if ((kd = gui_hstack(jd)))
+    {
+        const int restartable         = progress_same_avail();
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        const GLubyte *btn_color      = restartable ? (campaign_used() ? gui_red : gui_yel) : gui_gry;
+#else
+        const GLubyte *btn_color      = restartable ? gui_yel : gui_gry;
+#endif
+        const GLubyte *btn_color_text = restartable ? gui_wht : gui_gry;
+
+        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+
+        ld = gui_label(kd, _("Restart"), GUI_SML, btn_color_text, btn_color_text);
+        gui_set_fill(ld);
+
+        gui_set_state(kd, restartable ? PAUSE_RESTART : GUI_NONE, 0);
+        gui_set_rect(kd, GUI_ALL);
+
+        if (!restartable)
+            gui_set_color(ld, GUI_COLOR_GRY);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform != PLATFORM_PC || console_gui_shown())
+            gui_focus(kd);
+#endif
+    }
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (last_active)
+        if ((kd = gui_hstack(jd)))
+        {
+            const int      resetable      = progress_same_avail();
+            const GLubyte *btn_color      = resetable ? gui_vio : gui_gry;
+            const GLubyte *btn_color_text = resetable ? gui_wht : gui_gry;
+
+            gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+
+            ld = gui_label(kd, _("Reset Puzzle"), GUI_SML, btn_color_text, btn_color_text);
+            gui_set_fill(ld);
+
+            gui_set_state(kd, resetable ? PAUSE_RESPAWN : GUI_NONE, 0);
+            gui_set_rect(kd, GUI_ALL);
+
+            if (!resetable)
+                gui_set_color(ld, GUI_COLOR_GRY);
+        }
+#endif
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
+        if ((kd = gui_hstack(jd)))
+        {
+            const GLubyte *btn_color      = st_continue ? gui_grn : gui_gry;
+            const GLubyte *btn_color_text = st_continue ? gui_wht : gui_gry;
+
+            gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
+
+            ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
+            gui_set_fill(ld);
+
+            gui_set_state(kd, st_continue ? PAUSE_CONTINUE : GUI_NONE, 0);
+            gui_set_rect(kd, GUI_ALL);
+
+            gui_focus(kd);
+        }
+}
+
+static void pause_btns_vertical_gui(int jd, const char *quit_btn_text)
+{
+    int kd, ld;
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
+        if ((kd = gui_hstack(jd)))
+        {
+            const GLubyte *btn_color      = st_continue ? gui_grn : gui_gry;
+            const GLubyte *btn_color_text = st_continue ? gui_wht : gui_gry;
+
+            ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
+            gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
+            gui_set_fill(ld);
+
+            gui_set_state(kd, st_continue ? PAUSE_CONTINUE : GUI_NONE, 0);
+            gui_set_rect(kd, GUI_ALL);
+
+            gui_focus(kd);
+        }
+
+#ifdef MAPC_INCLUDES_CHKP
+    if (last_active)
+        if ((kd = gui_hstack(jd)))
+        {
+            const int      resetable      = progress_same_avail();
+            const GLubyte *btn_color      = resetable ? gui_vio : gui_gry;
+            const GLubyte *btn_color_text = resetable ? gui_wht : gui_gry;
+
+            ld = gui_label(kd, _("Reset Puzzle"), GUI_SML, btn_color_text, btn_color_text);
+            gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+            gui_set_fill(ld);
+
+            gui_set_state(kd, resetable ? PAUSE_RESPAWN : GUI_NONE, 0);
+            gui_set_rect(kd, GUI_ALL);
+
+            if (!resetable)
+                gui_set_color(ld, GUI_COLOR_GRY);
+        }
+#endif
+
+    if ((kd = gui_hstack(jd)))
+    {
+        const int restartable         = progress_same_avail();
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        const GLubyte *btn_color      = restartable ? (campaign_used() ? gui_red : gui_yel) : gui_gry;
+#else
+        const GLubyte *btn_color      = restartable ? gui_yel : gui_gry;
+#endif
+        const GLubyte *btn_color_text = restartable ? gui_wht : gui_gry;
+
+        ld = gui_label(kd, _("Restart"), GUI_SML, btn_color_text, btn_color_text);
+        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+        gui_set_fill(ld);
+
+        gui_set_state(kd, restartable ? PAUSE_RESTART : GUI_NONE, 0);
+        gui_set_rect(kd, GUI_ALL);
+
+        if (!restartable)
+            gui_set_color(ld, GUI_COLOR_GRY);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform != PLATFORM_PC || console_gui_shown())
+            gui_focus(kd);
+#endif
+    }
+
+    if ((kd = gui_hstack(jd)))
+    {
+        const GLubyte *btn_color_text = campaign_used() || curr_times() > 0 ? gui_red : gui_wht;
+
+        ld = gui_label(kd, _(quit_btn_text), GUI_SML, btn_color_text, btn_color_text);
+        gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+        gui_set_fill(ld);
+
+        gui_set_state(kd, PAUSE_EXIT, 0);
+        gui_set_rect(kd, GUI_ALL);
+    }
+}
+
 static int pause_gui(void)
 {
-    int id, jd, kd, ld, title_id;
+    int id, jd, kd, title_id;
 
     /* Build the pause GUI. */
 
@@ -331,89 +512,12 @@ static int pause_gui(void)
         const char *quit_btn_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
 #endif
 
-        /*
-         * If the wide button is drastic from width pixels by display,
-         * use vertical instead.
-         */
-
-        if ((jd = video.device_w <= video.device_h ? gui_vstack(id) : gui_harray(id)))
+        if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_vstack(id) : gui_harray(id)))
         {
-            if ((kd = gui_hstack(jd)))
-            {
-                const GLubyte *btn_color_text = campaign_used() || curr_times() > 0 ? gui_red : gui_wht;
-
-                gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-
-                ld = gui_label(kd, _(quit_btn_text), GUI_SML, btn_color_text, btn_color_text);
-                gui_set_fill(ld);
-
-                gui_set_state(kd, PAUSE_EXIT, 0);
-                gui_set_rect(kd, GUI_ALL);
-            }
-
-            if ((kd = gui_hstack(jd)))
-            {
-                const int restartable = progress_same_avail();
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                const GLubyte *btn_color      = restartable ? (campaign_used() ? gui_red : gui_yel) : gui_gry;
-#else
-                const GLubyte *btn_color      = restartable ? gui_yel : gui_gry;
-#endif
-                const GLubyte *btn_color_text = restartable ? gui_wht : gui_gry;
-
-                gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-
-                ld = gui_label(kd, _("Restart"), GUI_SML, btn_color_text, btn_color_text);
-                gui_set_fill(ld);
-
-                gui_set_state(kd, restartable ? PAUSE_RESTART : GUI_NONE, 0);
-                gui_set_rect(kd, GUI_ALL);
-
-                if (!restartable)
-                    gui_set_color(ld, GUI_COLOR_GRY);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                if (current_platform != PLATFORM_PC || console_gui_shown())
-                    gui_focus(kd);
-#endif
-            }
-
-#ifdef MAPC_INCLUDES_CHKP
-            if (last_active)
-                if ((kd = gui_hstack(jd)))
-                {
-                    const int resetable = progress_same_avail();
-                    const GLubyte *btn_color      = resetable ? gui_vio : gui_gry;
-                    const GLubyte *btn_color_text = resetable ? gui_wht : gui_gry;
-
-                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-
-                    ld = gui_label(kd, _("Reset Puzzle"), GUI_SML, btn_color_text, btn_color_text);
-                    gui_set_fill(ld);
-
-                    gui_set_state(kd, resetable ? PAUSE_RESPAWN : GUI_NONE, 0);
-                    gui_set_rect(kd, GUI_ALL);
-
-                    if (!resetable)
-                        gui_set_color(ld, GUI_COLOR_GRY);
-                }
-#endif
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (current_platform == PLATFORM_PC && !console_gui_shown())
-#endif
-                if ((kd = gui_hstack(jd)))
-                {
-                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
-
-                    ld = gui_label(kd, _("Continue"), GUI_SML, GUI_COLOR_WHT);
-                    gui_set_fill(ld);
-
-                    gui_set_state(kd, PAUSE_CONTINUE, 0);
-                    gui_set_rect(kd, GUI_ALL);
-
-                    gui_focus(kd);
-                }
+            if ((float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)))
+                pause_btns_vertical_gui(jd, quit_btn_text);
+            else
+                pause_btns_horizontal_gui(jd, quit_btn_text);
         }
 
         gui_pulse(title_id, 1.2f);
@@ -498,7 +602,7 @@ static int pause_keybd(int c, int d)
 #endif
             )
         {
-            if (!st_global_animating())
+            if (st_continue && !st_global_animating())
             {
                 audio_play(AUD_BACK, 1.0f);
                 PAUSED_ACTION_CONTINUE;
@@ -513,6 +617,10 @@ static int pause_keybd(int c, int d)
             )
             return pause_restart();
     }
+
+    if (c == SDLK_LSHIFT || c == SDLK_RSHIFT)
+        keybd_restart_shift = d;
+
     return 1;
 }
 
@@ -525,14 +633,9 @@ static int pause_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return pause_action(gui_token(active), gui_value(active));
 
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)) {
-            audio_play(AUD_BACK, 1.0f);
-            PAUSED_ACTION_CONTINUE;
-        }
-
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        {
-            if (!st_global_animating())
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b) ||
+            config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b)) {
+            if (st_continue && !st_global_animating())
             {
                 audio_play(AUD_BACK, 1.0f);
                 PAUSED_ACTION_CONTINUE;

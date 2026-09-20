@@ -1635,7 +1635,7 @@ static void step(void *data)
     struct main_loop *mainloop = (struct main_loop *) data;
 
     int running = loop();
-    
+
     if (main_loop_nowindowfocused)
     {
 #ifndef __EMSCRIPTEN__

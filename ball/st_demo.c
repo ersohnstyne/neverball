@@ -388,7 +388,7 @@ static int gui_demo_thumbs(int id)
     int h = video.device_h;
 
     int jd, kd, ld, md;
-    
+
     struct thumb *thumb;
 
     /* HACK: On mobile version, with portrait mode (coming in 2030?) */
@@ -493,7 +493,7 @@ static void gui_demo_update_thumbs(void)
          i < ARRAYSIZE(thumbs) && thumbs[i].shot_id && thumbs[i].name_id;
          i++)
     {
-        int stat_limit = config_get_d(CONFIG_ACCOUNT_LOAD);
+        const int stat_limit = get_limit_game_stat();
         int stat_max = 0;
 
         demo_requires_update = 0;
@@ -511,16 +511,12 @@ static void gui_demo_update_thumbs(void)
                 SAFECPY(demo->name, base_name_sans(item->path, str_ends_with(item->path, ".nbrx") ? ".nbrx" : ".nbr"));
 
                 st_demo_version_read(fp, demo);
-
                 fs_close(fp);
             }
 
-            if (demo->status == 3)
-                stat_max = 3;
-            else if (demo->status == 1 || demo->status == 0)
-                stat_max = 2;
-            else if (demo->status == 2)
-                stat_max = 1;
+            stat_max = demo->status == 3 ? 3 : (
+                           (demo->status == 1 || demo->status == 0) ? 2 :
+                           (demo->status == 2) ? 1 : 0);
         }
 
         gui_set_label(thumbs[i].name_id, demo ? demo->name :
@@ -658,7 +654,7 @@ static int gui_demo_status(int id)
                 gui_set_trunc(name_id,   TRUNC_TAIL);
                 gui_set_trunc(player_id, TRUNC_TAIL);
                 gui_set_trunc(date_id,   TRUNC_TAIL);
-                
+
                 gui_set_label(name_id,   " ");
                 gui_set_label(player_id, " ");
                 gui_set_label(date_id,   " ");
@@ -742,7 +738,7 @@ static void gui_demo_update_status(int i)
             "%d", d->coins);
 
     stat_limit_busy = 0;
-    
+
     const GLubyte *c = d->status == GAME_GOAL ? gui_grn : gui_red;
     gui_set_color(status_id, c, c);
 
@@ -851,7 +847,6 @@ static int demo_restricted_gui(void)
             else
                 kd = gui_label(jd, _("Filters restricted!"),
                                       GUI_MED, gui_red, gui_blk);
-
             gui_pulse(kd, 1.2f);
 
             if (!standalone && !demo_requires_update)
@@ -862,9 +857,9 @@ static int demo_restricted_gui(void)
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
                 if (config_cheat())
                 {
-                    md = gui_label(jd, config_get_d(CONFIG_ACCOUNT_LOAD) == 1 ?
-                                          _("Only Finish") : _("Keep on board"),
-                                          GUI_SML, GUI_COLOR_RED);
+                    md = gui_label(jd, get_limit_game_stat() == 1 ?
+                                       _("Only Finish") : _("Keep on board"),
+                                       GUI_SML, GUI_COLOR_RED);
                     gui_pulse(md, 1.2f);
                 }
 #endif
@@ -905,7 +900,6 @@ static int demo_restricted_gui(void)
 #endif
 
         demo_requires_update = 0;
-
         gui_layout(id, 0, 0);
     }
 
@@ -952,12 +946,7 @@ static int demo_restricted_keybd(int c, int d)
 #else
         if (c == KEY_EXIT)
 #endif
-        {
-            if (is_opened)
-                return goto_state(&st_demo_end);
-            else
-                return exit_state(&st_demo);
-        }
+            return is_opened ? goto_state(&st_demo_end) : exit_state(&st_demo);
     }
     return 1;
 }
@@ -966,12 +955,8 @@ static int demo_restricted_buttn(int b, int d)
 {
     if (d && (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
               config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)))
-    {
-        if (is_opened)
-            return goto_state(&st_demo_end);
-        else
-            return exit_state(&st_demo);
-    }
+        return is_opened ? goto_state(&st_demo_end) : exit_state(&st_demo);
+
     return 1;
 }
 
@@ -1350,7 +1335,7 @@ static int demo_buttn(int b, int d)
             {
                 int token = gui_token(active);
                 int value = gui_value(active);
-                
+
                 return demo_action(token == DEMO_SELECT && value == selected ? DEMO_PLAY :
                                                                                token,
                                    value);
@@ -1845,9 +1830,130 @@ static int demo_end_action(int tok, int val)
     return 1;
 }
 
+static void demo_end_btns_horizontal_gui(int jd, int continue_allowed)
+{
+    int kd, ld;
+
+    if (demo_paused || !console_gui_shown())
+        if ((kd = gui_hstack(jd)))
+        {
+            gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+
+            ld = gui_label(kd, _("Exit"), GUI_SML, GUI_COLOR_RED);
+            gui_set_fill(ld);
+
+            gui_set_state(kd, DEMO_QUIT, 0);
+            gui_set_rect(kd, GUI_ALL);
+        }
+
+#if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
+    /* Microsoft and Windows Games can do it! */
+#else
+    if (!standalone)
+        gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
+#endif
+
+    if ((kd = gui_hstack(jd)))
+    {
+        const GLubyte *btn_color      = continue_allowed ? gui_yel : gui_gry;
+        const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
+        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+
+        ld = gui_label(kd, _("Repeat"), GUI_SML, btn_color_text, btn_color_text);
+        gui_set_fill(ld);
+
+        gui_set_state(kd, continue_allowed ? DEMO_REPLAY : GUI_NONE, 0);
+        gui_set_rect(kd, GUI_ALL);
+
+        gui_focus(kd);
+    }
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
+#else
+    if (demo_paused)
+#endif
+    {
+        if ((kd = gui_hstack(jd)))
+        {
+            const GLubyte *btn_color      = continue_allowed ? gui_grn : gui_gry;
+            const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
+            gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
+
+            ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
+            gui_set_fill(ld);
+
+            gui_set_state(kd, continue_allowed ? DEMO_CONTINUE : GUI_NONE, 0);
+            gui_set_rect(kd, GUI_ALL);
+
+            if (continue_allowed) gui_focus(kd);
+        }
+    }
+}
+
+static void demo_end_btns_vertical_gui(int jd, int continue_allowed)
+{
+    int kd, ld;
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
+#else
+    if (demo_paused)
+#endif
+    {
+        if ((kd = gui_hstack(jd)))
+        {
+            const GLubyte *btn_color      = continue_allowed ? gui_grn : gui_gry;
+            const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
+
+            ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
+            gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
+            gui_set_fill(ld);
+
+            gui_set_state(kd, continue_allowed ? DEMO_CONTINUE : GUI_NONE, 0);
+            gui_set_rect(kd, GUI_ALL);
+
+            if (continue_allowed) gui_focus(kd);
+        }
+    }
+
+    if ((kd = gui_hstack(jd)))
+    {
+        const GLubyte *btn_color      = continue_allowed ? gui_yel : gui_gry;
+        const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
+
+        ld = gui_label(kd, _("Repeat"), GUI_SML, btn_color_text, btn_color_text);
+        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
+        gui_set_fill(ld);
+
+        gui_set_state(kd, continue_allowed ? DEMO_REPLAY : GUI_NONE, 0);
+        gui_set_rect(kd, GUI_ALL);
+
+        gui_focus(kd);
+    }
+
+#if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
+    /* Microsoft and Windows Games can do it! */
+#else
+    if (!standalone)
+        gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
+#endif
+
+    if (demo_paused || !console_gui_shown())
+        if ((kd = gui_hstack(jd)))
+        {
+            ld = gui_label(kd, _("Exit"), GUI_SML, GUI_COLOR_RED);
+            gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
+            gui_set_fill(ld);
+
+            gui_set_state(kd, DEMO_QUIT, 0);
+            gui_set_rect(kd, GUI_ALL);
+        }
+}
+
 static int demo_end_gui(void)
 {
-    int id, jd, kd, ld;
+    int id, jd, kd;
 
     if ((id = gui_vstack(0)))
     {
@@ -1875,63 +1981,12 @@ static int demo_end_gui(void)
         const int continue_allowed = (get_max_game_stat() <= get_limit_game_stat() &&
                                       allow_exact_versions);
 
-        if ((jd = gui_harray(id)))
+        if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_vstack(id) : gui_harray(id)))
         {
-            if (demo_paused || !console_gui_shown())
-                if ((kd = gui_hstack(jd)))
-                {
-                    gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-
-                    ld = gui_label(kd, _("Exit"), GUI_SML, GUI_COLOR_RED);
-                    gui_set_fill(ld);
-
-                    gui_set_state(kd, DEMO_QUIT, 0);
-                    gui_set_rect(kd, GUI_ALL);
-                }
-
-#if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
-            /* Microsoft and Windows Games can do it! */
-#else
-            if (!standalone)
-                gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
-#endif
-
-            if ((kd = gui_hstack(jd)))
-            {
-                const GLubyte *btn_color      = continue_allowed ? gui_yel : gui_gry;
-                const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
-                gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-
-                ld = gui_label(kd, _("Repeat"), GUI_SML, btn_color_text, btn_color_text);
-                gui_set_fill(ld);
-
-                gui_set_state(kd, continue_allowed ? DEMO_REPLAY : GUI_NONE, 0);
-                gui_set_rect(kd, GUI_ALL);
-
-                gui_focus(kd);
-            }
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-            if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
-#else
-            if (demo_paused)
-#endif
-            {
-                if ((kd = gui_hstack(jd)))
-                {
-                    const GLubyte *btn_color      = continue_allowed ? gui_grn : gui_gry;
-                    const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
-                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
-
-                    ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
-                    gui_set_fill(ld);
-
-                    gui_set_state(kd, continue_allowed ? DEMO_CONTINUE : GUI_NONE, 0);
-                    gui_set_rect(kd, GUI_ALL);
-
-                    if (continue_allowed) gui_focus(kd);
-                }
-            }
+            if ((float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)))
+                demo_end_btns_vertical_gui(jd, continue_allowed);
+            else
+                demo_end_btns_horizontal_gui(jd, continue_allowed);
         }
 
         gui_pulse (kd, 1.2f);
@@ -1995,10 +2050,6 @@ static int demo_end_keybd(int c, int d)
     /* Only that is limit underneath it */
     const int continue_allowed = (get_max_game_stat() <= get_limit_game_stat() &&
                                   allow_exact_versions);
-
-    /*if (d && c == KEY_EXIT)
-        return demo_end_action(!demo_paused || continue_allowed ?
-                               GUI_BACK : GUI_NONE, 0);*/
 
     if (d && KEY_IS_PAUSE(c))
     {
@@ -2083,7 +2134,6 @@ static int demo_del_gui(void)
                           GUI_SML, GUI_COLOR_WHT);
 
             char warning_text[MAXSTR];
-
             SAFECPY(warning_text, _("Once deleted this replay,\n"
                                     "this action cannot be undone."));
 

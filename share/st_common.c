@@ -525,7 +525,7 @@ static int perf_warning_action(int tok, int val)
 #else
         r = video_mode_auto_config(f, w, h);
 #endif
-        if (r) exit_state(&st_video);
+        if (r) r = exit_state(&st_video);
         else
         {
 #if ENABLE_DUALDISPLAY==1
@@ -533,7 +533,7 @@ static int perf_warning_action(int tok, int val)
 #else
             r = video_mode(f, w, h);
 #endif
-            if (r) exit_state(&st_video);
+            if (r) r = exit_state(&st_video);
         }
 
         if (r) config_set_d(CONFIG_CAMERA_SHAKE, 1);
@@ -973,17 +973,16 @@ static int video_action(int tok, int val)
         case VIDEO_SCREENANIMATIONS:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
-            config_set_d(CONFIG_TRANSITIONS,       val);
-            goto_state(&st_video);
-
+            config_set_d(CONFIG_TRANSITIONS, val);
             config_save();
-            break;
+
+            return goto_state(&st_video);
 
         case VIDEO_DISPLAY:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
-            goto_state(&st_display);
+            return goto_state(&st_display);
 #endif
             break;
 
@@ -995,11 +994,11 @@ static int video_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             goto_state(&st_null);
             r = video_fullscreen(val);
-            if (r) exit_state(&st_video);
+            if (r) r = exit_state(&st_video);
             else
             {
                 r = video_fullscreen(oldF);
-                if (r) exit_state(&st_video);
+                if (r) r = exit_state(&st_video);
                 else
                 {
                     config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
@@ -1025,7 +1024,7 @@ static int video_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
 #ifndef RESIZEABLE_WINDOW
-            goto_state(&st_resol);
+            return goto_state(&st_resol);
 #endif
 #endif
             break;
@@ -1046,7 +1045,7 @@ static int video_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
-            if (r) exit_state(&st_video);
+            if (r) r = exit_state(&st_video);
             else
             {
                 config_set_d(CONFIG_HMD, oldHmd);
@@ -1055,7 +1054,7 @@ static int video_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r) exit_state(&st_video);
+                if (r) r = exit_state(&st_video);
             }
 #endif
 
@@ -1067,19 +1066,15 @@ static int video_action(int tok, int val)
             audio_play(val != 2 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             goto_state(&st_null);
             config_set_d(CONFIG_TEXTURES, val);
-            exit_state(&st_video);
-
             config_save();
-
-            break;
+            return exit_state(&st_video);
 
         case VIDEO_AUTO_CONFIGURE:
             perf_warning_autoconfig = 1;
-            goto_state(&st_perf_warning);
-            break;
+            return goto_state(&st_perf_warning);
+
         case VIDEO_ADVANCED:
-            goto_state(&st_video_advanced);
-            break;
+            return goto_state(&st_video_advanced);
     }
 
     return r;
@@ -1314,15 +1309,15 @@ static int video_advanced_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            exit_state(video_advanced_back);
+            r = exit_state(video_advanced_back);
             video_advanced_back = NULL;
-            break;
+            return r;
 
         case VIDEO_ADVANCED_DISPLAY:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
-            goto_state(&st_display);
+            r = goto_state(&st_display);
 #endif
             break;
 
@@ -1331,7 +1326,7 @@ static int video_advanced_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__) && !defined(__EMSCRIPTEN__)
 #ifndef RESIZEABLE_WINDOW
-            goto_state(&st_resol);
+            r = goto_state(&st_resol);
 #endif
 #endif
             break;
@@ -1352,11 +1347,11 @@ static int video_advanced_action(int tok, int val)
             goto_state(&st_null);
             r = video_fullscreen(val);
 
-            if (r) exit_state(&st_video_advanced);
+            if (r) r = exit_state(&st_video_advanced);
             else
             {
                 r = video_fullscreen(val);
-                if (r) exit_state(&st_video_advanced);
+                if (r) r = exit_state(&st_video_advanced);
             }
 #endif
 #endif
@@ -1376,8 +1371,7 @@ static int video_advanced_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_CAMERA_SHAKE, val);
             config_save();
-            goto_state(&st_video_advanced);
-            break;
+            r = goto_state(&st_video_advanced);
 
         case VIDEO_ADVANCED_HMD:
             if (oldHmd == val) return 1;
@@ -1399,7 +1393,7 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
-            if (r) exit_state(&st_video_advanced);
+            if (r) r = exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_HMD, oldHmd);
@@ -1408,7 +1402,7 @@ static int video_advanced_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r) exit_state(&st_video_advanced);
+                if (r) r = exit_state(&st_video_advanced);
             }
 #endif
             break;
@@ -1419,7 +1413,7 @@ static int video_advanced_action(int tok, int val)
 
             perf_warning_mode  = 0;
             perf_warning_value = val;
-            return goto_state(&st_perf_warning);
+            r = goto_state(&st_perf_warning);
 #endif
             break;
 
@@ -1431,7 +1425,7 @@ static int video_advanced_action(int tok, int val)
 
             perf_warning_mode  = 1;
             perf_warning_value = val;
-            return goto_state(&st_perf_warning);
+            r = goto_state(&st_perf_warning);
 
             /*backups = 1;
             config_set_d(CONFIG_REFLECTION, val);
@@ -1450,7 +1444,7 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
-            if (r) exit_state(&st_video_advanced);
+            if (r) r = exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_REFLECTION, oldRefl);
@@ -1459,7 +1453,7 @@ static int video_advanced_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r) exit_state(&st_video_advanced);
+                if (r) r = exit_state(&st_video_advanced);
             }
 #endif*/
 #endif
@@ -1470,22 +1464,20 @@ static int video_advanced_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_BACKGROUND, val);
             config_save();
-            goto_state(&st_video_advanced);
-            break;
+            r = goto_state(&st_video_advanced);
 
         case VIDEO_ADVANCED_SHADOW:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SHADOW, val);
             config_save();
-            goto_state(&st_video_advanced);
-            break;
+            r = goto_state(&st_video_advanced);
+
 #ifdef GL_GENERATE_MIPMAP_SGIS
         case VIDEO_ADVANCED_MIPMAP:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_MIPMAP, val);
             config_save();
-            goto_state(&st_video_advanced);
-            break;
+            r = goto_state(&st_video_advanced);
 #endif
 
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
@@ -1493,8 +1485,7 @@ static int video_advanced_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ANISO, val);
             config_save();
-            goto_state(&st_video_advanced);
-            break;
+            r = goto_state(&st_video_advanced);
 #endif
 
         case VIDEO_ADVANCED_VSYNC:
@@ -1520,7 +1511,7 @@ static int video_advanced_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
-            if (r) exit_state(&st_video_advanced);
+            if (r) r = exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_VSYNC, oldVsync);
@@ -1529,7 +1520,7 @@ static int video_advanced_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r) exit_state(&st_video_advanced);
+                if (r) r = exit_state(&st_video_advanced);
             }
 #endif
 #endif
@@ -1541,9 +1532,7 @@ static int video_advanced_action(int tok, int val)
             backups = 1;
             config_set_d(CONFIG_TEXTURES, val);
             config_save();
-            goto_state(&st_video_advanced);
-
-            break;
+            r = goto_state(&st_video_advanced);
 
         case VIDEO_ADVANCED_MULTISAMPLE:
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -1553,7 +1542,7 @@ static int video_advanced_action(int tok, int val)
 
             perf_warning_mode  = 2;
             perf_warning_value = val;
-            return goto_state(&st_perf_warning);
+            r = goto_state(&st_perf_warning);
 
             /*backups = 1;
 #if defined(__EMSCRIPTEN__) || NB_STEAM_API==1
@@ -1571,7 +1560,7 @@ static int video_advanced_action(int tok, int val)
 #else
             r = video_mode(f, w, h);
 #endif
-            if (r) exit_state(&st_video_advanced);
+            if (r) r = exit_state(&st_video_advanced);
             else
             {
                 config_set_d(CONFIG_MULTISAMPLE, oldSamp);
@@ -1580,7 +1569,7 @@ static int video_advanced_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r) exit_state(&st_video_advanced);
+                if (r) r = exit_state(&st_video_advanced);
             }
 #endif*/
 #endif
@@ -1591,22 +1580,19 @@ static int video_advanced_action(int tok, int val)
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
             config_set_d(CONFIG_TRANSITIONS,       val);
             config_save();
-            goto_state(&st_video_advanced);
-            break;
+            r = goto_state(&st_video_advanced);
 
         case VIDEO_ADVANCED_SMOOTH_FIX:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SMOOTH_FIX, val);
             config_save();
-            goto_state(&st_video_advanced);
-            break;
+            r = goto_state(&st_video_advanced);
 
         case VIDEO_ADVANCED_FORCE_SMOOTH_FIX:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_FORCE_SMOOTH_FIX, val);
             config_save();
-            goto_state(&st_video_advanced);
-            break;
+            r = goto_state(&st_video_advanced);
     }
 
     if (r && backups)
@@ -1899,7 +1885,7 @@ static int display_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            exit_state(display_back);
+            r = exit_state(display_back);
             display_back = NULL;
             break;
 
@@ -1911,9 +1897,7 @@ static int display_action(int tok, int val)
             {
                 config_set_d(CONFIG_DISPLAY, val);
                 video_set_display(val);
-                goto_state(&st_display);
-
-                r = 1;
+                r = goto_state(&st_display);
             }
 
             config_save();
@@ -2098,7 +2082,7 @@ static int resol_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            exit_state(resol_back);
+            r = exit_state(resol_back);
             resol_back = NULL;
             break;
 
@@ -2269,7 +2253,7 @@ static int lang_action(int tok, int val)
             config_set_s(CONFIG_LANGUAGE, "");
             lang_init();
             audio_play(_("snd/lang/preview.ogg"), 1.0f);
-            exit_state(&st_lang);
+            r = exit_state(&st_lang);
             config_save();
             break;
 
@@ -2279,7 +2263,7 @@ static int lang_action(int tok, int val)
             config_set_s(CONFIG_LANGUAGE, desc->code);
             lang_init();
             audio_play(_("snd/lang/preview.ogg"), 1.0f);
-            exit_state(&st_lang);
+            r = exit_state(&st_lang);
             config_save();
             break;
 #endif

@@ -172,10 +172,13 @@ static int title_check_balls_shown(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+#ifndef NDEBUG
+    const int ball_shown = config_cheat();
+#else
     const int ball_shown = (!CHECK_ACCOUNT_BANKRUPT &&
                             (output_tm.tm_hour > 5 &&
-                             output_tm.tm_hour < 22)) ||
-                           config_cheat();
+                             output_tm.tm_hour < 22));
+#endif
 #else
     const int ball_shown = 1;
 #endif
@@ -552,7 +555,7 @@ static int title_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://pennyball.stynegame.de/"); });
+            EM_ASM({ window.open("https://pennyball.stynegame.de/", "_blank"); });
 #elif _WIN32
             SAFECPY(linkstr_cmd, "start msedge https://pennyball.stynegame.de/");
 #elif defined(__APPLE__)
@@ -795,8 +798,8 @@ static int title_action(int tok, int val)
                     config_set_d(CONFIG_ACCOUNT_LOAD, 2);
 
                 glSetWireframe_(0);
-                title_check_balls_shown();
                 config_clr_cheat();
+                title_check_balls_shown();
                 gui_set_label(play_id, gt_prefix("menu^Play"));
                 gui_pulse(play_id, 1.2f);
                 if (!glext_get_hatsune_miku() && edition_id)
@@ -887,7 +890,7 @@ static int title_check_shopavailable(void)
 static int title_gui(void)
 {
     int root_id, id, jd;
-    
+
     vbuttons_id = 0;
     play_id     = 0;
 
@@ -1508,7 +1511,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     audio_music_fade_to(0.5f, switchball_useable() ? "bgm/title-switchball.ogg" :
                                                      BGM_TITLE_CONF_LANGUAGE, 1);
-    
+
 #if NB_HAVE_PB_BOTH==1
     audio_ambient_play(switchball_useable() ? "bgm_ambient/ambient_02.ogg" :
                                               "bgm_ambient/ambient_03.ogg");

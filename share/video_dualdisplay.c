@@ -30,7 +30,7 @@
 #include <gl4esinit.h>
 #endif
 
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 #include <SDL3/SDL.h>
@@ -79,7 +79,7 @@ static char snapshot_path[MAXSTR] = "";
 
 static void snapshot_init(void)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     snapshot_path[0] = 0;
 #endif
@@ -87,7 +87,7 @@ static void snapshot_init(void)
 
 static void snapshot_prep(const char *path)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (path && *path) SAFECPY(snapshot_path, path);
 #endif
@@ -95,7 +95,7 @@ static void snapshot_prep(const char *path)
 
 static void snapshot_take(void)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (snapshot_path[0])
     {
@@ -110,7 +110,7 @@ extern "C"
 #endif
 void video_dualdisplay_snap(const char *path)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     snapshot_prep(path);
 #endif
@@ -126,7 +126,7 @@ static SDL_GLContext  context_ddpy;
 #if !_MSC_VER && !defined(__APPLE__)
 static void set_window_icon(const char *filename)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (!window) return;
 
@@ -153,7 +153,7 @@ extern "C"
 #endif
 int video_dualdisplay_fullscreen(int f)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (!window_ddpy) return 0;
 
@@ -179,7 +179,7 @@ extern "C"
 #endif
 void video_dualdisplay_resize(int window_w, int window_h)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (window_ddpy)
     {
@@ -224,7 +224,7 @@ extern "C"
 #endif
 void video_dualdisplay_set_window_size(int w, int h)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     SDL_SetWindowSize(window_ddpy, w, h);
 #endif
@@ -235,7 +235,7 @@ extern "C"
 #endif
 void video_dualdisplay_set_display(int dpy)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     SDL_DisplayMode ddm;
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
@@ -276,7 +276,7 @@ extern "C"
 #endif
 int video_dualdisplay_display(void)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (window_ddpy)
         return SDL_GetWindowDisplayIndex(window_ddpy);
@@ -290,7 +290,7 @@ extern "C"
 #endif
 int video_dualdisplay_init(void)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     return video_dualdisplay_mode(config_get_d(CONFIG_FULLSCREEN),
                                   config_get_d(CONFIG_WIDTH),
@@ -305,7 +305,7 @@ extern "C"
 #endif
 void video_dualdisplay_quit(void)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (context_ddpy)
     {
@@ -334,7 +334,7 @@ int  video_dualdisplay_is_init(void)
 
 int video_dualdisplay_mode(int f, int w, int h)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
 #if ENABLE_OPENGLES
     int init_gles = 1;
@@ -584,7 +584,7 @@ extern "C"
 #endif
 void video_dualdisplay_swap(void)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     snapshot_take();
     SDL_GL_SwapWindow(window_ddpy);
@@ -598,7 +598,7 @@ extern "C"
 #endif
 void video_dualdisplay_set_current(void)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     if (!window_ddpy || !context_ddpy) return;
 
@@ -611,7 +611,7 @@ extern "C"
 #endif
 void video_dualdisplay_clear(void)
 {
-#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) \
+#if ENABLE_DUALDISPLAY==1 && !defined(VIDEO_DIRECTX12) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__SWITCH__)
     glViewport(0, 0, video_ddpy.ddpy_device_w, video_ddpy.ddpy_device_h);
 

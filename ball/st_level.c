@@ -308,6 +308,132 @@ static int level_action(int tok, int val)
     return 1;
 }
 
+static void level_btns_powerups_horizontal_gui(int jd)
+{
+    int  ced, cfd, csd;
+    char pow1attr[MAXSTR], pow2attr[MAXSTR], pow3attr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(pow3attr, MAXSTR,
+#else
+    sprintf(pow3attr,
+#endif
+            _("Speedifier (%i)"), svalue);
+
+    if ((csd = gui_varray(jd)))
+    {
+        gui_label(csd, pow3attr, GUI_SML,
+                                 svalue > 0 ? gui_grn : gui_gry,
+                                 svalue > 0 ? gui_wht : gui_gry);
+        if (svalue > 0)
+            gui_set_state(csd, LEVEL_START_POWERUP, 3);
+        else gui_set_state(csd, GUI_NONE, 0);
+    }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(pow2attr, MAXSTR,
+#else
+    sprintf(pow2attr,
+#endif
+            _("Floatifier (%i)"), fvalue);
+
+    if ((cfd = gui_varray(jd)))
+    {
+        gui_label(cfd, pow2attr, GUI_SML,
+                                 fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
+                                 fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
+        if (fvalue > 0 && curr_mode() != MODE_BOOST_RUSH)
+            gui_set_state(cfd, LEVEL_START_POWERUP, 2);
+        else gui_set_state(cfd, GUI_NONE, 0);
+    }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(pow1attr, MAXSTR,
+#else
+    sprintf(pow1attr,
+#endif
+            _("Earninator (%i)"), evalue);
+
+    if ((ced = gui_varray(jd)))
+    {
+#ifndef LEVELGROUPS_INCLUDES_CAMPAIGN
+        gui_label(ced, pow1attr, GUI_SML,
+                                 evalue > 0 ? gui_red : gui_gry,
+                                 evalue > 0 ? gui_wht : gui_gry);
+#else
+        gui_label(ced, pow1attr, GUI_SML,
+                                 evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
+                                 evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
+#endif
+        if (evalue > 0)
+            gui_set_state(ced, LEVEL_START_POWERUP, 1);
+        else gui_set_state(ced, GUI_NONE, 0);
+    }
+}
+
+static void level_btns_powerups_vertical_gui(int jd)
+{
+    int  ced, cfd, csd;
+    char pow1attr[MAXSTR], pow2attr[MAXSTR], pow3attr[MAXSTR];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(pow1attr, MAXSTR,
+#else
+    sprintf(pow1attr,
+#endif
+            _("Earninator (%i)"), evalue);
+
+    if ((ced = gui_varray(jd)))
+    {
+#ifndef LEVELGROUPS_INCLUDES_CAMPAIGN
+        gui_label(ced, pow1attr, GUI_SML,
+                                 evalue > 0 ? gui_red : gui_gry,
+                                 evalue > 0 ? gui_wht : gui_gry);
+#else
+        gui_label(ced, pow1attr, GUI_SML,
+                                 evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
+                                 evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
+#endif
+        if (evalue > 0)
+            gui_set_state(ced, LEVEL_START_POWERUP, 1);
+        else gui_set_state(ced, GUI_NONE, 0);
+    }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(pow2attr, MAXSTR,
+#else
+    sprintf(pow2attr,
+#endif
+            _("Floatifier (%i)"), fvalue);
+
+    if ((cfd = gui_varray(jd)))
+    {
+        gui_label(cfd, pow2attr, GUI_SML,
+                                 fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
+                                 fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
+        if (fvalue > 0 && curr_mode() != MODE_BOOST_RUSH)
+            gui_set_state(cfd, LEVEL_START_POWERUP, 2);
+        else gui_set_state(cfd, GUI_NONE, 0);
+    }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(pow3attr, MAXSTR,
+#else
+    sprintf(pow3attr,
+#endif
+            _("Speedifier (%i)"), svalue);
+
+    if ((csd = gui_varray(jd)))
+    {
+        gui_label(csd, pow3attr, GUI_SML,
+                                 svalue > 0 ? gui_grn : gui_gry,
+                                 svalue > 0 ? gui_wht : gui_gry);
+        if (svalue > 0)
+            gui_set_state(csd, LEVEL_START_POWERUP, 3);
+        else gui_set_state(csd, GUI_NONE, 0);
+    }
+}
+
 static int level_gui(void)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(ENABLE_POWERUP)
@@ -451,7 +577,6 @@ static int level_gui(void)
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     if (curr_mode() == MODE_CAMPAIGN)
-                        
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                         sprintf_s(setattr, MAXSTR, "%s%s: %s",
                                                    hp, ln, mode_to_str(MODE_CAMPAIGN, 1));
@@ -520,10 +645,8 @@ static int level_gui(void)
                         sprintf(lvlattr, _("Level %s"), ln);
 #endif
 
-                    
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     if (curr_mode() == MODE_CAMPAIGN)
-                        
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                         sprintf_s(setattr, MAXSTR, "%s", mode_to_str(MODE_CAMPAIGN, 1));
 #else
@@ -663,67 +786,12 @@ static int level_gui(void)
         {
             gui_space(id);
 
-            if ((jd = gui_harray(id)))
+            if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_vstack(id) : gui_harray(id)))
             {
-                int ced, cfd, csd;
-                char pow1attr[MAXSTR], pow2attr[MAXSTR], pow3attr[MAXSTR];
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow3attr, MAXSTR,
-#else
-                sprintf(pow3attr,
-#endif
-                    _("Speedifier (%i)"), svalue);
-
-                if ((csd = gui_varray(jd)))
-                {
-                    gui_label(csd, pow3attr, GUI_SML,
-                                   svalue > 0 ? gui_grn : gui_gry,
-                                   svalue > 0 ? gui_wht : gui_gry);
-                    if (svalue > 0)
-                        gui_set_state(csd, LEVEL_START_POWERUP, 3);
-                    else gui_set_state(csd, GUI_NONE, 0);
-                }
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow2attr, MAXSTR,
-#else
-                sprintf(pow2attr,
-#endif
-                    _("Floatifier (%i)"), fvalue);
-
-                if ((cfd = gui_varray(jd)))
-                {
-                    gui_label(cfd, pow2attr, GUI_SML,
-                                   fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_blu : gui_gry,
-                                   fvalue > 0 && curr_mode() != MODE_BOOST_RUSH ? gui_wht : gui_gry);
-                    if (fvalue > 0 && curr_mode() != MODE_BOOST_RUSH)
-                        gui_set_state(cfd, LEVEL_START_POWERUP, 2);
-                    else gui_set_state(cfd, GUI_NONE, 0);
-                }
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(pow1attr, MAXSTR,
-#else
-                sprintf(pow1attr,
-#endif
-                    _("Earninator (%i)"), evalue);
-
-                if ((ced = gui_varray(jd)))
-                {
-#ifndef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    gui_label(ced, pow1attr, GUI_SML,
-                        evalue > 0 ? gui_red : gui_gry,
-                        evalue > 0 ? gui_wht : gui_gry);
-#else
-                    gui_label(ced, pow1attr, GUI_SML,
-                                   evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_red : gui_gry,
-                                   evalue > 0 && curr_mode() != MODE_HARDCORE ? gui_wht : gui_gry);
-#endif
-                    if (evalue > 0)
-                        gui_set_state(ced, LEVEL_START_POWERUP, 1);
-                    else gui_set_state(ced, GUI_NONE, 0);
-                }
+                if ((float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)))
+                    level_btns_powerups_vertical_gui(jd);
+                else
+                    level_btns_powerups_horizontal_gui(jd);
             }
 
             level_infocard_power_id = jd;

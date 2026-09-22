@@ -1832,19 +1832,10 @@ static int demo_end_action(int tok, int val)
 
 static void demo_end_btns_horizontal_gui(int jd, int continue_allowed)
 {
-    int kd, ld;
+    int kd;
 
     if (demo_paused || !console_gui_shown())
-        if ((kd = gui_hstack(jd)))
-        {
-            gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-
-            ld = gui_label(kd, _("Exit"), GUI_SML, GUI_COLOR_RED);
-            gui_set_fill(ld);
-
-            gui_set_state(kd, DEMO_QUIT, 0);
-            gui_set_rect(kd, GUI_ALL);
-        }
+        gui_text_icon_button(jd, _("Exit"), GUI_CROSS, gui_red, DEMO_QUIT, 0, 1, 0);
 
 #if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
     /* Microsoft and Windows Games can do it! */
@@ -1853,20 +1844,8 @@ static void demo_end_btns_horizontal_gui(int jd, int continue_allowed)
         gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
 #endif
 
-    if ((kd = gui_hstack(jd)))
-    {
-        const GLubyte *btn_color      = continue_allowed ? gui_yel : gui_gry;
-        const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
-        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-
-        ld = gui_label(kd, _("Repeat"), GUI_SML, btn_color_text, btn_color_text);
-        gui_set_fill(ld);
-
-        gui_set_state(kd, continue_allowed ? DEMO_REPLAY : GUI_NONE, 0);
-        gui_set_rect(kd, GUI_ALL);
-
-        gui_focus(kd);
-    }
+    kd = gui_text_icon_button(jd, _("Repeat"), GUI_CIRCLE_ARROW, gui_yel, DEMO_REPLAY, 0, continue_allowed, 0);
+    gui_focus(kd);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
@@ -1874,26 +1853,14 @@ static void demo_end_btns_horizontal_gui(int jd, int continue_allowed)
     if (demo_paused)
 #endif
     {
-        if ((kd = gui_hstack(jd)))
-        {
-            const GLubyte *btn_color      = continue_allowed ? gui_grn : gui_gry;
-            const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
-            gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
-
-            ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
-            gui_set_fill(ld);
-
-            gui_set_state(kd, continue_allowed ? DEMO_CONTINUE : GUI_NONE, 0);
-            gui_set_rect(kd, GUI_ALL);
-
-            if (continue_allowed) gui_focus(kd);
-        }
+        kd = gui_text_icon_button(jd, _("Continue"), GUI_TRIANGLE_RIGHT, gui_grn, DEMO_REPLAY, 0, continue_allowed, 0);
+        if (continue_allowed) gui_focus(kd);
     }
 }
 
 static void demo_end_btns_vertical_gui(int jd, int continue_allowed)
 {
-    int kd, ld;
+    int kd = 0, kd_focus = 0;
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
@@ -1901,36 +1868,17 @@ static void demo_end_btns_vertical_gui(int jd, int continue_allowed)
     if (demo_paused)
 #endif
     {
-        if ((kd = gui_hstack(jd)))
-        {
-            const GLubyte *btn_color      = continue_allowed ? gui_grn : gui_gry;
-            const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
-
-            ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
-            gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
-            gui_set_fill(ld);
-
-            gui_set_state(kd, continue_allowed ? DEMO_CONTINUE : GUI_NONE, 0);
-            gui_set_rect(kd, GUI_ALL);
-
-            if (continue_allowed) gui_focus(kd);
-        }
+        kd = gui_text_icon_button_LH(jd, _("Continue"), GUI_TRIANGLE_RIGHT, gui_grn, DEMO_REPLAY, 0, continue_allowed, 0);
+        if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
     }
 
-    if ((kd = gui_hstack(jd)))
-    {
-        const GLubyte *btn_color      = continue_allowed ? gui_yel : gui_gry;
-        const GLubyte *btn_color_text = continue_allowed ? gui_wht : gui_gry;
-
-        ld = gui_label(kd, _("Repeat"), GUI_SML, btn_color_text, btn_color_text);
-        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-        gui_set_fill(ld);
-
-        gui_set_state(kd, continue_allowed ? DEMO_REPLAY : GUI_NONE, 0);
-        gui_set_rect(kd, GUI_ALL);
-
+    kd = gui_text_icon_button_LH(jd, _("Repeat"), GUI_CIRCLE_ARROW, gui_yel, DEMO_REPLAY, 0, continue_allowed, 0);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+    if (!demo_paused || current_platform != PLATFORM_PC || console_gui_shown())
+#else
+    if (!demo_paused)
+#endif
         gui_focus(kd);
-    }
 
 #if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
     /* Microsoft and Windows Games can do it! */
@@ -1940,15 +1888,7 @@ static void demo_end_btns_vertical_gui(int jd, int continue_allowed)
 #endif
 
     if (demo_paused || !console_gui_shown())
-        if ((kd = gui_hstack(jd)))
-        {
-            ld = gui_label(kd, _("Exit"), GUI_SML, GUI_COLOR_RED);
-            gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-            gui_set_fill(ld);
-
-            gui_set_state(kd, DEMO_QUIT, 0);
-            gui_set_rect(kd, GUI_ALL);
-        }
+        gui_text_icon_button_LH(jd, _("Exit"), GUI_CROSS, gui_red, DEMO_QUIT, 0, 1, 0);
 }
 
 static int demo_end_gui(void)

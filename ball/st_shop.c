@@ -315,7 +315,6 @@ static int shop_gui(void)
             if ((jd = gui_vstack(id)))
             {
                 char powerups[MAXSTR];
-
                 int temp_lives = lvalue;
 
                 /*
@@ -356,24 +355,18 @@ static int shop_gui(void)
                 if ((kd = gui_harray(jd)))
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(powerups, MAXSTR,
-                            "%s (%i)", _("Speedifier"), svalue);
+                    sprintf_s(powerups, MAXSTR, "%s (%i)", _("Speedifier"), svalue);
                     const int powe_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
-                    sprintf_s(powerups, MAXSTR,
-                            "%s (%i)", _("Floatifier"), fvalue);
+                    sprintf_s(powerups, MAXSTR, "%s (%i)", _("Floatifier"), fvalue);
                     const int powf_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_blu);
-                    sprintf_s(powerups, MAXSTR,
-                            "%s (%i)", _("Earninator"), evalue);
+                    sprintf_s(powerups, MAXSTR, "%s (%i)", _("Earninator"), evalue);
                     const int pows_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_red);
 #else
-                    sprintf(powerups,
-                            "%s (%i)", _("Speedifier"), svalue);
+                    sprintf(powerups, "%s (%i)", _("Speedifier"), svalue);
                     const int powe_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
-                    sprintf(powerups,
-                            "%s (%i)", _("Floatifier"), fvalue);
+                    sprintf(powerups, "%s (%i)", _("Floatifier"), fvalue);
                     const int powf_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_blu);
-                    sprintf(powerups,
-                            "%s (%i)", _("Earninator"), evalue);
+                    sprintf(powerups, "%s (%i)", _("Earninator"), evalue);
                     const int pows_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_red);
 #endif
                 }
@@ -397,7 +390,8 @@ static int shop_gui(void)
                 !config_cheat() &&
 #endif
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES) &&
-                CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
+                CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT &&
+                (float) ((float) video.device_w / (float) video.device_h >= (4.0f / 3.0f)))
             {
                 /* Consumables */
                 if ((kd = gui_vstack(jd)))
@@ -477,7 +471,8 @@ static int shop_gui(void)
                 !config_cheat() &&
 #endif
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES) &&
-                CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT)
+                CHECK_ACCOUNT_ENABLED && !CHECK_ACCOUNT_BANKRUPT &&
+                (float) ((float) video.device_w / (float) video.device_h >= (4.0f / 3.0f)))
                 gui_space(jd);
 #endif
 
@@ -1599,13 +1594,24 @@ static int shop_buy_action(int tok, int val)
                 auction_value = prodcost * piece_times;
             }
 
-            if (productkey == 7)
+            switch (productkey)
             {
-                while (max_balls_limit < account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + piece_times)
-                {
-                    piece_times--;
-                    auction_value = prodcost * piece_times;
-                }
+                case 4: while (ACCOUNT_WALLET_MAX_COINS < account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR) + piece_times) {
+                        piece_times--;
+                        auction_value = prodcost * piece_times;
+                    } break;
+                case 5: while (ACCOUNT_WALLET_MAX_COINS < account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER) + piece_times) {
+                        piece_times--;
+                        auction_value = prodcost * piece_times;
+                    } break;
+                case 6: while (ACCOUNT_WALLET_MAX_COINS < account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER) + piece_times) {
+                        piece_times--;
+                        auction_value = prodcost * piece_times;
+                    } break;
+                case 7: while (max_balls_limit < account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + piece_times) {
+                        piece_times--;
+                        auction_value = prodcost * piece_times;
+                    } break;
             }
 
             if (purchase_product_usegems)
@@ -2185,12 +2191,25 @@ static int shop_buy_confirmmulti_gui(void)
             auction_value = prodcost * piece_times;
         }
 
-        if (productkey == 7)
-            while (max_balls_limit < account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + piece_times)
-            {
-                piece_times--;
-                auction_value = prodcost * piece_times;
-            }
+        switch (productkey)
+        {
+            case 4: while (ACCOUNT_WALLET_MAX_COINS < account_get_d(ACCOUNT_CONSUMEABLE_EARNINATOR) + piece_times) {
+                    piece_times--;
+                    auction_value = prodcost * piece_times;
+                } break;
+            case 5: while (ACCOUNT_WALLET_MAX_COINS < account_get_d(ACCOUNT_CONSUMEABLE_FLOATIFIER) + piece_times) {
+                    piece_times--;
+                    auction_value = prodcost * piece_times;
+                } break;
+            case 6: while (ACCOUNT_WALLET_MAX_COINS < account_get_d(ACCOUNT_CONSUMEABLE_SPEEDIFIER) + piece_times) {
+                    piece_times--;
+                    auction_value = prodcost * piece_times;
+                } break;
+            case 7: while (max_balls_limit < account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) + piece_times) {
+                    piece_times--;
+                    auction_value = prodcost * piece_times;
+                } break;
+        }
 #endif
 
         char prodattr[MAXSTR];

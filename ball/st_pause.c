@@ -315,168 +315,48 @@ static int pause_action(int tok, int val)
 
 static void pause_btns_horizontal_gui(int jd, const char *quit_btn_text)
 {
-    int kd, ld;
+    int kd;
 
-    if ((kd = gui_hstack(jd)))
-    {
-        const GLubyte *btn_color_text = campaign_used() || curr_times() > 0 ? gui_red : gui_wht;
-
-        gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-
-        ld = gui_label(kd, _(quit_btn_text), GUI_SML, btn_color_text, btn_color_text);
-        gui_set_fill(ld);
-
-        gui_set_state(kd, PAUSE_EXIT, 0);
-        gui_set_rect(kd, GUI_ALL);
-    }
-
-    if ((kd = gui_hstack(jd)))
-    {
-        const int restartable         = progress_same_avail();
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        const GLubyte *btn_color      = restartable ? (campaign_used() ? gui_red : gui_yel) : gui_gry;
-#else
-        const GLubyte *btn_color      = restartable ? gui_yel : gui_gry;
-#endif
-        const GLubyte *btn_color_text = restartable ? gui_wht : gui_gry;
-
-        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-
-        ld = gui_label(kd, _("Restart"), GUI_SML, btn_color_text, btn_color_text);
-        gui_set_fill(ld);
-
-        gui_set_state(kd, restartable ? PAUSE_RESTART : GUI_NONE, 0);
-        gui_set_rect(kd, GUI_ALL);
-
-        if (!restartable)
-            gui_set_color(ld, GUI_COLOR_GRY);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform != PLATFORM_PC || console_gui_shown())
-            gui_focus(kd);
-#endif
-    }
+    gui_text_icon_button(jd, _(quit_btn_text), GUI_CROSS, gui_red, PAUSE_EXIT, 0, 1, campaign_used() || curr_times() > 0);
+    kd = gui_text_icon_button(jd, _("Restart"), GUI_CIRCLE_ARROW, gui_yel, PAUSE_RESTART, 0, progress_same_avail(), 0);
 
 #ifdef MAPC_INCLUDES_CHKP
     if (last_active)
-        if ((kd = gui_hstack(jd)))
-        {
-            const int      resetable      = progress_same_avail();
-            const GLubyte *btn_color      = resetable ? gui_vio : gui_gry;
-            const GLubyte *btn_color_text = resetable ? gui_wht : gui_gry;
-
-            gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-
-            ld = gui_label(kd, _("Reset Puzzle"), GUI_SML, btn_color_text, btn_color_text);
-            gui_set_fill(ld);
-
-            gui_set_state(kd, resetable ? PAUSE_RESPAWN : GUI_NONE, 0);
-            gui_set_rect(kd, GUI_ALL);
-
-            if (!resetable)
-                gui_set_color(ld, GUI_COLOR_GRY);
-        }
+        kd = gui_text_icon_button(jd, _("Reset Puzzle"), GUI_CIRCLE_ARROW, gui_vio, PAUSE_RESPAWN, 0, progress_same_avail(), 0);
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
-        if ((kd = gui_hstack(jd)))
-        {
-            const GLubyte *btn_color      = st_continue ? gui_grn : gui_gry;
-            const GLubyte *btn_color_text = st_continue ? gui_wht : gui_gry;
+        kd = gui_text_icon_button(jd, _("Continue"), GUI_TRIANGLE_RIGHT, gui_grn, PAUSE_CONTINUE, 0, progress_same_avail(), 0);
 
-            gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
-
-            ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
-            gui_set_fill(ld);
-
-            gui_set_state(kd, st_continue ? PAUSE_CONTINUE : GUI_NONE, 0);
-            gui_set_rect(kd, GUI_ALL);
-
-            gui_focus(kd);
-        }
+    gui_focus(kd);
 }
 
 static void pause_btns_vertical_gui(int jd, const char *quit_btn_text)
 {
-    int kd, ld;
+    int kd = 0, kd_focus = 0;
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
-        if ((kd = gui_hstack(jd)))
-        {
-            const GLubyte *btn_color      = st_continue ? gui_grn : gui_gry;
-            const GLubyte *btn_color_text = st_continue ? gui_wht : gui_gry;
-
-            ld = gui_label(kd, _("Continue"), GUI_SML, btn_color_text, btn_color_text);
-            gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
-            gui_set_fill(ld);
-
-            gui_set_state(kd, st_continue ? PAUSE_CONTINUE : GUI_NONE, 0);
-            gui_set_rect(kd, GUI_ALL);
-
-            gui_focus(kd);
-        }
+    {
+        kd = gui_text_icon_button_LH(jd, _("Continue"), GUI_TRIANGLE_RIGHT, gui_grn, PAUSE_CONTINUE, 0, progress_same_avail(), 0);
+        if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
+    }
 
 #ifdef MAPC_INCLUDES_CHKP
     if (last_active)
-        if ((kd = gui_hstack(jd)))
-        {
-            const int      resetable      = progress_same_avail();
-            const GLubyte *btn_color      = resetable ? gui_vio : gui_gry;
-            const GLubyte *btn_color_text = resetable ? gui_wht : gui_gry;
-
-            ld = gui_label(kd, _("Reset Puzzle"), GUI_SML, btn_color_text, btn_color_text);
-            gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-            gui_set_fill(ld);
-
-            gui_set_state(kd, resetable ? PAUSE_RESPAWN : GUI_NONE, 0);
-            gui_set_rect(kd, GUI_ALL);
-
-            if (!resetable)
-                gui_set_color(ld, GUI_COLOR_GRY);
-        }
-#endif
-
-    if ((kd = gui_hstack(jd)))
     {
-        const int restartable         = progress_same_avail();
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        const GLubyte *btn_color      = restartable ? (campaign_used() ? gui_red : gui_yel) : gui_gry;
-#else
-        const GLubyte *btn_color      = restartable ? gui_yel : gui_gry;
-#endif
-        const GLubyte *btn_color_text = restartable ? gui_wht : gui_gry;
-
-        ld = gui_label(kd, _("Restart"), GUI_SML, btn_color_text, btn_color_text);
-        gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-        gui_set_fill(ld);
-
-        gui_set_state(kd, restartable ? PAUSE_RESTART : GUI_NONE, 0);
-        gui_set_rect(kd, GUI_ALL);
-
-        if (!restartable)
-            gui_set_color(ld, GUI_COLOR_GRY);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (current_platform != PLATFORM_PC || console_gui_shown())
-            gui_focus(kd);
-#endif
+        kd = gui_text_icon_button_LH(jd, _("Reset Puzzle"), GUI_CIRCLE_ARROW, gui_vio, PAUSE_RESPAWN, 0, progress_same_avail(), 0);
+        if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
     }
+#endif
 
-    if ((kd = gui_hstack(jd)))
-    {
-        const GLubyte *btn_color_text = campaign_used() || curr_times() > 0 ? gui_red : gui_wht;
+    kd = gui_text_icon_button_LH(jd, _("Restart"), GUI_CIRCLE_ARROW, gui_yel, PAUSE_RESTART, 0, progress_same_avail(), 0);
+    gui_text_icon_button_LH(jd, _(quit_btn_text), GUI_CROSS, gui_red, PAUSE_EXIT, 0, 1, campaign_used() || curr_times() > 0);
 
-        ld = gui_label(kd, _(quit_btn_text), GUI_SML, btn_color_text, btn_color_text);
-        gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-        gui_set_fill(ld);
-
-        gui_set_state(kd, PAUSE_EXIT, 0);
-        gui_set_rect(kd, GUI_ALL);
-    }
+    if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
 }
 
 static int pause_gui(void)

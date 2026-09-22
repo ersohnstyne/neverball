@@ -79,8 +79,29 @@ void gui_keyboard_de(int);
 void gui_keyboard_lock_de(void);
 char gui_keyboard_char(char);
 
-int gui_start_button(int, int);
-int gui_back_button(int);
+/*
+ * This function for button with icon will be replaced into the gui_text_icon_button.
+ * Your functions will be replaced using eight parameters.
+ */
+_CRT_NB_UTIL_DEPRECATED(int, (int, int), gui_start_button, gui_text_icon_button);
+
+/*
+ * This function name will be redirected to gui_text_icon_button() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `gui_text_icon_button()` to `gui_back_button()`.
+ */
+#define gui_back_button(_pd) \
+    (gui_text_icon_button(_pd, _("Back"), GUI_CROSS, gui_red, GUI_BACK, 0, 1, 0))
+
+int gui_text_icon_button(int pd,
+                         const char *text, const char *icon, const unsigned char *c0,
+                         const int tok, const int val,
+                         const int enabled, const int destructive);
+
+int gui_text_icon_button_LH(int pd,
+                            const char *text, const char *icon, const unsigned char *c0,
+                            const int tok, const int val,
+                            const int enabled, const int destructive);
 
 void gui_scoreboard_free(void);
 

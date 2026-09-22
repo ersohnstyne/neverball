@@ -3182,13 +3182,15 @@ void gui_alpha(int id, float alpha)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
-    widget[id].alpha = CLAMP(0.0f, alpha, 1.0f);;
+    widget[id].alpha = CLAMP(0.0f, alpha, 1.0f);
 }
 
 void gui_focus(int i)
 {
-    if (active != i) audio_play("snd/focus.ogg", 1.0f);
+    if (i == cursor_id || i == 0) return;
+    FUNC_VOID_CHECK_LIMITS(i);
 
+    if (active != i) audio_play("snd/focus.ogg", 1.0f);
     active = i;
 }
 

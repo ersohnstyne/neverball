@@ -193,6 +193,76 @@ static int goal_action(int tok, int val)
     return 1;
 }
 
+static void goal_btns_horizontal_gui(int jd, const int enabled, const int demo_saveable)
+{
+    int kd, ld;
+
+    const char *next_btn_text = progress_next_avail() ? N_("Next Level") :
+                                                        N_("Finish");
+    const int   next_btn_tok  =  progress_done() ? GOAL_DONE :
+                                (progress_next_avail() ? GOAL_NEXT : GOAL_LAST);
+
+    kd = gui_text_icon_button(jd, _(next_btn_text), GUI_TRIANGLE_RIGHT, gui_grn, next_btn_tok, 0, enabled, 0);
+    gui_text_icon_button(jd, _("Retry Level"), GUI_CIRCLE_ARROW, gui_yel, GOAL_SAME, 0, enabled && !challenge_has_active_chkp && progress_same_avail(), 0);
+
+    if (demo_saved() && demo_saveable)
+    {
+        if ((kd = gui_hstack(jd)))
+        {
+            const GLubyte *btn_color      = enabled ? gui_grn : gui_gry;
+            const GLubyte *btn_color_text = enabled ? gui_wht : gui_gry;
+
+            gui_filler(kd);
+            const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, btn_color, btn_color);
+            gui_set_font(icn_id, "ttf/seguiemj.ttf");
+            ld = gui_label(kd, _("Save Replay"), GUI_SML, btn_color_text, btn_color_text);
+            gui_filler(kd);
+
+            gui_set_fill(ld);
+            gui_set_state(kd, enabled ? GOAL_SAVE : GUI_NONE, 0);
+            gui_set_rect(kd, GUI_ALL);
+        }
+    }
+
+    gui_focus(kd);
+}
+
+static void goal_btns_vertical_gui(int jd, const int enabled, const int demo_saveable)
+{
+    int kd = 0, ld, kd_focus = 0;
+
+    const char *next_btn_text = progress_next_avail() ? N_("Next Level") :
+                                                        N_("Finish");
+    const int   next_btn_tok  =  progress_done() ? GOAL_DONE :
+                                (progress_next_avail() ? GOAL_NEXT : GOAL_LAST);
+
+    if (demo_saveable)
+    {
+        if ((kd = gui_hstack(jd)))
+        {
+            const GLubyte *btn_color      = enabled ? gui_grn : gui_gry;
+            const GLubyte *btn_color_text = enabled ? gui_wht : gui_gry;
+
+            gui_filler(kd);
+            ld = gui_label(kd, _("Save Replay"), GUI_SML, btn_color_text, btn_color_text);
+            const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, btn_color, btn_color);
+            gui_set_font(icn_id, "ttf/seguiemj.ttf");
+            gui_filler(kd);
+
+            gui_set_fill(ld);
+            gui_set_state(kd, enabled ? GOAL_SAVE : GUI_NONE, 0);
+            gui_set_rect(kd, GUI_ALL);
+            if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
+        }
+    }
+
+    kd = gui_text_icon_button(jd, _("Retry Level"), GUI_CIRCLE_ARROW, gui_yel, GOAL_SAME, 0, enabled && !challenge_has_active_chkp && progress_same_avail(), 0);
+    if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
+
+    kd = gui_text_icon_button(jd, _(next_btn_text), GUI_TRIANGLE_RIGHT, gui_grn, next_btn_tok, 0, enabled, 0);
+    if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
+}
+
 static int goal_gui(void)
 {
     const char *s1 = _("New Record");
@@ -205,9 +275,9 @@ static int goal_gui(void)
     int id, jd, kd, ld, md;
     int root_id;
 
-    balls_id = 0;
-    coins_id = 0;
-    score_id = 0;
+    balls_id  = 0;
+    coins_id  = 0;
+    score_id  = 0;
     wallet_id = 0;
 
     int high   = progress_lvl_high();
@@ -555,83 +625,34 @@ static int goal_gui(void)
                 scoreboard_id)
                 gui_set_slide(scoreboard_id, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.4f, 0.8f, 0);
 
-            if ((jd = gui_harray(id)))
+            /*
+             * HACK: Bottom buttons for st_goal won't touch from st_fail, until decides
+             * to use WGCL's game logic expansion. It will always change periodically
+             * on modernized UI systems.
+             */
+
+            /*
+             * Waiting for extra balls by collecting 100 coins
+             * --- OR ---
+             * check, if products is still available to be bought
+             */
+            const int btns_disabled = (!resume || (!resume_locked && goal_intro_animation_phase == 2)) &&
+                                      ((config_get_d(CONFIG_NOTIFICATION_REWARD) && challenge_disable_all_buttons) ||
+                                       (config_get_d(CONFIG_NOTIFICATION_SHOP) && shop_product_available));
+
+            if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_vstack(id) : gui_harray(id)))
             {
-                /*
-                 * HACK: Bottom buttons for st_goal won't touch from st_fail, until decides
-                 * to use WGCL's game logic expansion. It will always change periodically
-                 * on modernized UI systems.
-                 */
-
-                /*
-                 * Waiting for extra balls by collecting 100 coins
-                 * --- OR ---
-                 * check, if products is still available
-                 */
-                const int btns_disabled = (!resume || (!resume_locked && goal_intro_animation_phase == 2)) &&
-                                          ((config_get_d(CONFIG_NOTIFICATION_REWARD) && challenge_disable_all_buttons) ||
-                                           (config_get_d(CONFIG_NOTIFICATION_SHOP) && shop_product_available));
-
-                const char *next_btn_text = progress_next_avail() ? N_("Next Level") :
-                                                                    N_("Finish");
-
-                const int next_btn_tok = progress_done() ? GOAL_DONE :
-                                                           progress_next_avail() ? GOAL_NEXT :
-                                                                                   GOAL_LAST;
-
-#ifdef MAPC_INCLUDES_CHKP
-                const int can_restart = !challenge_has_active_chkp;
+#ifdef CONFIG_INCLUDES_ACCOUNT
+                if ((float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)))
+                    goal_btns_vertical_gui(jd, !btns_disabled, demo_saved() && config_get_d(CONFIG_ACCOUNT_SAVE) >= 1);
+                else
+                    goal_btns_horizontal_gui(jd, !btns_disabled, demo_saved() && config_get_d(CONFIG_ACCOUNT_SAVE) >= 1);
 #else
-                const int can_restart = 1;
+                if ((float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)))
+                    goal_btns_vertical_gui(jd, !btns_disabled, demo_saved());
+                else
+                    goal_btns_horizontal_gui(jd, !btns_disabled, demo_saved());
 #endif
-
-                if ((kd = gui_hstack(jd)))
-                {
-                    const GLubyte *btn_color      = !btns_disabled ? gui_grn : gui_gry;
-                    const GLubyte *btn_color_text = !btns_disabled ? gui_wht : gui_gry;
-
-                    gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, btn_color, btn_color);
-
-                    ld = gui_label(kd, _(next_btn_text), GUI_SML, btn_color_text, btn_color_text);
-                    gui_set_fill(ld);
-
-                    gui_set_state(kd, !btns_disabled ? next_btn_tok : GUI_NONE, 0);
-                    gui_set_rect(kd, GUI_ALL);
-
-                    gui_focus(kd);
-                }
-
-                if ((kd = gui_hstack(jd)))
-                {
-                    const GLubyte *btn_color      = !btns_disabled && can_restart ? gui_yel : gui_gry;
-                    const GLubyte *btn_color_text = !btns_disabled && can_restart ? gui_wht : gui_gry;
-
-                    gui_label(kd, GUI_CIRCLE_ARROW, GUI_SML, btn_color, btn_color);
-
-                    ld = gui_label(kd, _("Retry Level"), GUI_SML, btn_color_text, btn_color_text);
-                    gui_set_fill(ld);
-
-                    gui_set_state(kd, !btns_disabled && can_restart ? GOAL_SAME : GUI_NONE, 0);
-                    gui_set_rect(kd, GUI_ALL);
-                }
-
-                if (demo_saved() && save >= 1)
-                {
-                    if ((kd = gui_hstack(jd)))
-                    {
-                        const GLubyte *btn_color      = !btns_disabled ? gui_grn : gui_gry;
-                        const GLubyte *btn_color_text = !btns_disabled ? gui_wht : gui_gry;
-
-                        const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, btn_color, btn_color);
-                        gui_set_font(icn_id, "ttf/seguiemj.ttf");
-
-                        ld = gui_label(kd, _("Save Replay"), GUI_SML, btn_color_text, btn_color_text);
-                        gui_set_fill(ld);
-
-                        gui_set_state(kd, !btns_disabled ? GOAL_SAVE : GUI_NONE, 0);
-                        gui_set_rect(kd, GUI_ALL);
-                    }
-                }
 
                 if (!resume_locked && goal_intro_animation_phase == 2)
                     gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.6, 0.8f, 0.05f);
@@ -745,13 +766,8 @@ static int goal_leave(struct state *st, struct state *next, int id, int intent)
     if (!resume_locked)
         resume_locked = next != &st_goal;
 
-    if (next == &st_null)
-    {
-        gui_delete(id);
-        return 0;
-    }
-
-    if (next == &st_goal && resume_locked)
+    if (next == &st_null ||
+        (next == &st_goal && resume_locked))
     {
         gui_delete(id);
         return 0;

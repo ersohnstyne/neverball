@@ -861,38 +861,64 @@ char gui_keyboard_char(char c)
 
 int gui_start_button(int pd, int tok)
 {
+    return gui_text_icon_button(pd, _("Start"), GUI_TRIANGLE_RIGHT, gui_grn, tok, 0, 1, 0);
+}
+
+/*int gui_back_button(int pd)
+{
+    return gui_text_icon_button(pd, _("Back"), GUI_CROSS, gui_red, GUI_BACK, 0, 1, 0);
+}*/
+
+int gui_text_icon_button(int pd,
+                         const char *text, const char *icon, const unsigned char *c0,
+                         const int tok, const int val,
+                         const int enabled, const int destructive)
+{
     int id;
 
     if ((id = gui_hstack(pd)))
     {
+        const GLubyte *btn_color      = enabled ? (destructive ? gui_red : c0)
+                                                : gui_gry;
+        const GLubyte *btn_color_text = enabled ? (destructive ? gui_red : gui_wht)
+                                                : gui_gry;
+
         gui_filler(id);
-        const int icn_id = gui_label(id, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
-        gui_label(id, _("Start"), GUI_SML, GUI_COLOR_WHT);
+        const int icn_id = gui_label(id, icon, GUI_SML, btn_color, btn_color);
+        gui_label(id, text, GUI_SML, btn_color_text, btn_color_text);
         gui_filler(id);
 
         gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
 
-        gui_set_state(id, tok, 0);
+        gui_set_state(id, enabled ? tok : GUI_NONE, val);
         gui_set_rect(id, GUI_ALL);
     }
 
     return id;
 }
 
-int gui_back_button(int pd)
+int gui_text_icon_button_LH(int pd,
+                            const char *text, const char *icon, const unsigned char *c0,
+                            const int tok, const int val,
+                            const int enabled, const int destructive)
 {
     int id;
 
     if ((id = gui_hstack(pd)))
     {
+        const GLubyte *btn_color      = enabled ? (destructive ? gui_red : c0)
+                                                : gui_gry;
+        const GLubyte *btn_color_text = enabled ? (destructive ? gui_red : gui_wht)
+                                                : gui_gry;
+
         gui_filler(id);
-        const int icn_id = gui_label(id, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-        gui_label(id, _("Back"), GUI_SML, GUI_COLOR_WHT);
+        gui_label(id, text, GUI_SML, btn_color_text, btn_color_text);
+        const int icn_id = gui_label(id, icon, GUI_SML, btn_color, btn_color);
         gui_filler(id);
 
         gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
 
-        gui_set_state(id, GUI_BACK, 0);
+        gui_set_state(id, enabled ? tok : GUI_NONE, val);
         gui_set_rect(id, GUI_ALL);
     }
 

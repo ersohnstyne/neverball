@@ -221,18 +221,8 @@ static int over_gui_hardcore(void)
 
         if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_varray(id) : gui_harray(id)))
         {
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-
-                ld = gui_label(kd, _("Return to group"), GUI_SML, GUI_COLOR_RED);
-                gui_set_fill(ld);
-
-                gui_set_state(kd, OVER_TO_GROUP, 0);
-                gui_set_rect(kd, GUI_ALL);
-
-                gui_focus(kd);
-            }
+            kd = gui_text_icon_button(jd, _("Return to group"), GUI_CROSS, gui_red, OVER_TO_GROUP, 0, 1, 0);
+            gui_focus(kd);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
@@ -240,11 +230,11 @@ static int over_gui_hardcore(void)
             {
                 if ((kd = gui_hstack(jd)))
                 {
+                    gui_filler(kd);
                     const int icn_id = gui_label(kd, GUI_SHOPCART, GUI_SML, GUI_COLOR_GRN);
                     gui_set_font(icn_id, "ttf/seguiemj.ttf");
-
                     ld = gui_label(kd, _("Shop"), GUI_SML, GUI_COLOR_WHT);
-                    gui_set_fill(ld);
+                    gui_filler(kd);
 
                     gui_set_state(kd, OVER_SHOP, 0);
                     gui_set_rect(kd, GUI_ALL);
@@ -302,18 +292,8 @@ static int over_gui(void)
 
         if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_varray(id) : gui_harray(id)))
         {
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-
-                ld = gui_label(kd, _("Select Level"), GUI_SML, GUI_COLOR_RED);
-                gui_set_fill(ld);
-
-                gui_set_state(kd, GUI_BACK, 0);
-                gui_set_rect(kd, GUI_ALL);
-
-                gui_focus(kd);
-            }
+            kd = gui_text_icon_button(jd, _("Select Level"), GUI_CROSS, gui_red, GUI_BACK, 0, 1, 0);
+            gui_focus(kd);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
@@ -321,11 +301,11 @@ static int over_gui(void)
             {
                 if ((kd = gui_hstack(jd)))
                 {
+                    gui_filler(kd);
                     const int icn_id = gui_label(kd, GUI_SHOPCART, GUI_SML, GUI_COLOR_GRN);
                     gui_set_font(icn_id, "ttf/seguiemj.ttf");
-
                     ld = gui_label(kd, _("Shop"), GUI_SML, GUI_COLOR_WHT);
-                    gui_set_fill(ld);
+                    gui_filler(kd);
 
                     gui_set_state(kd, OVER_SHOP, 0);
                     gui_set_rect(kd, GUI_ALL);
@@ -334,8 +314,7 @@ static int over_gui(void)
 #endif
         }
 
-        if (!resume)
-            gui_pulse(gid, 1.2f);
+        if (!resume) gui_pulse(gid, 1.2f);
 
         gui_layout(id, 0, 0);
     }

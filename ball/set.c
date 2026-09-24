@@ -176,6 +176,7 @@ void set_store_hs(void)
         }
 
         fs_close(fp);
+        fp = NULL;
     }
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     else log_errorf("Failure to save set high scores!: %s / %s\n",
@@ -441,6 +442,7 @@ static void set_load_hs(void)
         }
 
         fs_close(fp);
+        fp = NULL;
     }
 }
 
@@ -463,7 +465,7 @@ int set_check_id(const unsigned char *name, const char *needle)
      * (just omnit prefix "set-", if necessary).
      */
 
-    return (int) (strstr(str_starts_with(name, "set-") ? name + 4 : name, needle) != 0);
+    return (int) (strstr(str_starts_with(name, "set-") ? name + 4 : name, needle) != NULL);
 }
 
 static void set_free(struct set *s);
@@ -675,6 +677,7 @@ static int set_load(struct set *s, const char *filename)
         }
 
         fs_close(fin);
+        fin = NULL;
 
         return 1;
     }
@@ -693,6 +696,7 @@ static int set_load(struct set *s, const char *filename)
     s->shot = NULL;
 
     fs_close(fin);
+    fin = NULL;
     set_free(s);
 
     return 0;
@@ -799,6 +803,7 @@ int set_init(int boost_active)
             name = NULL;
         }
         fs_close(fin);
+        fin = NULL;
     }
 
     /*

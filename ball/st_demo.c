@@ -326,6 +326,7 @@ static int demo_action(int tok, int val)
                     st_demo_version_read(fp, df);
 
                     fs_close(fp);
+                    fp = NULL;
                 }
 
                 if (demo_requires_update)
@@ -512,6 +513,7 @@ static void gui_demo_update_thumbs(void)
 
                 st_demo_version_read(fp, demo);
                 fs_close(fp);
+                fp = NULL;
             }
 
             stat_max = demo->status == 3 ? 3 : (

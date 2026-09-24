@@ -1456,7 +1456,6 @@ static int title_gui(void)
                     {
                         float upscaled = text_height * 1.2f;
                         gui_image(jd, "gui/lockscr/mouse.png", upscaled, upscaled);
-
                         gui_space(jd);
                     }
 

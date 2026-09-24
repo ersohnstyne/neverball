@@ -454,6 +454,7 @@ static int dailychallenge_start(void)
         }
 
         fs_close(handle);
+        handle = NULL;
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
         EM_ASM({ Neverball.gamecore_try_start_daily_challenge(UTF8ToString($0)); }, s_packages_list_raw);
         return 1;
@@ -573,6 +574,7 @@ static void dailychallenge_timer(int id, float dt)
             }
 
             fs_close(handle);
+            handle = NULL;
         }
 
 #ifdef __EMSCRIPTEN__

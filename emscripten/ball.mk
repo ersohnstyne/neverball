@@ -55,6 +55,7 @@ endif
 BALL_SRCS := \
 	ball/demo.c \
 	ball/demo_dir.c \
+	ball/game_inputbindings.c \
 	ball/game_client.c \
 	ball/game_common.c \
 	ball/game_draw.c \

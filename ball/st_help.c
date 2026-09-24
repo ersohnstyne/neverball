@@ -617,6 +617,16 @@ static void controls_pc(int id)
     gui_multi(id, _("Note that you can change keyboard and\n"
                     "controller controls in the Controls Settings menu."),
                   GUI_SML, GUI_COLOR_WHT);
+
+    free(ks_exit);
+    free(ks_restart);
+    free(ks_auto);
+    free(ks_cam1);
+    free(ks_cam2);
+    free(ks_cam3);
+    free(ks_shot);
+    free(ks_rot_l);
+    free(ks_rot_r);
 }
 
 static void controls_touch(int id)

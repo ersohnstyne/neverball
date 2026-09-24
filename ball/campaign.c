@@ -230,6 +230,7 @@ void campaign_store_hs(void)
         }
 
         fs_close(fp);
+        fp = NULL;
     }
     else log_errorf("Save campaign high scores failed!: %s / %s\n", time_trial_leaderboard, fs_error());
 }
@@ -355,6 +356,7 @@ static void campaign_load_hs(void)
         }
 
         fs_close(fp);
+        fp = NULL;
     }
 }
 
@@ -398,7 +400,7 @@ int campaign_rank(void)
 int campaign_load(const char *filename)
 {
     fs_file fin;
-    char *scores, *level_name;
+    char *scores;
 
     if (!filename || !*filename)
         return 0;
@@ -475,12 +477,14 @@ int campaign_load(const char *filename)
             campaign_count++;
 
         fs_close(fin);
+        fin = NULL;
         return 1;
     }
 
     free(campaign_name); campaign_name = NULL;
 
     fs_close(fin);
+    fin = NULL;
     campaign_quit();
 
     return 0;
@@ -867,6 +871,7 @@ int campaign_load_camera_box_trigger(const char *levelname)
                 break;
         }
         fs_close(fh);
+        fh = NULL;
         return 1;
     }
 

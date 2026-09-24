@@ -168,20 +168,21 @@ static void load_ball_name_real(struct model_ball *b, const char *path)
 
     b->has_name = 0;
 
-    fs_file fin_name;
+    fs_file fin;
 
-    if ((fin_name = fs_open_read(tmp_ball_name_path)))
+    if ((fin = fs_open_read(tmp_ball_name_path)))
     {
         char *tmp_name_parted;
 
-        if (read_line(&tmp_name_parted, fin_name))
+        if (read_line(&tmp_name_parted, fin))
             if (str_starts_with(tmp_name_parted, "name "))
             {
                 SAFECPY(b->name, tmp_name_parted + 5);
                 b->has_name = 1;
             }
 
-        fs_close(fin_name);
+        fs_close(fin);
+        fin = NULL;
         free(tmp_name_parted); tmp_name_parted = NULL;
     }
 }
@@ -247,6 +248,7 @@ static void scan_balls(void)
             path = NULL;
         }
         fs_close(fin);
+        fin = NULL;
     }
 
     /*

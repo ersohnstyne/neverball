@@ -264,6 +264,9 @@
     <ClCompile Include="..\ball\game_draw.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
+    <ClCompile Include="..\ball\game_inputbindings.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
     <ClCompile Include="..\ball\game_proxy.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
@@ -627,6 +630,9 @@
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\game_draw.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_inputbindings.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\game_proxy.h">

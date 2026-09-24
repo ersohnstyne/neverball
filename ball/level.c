@@ -21,6 +21,8 @@
 #include "campaign.h"
 #endif
 
+#include "game_inputbindings.h"
+
 #include "solid_base.h"
 
 #include "common.h"
@@ -649,7 +651,11 @@ const char *level_name(const struct level *level)
 const char *level_msg(const struct level *level)
 {
     if (level && text_length(level->message) > 0 && strlen(level->message) > 0)
-        return _(level->message);
+    {
+        /* HACK: Was: return _(level->message) */
+
+        return game_level_msg_inputbindings(level->message);
+    }
     return "";
 }
 

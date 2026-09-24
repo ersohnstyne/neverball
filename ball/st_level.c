@@ -165,7 +165,7 @@ const char level_loading_covid_highrisk[][256] = {
 
 #define LEVEL_MESSAGE_CHKP_POST_RESPAWN \
     _("The checkpoint is in the\nlast position as last time.\n\n" \
-      "Click to continue.")
+      "Click to continue.\n")
 
 static int level_loading_enter(struct state *st, struct state *prev, int intent)
 {
@@ -456,11 +456,11 @@ static int level_gui(void)
     STRBUF title = level_title(curr_level());
 
 #ifdef MAPC_INCLUDES_CHKP
-    const char *desc = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
-                                     level_desc(curr_level());
+    //const char *desc = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
+    //                                 level_desc(curr_level());
     const char *t    = last_active ? _("Checkpoint") : CSTR(title);
 #else
-    const char *desc = level_desc(curr_level());
+    //const char *desc = level_desc(curr_level());
     const char *t    = CSTR(title);
 #endif
 
@@ -728,6 +728,13 @@ static int level_gui(void)
         }
 
         gui_space(id);
+        
+#ifdef MAPC_INCLUDES_CHKP
+        char *desc = strdup(last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
+                                          level_desc(curr_level()));
+#else
+        char *desc = strdup(level_desc(curr_level()));
+#endif
 
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
@@ -735,13 +742,15 @@ static int level_gui(void)
 #endif
             if (desc && *desc)
             {
-                level_infocard_msg_id = gui_multi(id, desc, GUI_SML, GUI_COLOR_WHT);
+                level_infocard_msg_id = gui_multi(id, _(desc), GUI_SML, GUI_COLOR_WHT);
                 gui_space(id);
 
                 if (level_infocard_intro)
                     gui_slide(level_infocard_msg_id,
                               GUI_S | GUI_FLING | GUI_EASE_BACK, 0.0f, 0.5f, 0.0f);
             }
+
+        free(desc);
 
         if ((jd = gui_hstack(id)))
         {
@@ -965,13 +974,6 @@ static void level_timer(int id, float dt)
 
 static int level_keybd(int c, int d)
 {
-#ifdef MAPC_INCLUDES_CHKP
-    const char *message = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
-                                        level_msg(curr_level());
-#else
-    const char *message = level_msg(curr_level());
-#endif
-
     if (d)
     {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -986,6 +988,13 @@ static int level_keybd(int c, int d)
 
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
         {
+#ifdef MAPC_INCLUDES_CHKP
+            const char *message = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
+                                                level_msg(curr_level());
+#else
+            const char *message = level_msg(curr_level());
+#endif
+
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
             if ((level_master(curr_level())
               || curr_mode() == MODE_CHALLENGE
@@ -1036,6 +1045,13 @@ static int level_buttn(int b, int d)
             return goto_pause(curr_state());
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && curr_state() == &st_level)
         {
+#ifdef MAPC_INCLUDES_CHKP
+            const char *message = last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
+                                                level_msg(curr_level());
+#else
+            const char *message = level_msg(curr_level());
+#endif
+
 #if defined(ENABLE_POWERUP) && defined(CONFIG_INCLUDES_ACCOUNT)
             if ((level_master(curr_level())
               || curr_mode() == MODE_CHALLENGE
@@ -1045,7 +1061,8 @@ static int level_buttn(int b, int d)
               || curr_mode() == MODE_HARDCORE
 #endif
                 ) &&
-                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES))
+                server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_CONSUMABLES) &&
+                (message && *message))
             {
                 show_info = show_info == 0 ? 1 : 0;
                 show_info ? goto_state(&st_level) : exit_state(&st_level);

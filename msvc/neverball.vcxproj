@@ -257,6 +257,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\game_common.c" />
     <ClCompile Include="..\ball\game_draw.c" />
     <ClCompile Include="..\ball\game_dualdisplay.c" />
+    <ClCompile Include="..\ball\game_inputbindings.c" />
     <ClCompile Include="..\ball\game_proxy.c" />
     <ClCompile Include="..\ball\game_server.c" />
     <ClCompile Include="..\ball\game_switchball.c" />
@@ -437,6 +438,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\game_common.h" />
     <ClInclude Include="..\ball\game_draw.h" />
     <ClInclude Include="..\ball\game_dualdisplay.h" />
+    <ClInclude Include="..\ball\game_inputbindings.h" />
     <ClInclude Include="..\ball\game_proxy.h" />
     <ClInclude Include="..\ball\game_server.h" />
     <ClInclude Include="..\ball\game_switchball.h" />

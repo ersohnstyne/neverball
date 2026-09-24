@@ -2228,6 +2228,7 @@ static void main_quit(void)
     progress_stat(GAME_NONE);
     progress_exit();
 
+    demo_replay_stop(0);
     game_client_free(NULL);
     game_server_free(NULL);
     game_proxy_clr();

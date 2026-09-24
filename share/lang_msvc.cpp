@@ -421,7 +421,7 @@ const char *ms_nls_gettext(const char *s)
     }
 
     if (!lang_was_found)
-        outS = s;
+        return s;
 
     return outS;
 }

@@ -213,6 +213,7 @@ int demo_load(struct demo *d, const char *path)
                 rc = 1;
 
             fs_close(fp);
+            fp = NULL;
         }
     }
 

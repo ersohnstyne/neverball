@@ -94,7 +94,7 @@ static int package_manual_hotreload = 0;
 
 static int total    = 0;
 static int first    = 0;
-static int selected = 0;
+static int selected = -1;
 
 static int shot_id;
 static int desc_id;
@@ -547,6 +547,8 @@ static int package_gui(void)
 
     int i;
 
+    install_id = 0;
+
     if (total <= 0)
     {
         if ((id = gui_vstack(0)))
@@ -625,28 +627,21 @@ static int package_gui(void)
 
             if ((kd = gui_hstack(jd)))
             {
-                install_id = 0;
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-                if (current_platform == PLATFORM_PC && !console_gui_shown())
-#endif
+                if ((ld = gui_hstack(kd)))
                 {
-                    if ((ld = gui_hstack(kd)))
-                    {
-                        install_status_id = gui_label(ld, GUI_ARROW_DN,
-                                                          GUI_SML, gui_grn, gui_grn);
-                        install_label_id = gui_label(ld, "XXXXXXXXXXXX",
-                                                         GUI_SML, gui_wht, gui_wht);
+                    install_status_id = gui_label(ld, GUI_ARROW_DN,
+                                                      GUI_SML, gui_grn, gui_grn);
+                    install_label_id = gui_label(ld, "XXXXXXXXXXXX",
+                                                      GUI_SML, gui_wht, gui_wht);
 
-                        gui_set_label(install_label_id, _("Install"));
+                    gui_set_label(install_label_id, _("Install"));
 
-                        gui_set_font(install_status_id, "ttf/DejaVuSans-Bold.ttf");
+                    gui_set_font(install_status_id, "ttf/DejaVuSans-Bold.ttf");
 
-                        gui_set_rect(ld, GUI_ALL);
-                        gui_set_state(ld, PACKAGE_INSTALL, 0);
+                    gui_set_rect(ld, GUI_ALL);
+                    gui_set_state(ld, PACKAGE_INSTALL, 0);
 
-                        install_id = ld;
-                    }
+                    install_id = ld;
                 }
 
                 gui_filler(kd);
@@ -702,18 +697,16 @@ static void package_select(int pi)
 
     gui_set_font(install_status_id, "ttf/DejaVuSans-Bold.ttf");
 
-    if (status == PACKAGE_INSTALLED)
-    {
-        /* HACK: Mojang made done this. */
+    /* HACK: Mojang made done this. */
+    
+    const GLubyte *btn_color      = status == PACKAGE_INSTALLED || selected < 0 || package_manage_selected < 0 ?
+                                    gui_grn : gui_gry;
+    const GLubyte *btn_color_text = selected < 0 || package_manage_selected < 0 ?
+                                    gui_wht : gui_gry;
 
-        gui_set_color(install_status_id, gui_gry, gui_gry);
-        gui_set_color(install_label_id,  gui_wht, gui_wht);
-    }
-    else
-    {
-        gui_set_color(install_status_id, gui_grn, gui_grn);
-        gui_set_color(install_label_id,  gui_wht, gui_wht);
-    }
+    gui_set_state(install_id,        selected < 0 || package_manage_selected < 0 ? GUI_NONE : PACKAGE_INSTALL, 0);
+    gui_set_color(install_status_id, btn_color, btn_color);
+    gui_set_color(install_label_id,  btn_color_text, btn_color_text);
 }
 
 static int package_enter(struct state *st, struct state *prev, int intent)
@@ -798,7 +791,8 @@ static void package_paint(int id, float st)
     if (current_platform != PLATFORM_PC || console_gui_shown()) {
         enum package_status status = package_get_status(selected);
 
-        if (curr_state() == &st_package) switch (status) {
+        if (curr_state() == &st_package &&
+            selected >= 0 && package_manage_selected >= 0) switch (status) {
             case PACKAGE_INSTALLED: {
                 if (strcmp(package_get_type(selected), "ball") == 0)
                     console_gui_package_equipable_paint();
@@ -825,7 +819,8 @@ static void package_timer(int id, float dt)
         package_start_download(package_manage_selected);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    gui_set_hidden(type_id, current_platform != PLATFORM_PC || console_gui_shown());
+    gui_set_hidden(type_id,    current_platform != PLATFORM_PC || console_gui_shown());
+    gui_set_hidden(install_id, current_platform != PLATFORM_PC || console_gui_shown());
 #endif
 
     gui_timer(id, dt);
@@ -877,7 +872,7 @@ static int package_buttn(int b, int d)
         {
             if (status == PACKAGE_AVAILABLE ||
                 status == PACKAGE_ERROR)
-                return package_action(PACKAGE_INSTALL, 0);
+                return package_action(selected >= 0 && package_manage_selected >= 0 ? PACKAGE_INSTALL : GUI_NONE, 0);
         }
         else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
         {
@@ -889,7 +884,7 @@ static int package_buttn(int b, int d)
 
                 package_manage_selected = selected;
 
-                return package_action(PACKAGE_INSTALL, 0);
+                return package_action(selected >= 0 && package_manage_selected >= 0 ? PACKAGE_INSTALL : GUI_NONE, 0);
             }
         }
     }
@@ -924,6 +919,26 @@ static int manage_del_confirm_btn_enabled = 0;
 static int manage_del_confirm_btn_id      = 0;
 
 static enum package_confirm_action curr_confirm_action = PACKAGE_CONFIRM_NONE;
+
+int package_set_check_id(const unsigned char *name, const char *needle)
+{
+    const unsigned char *haystack, *c;
+
+    /* Validate inputs */
+
+    if (name == NULL || needle == NULL)
+        return 0; /* Invalid input */
+
+    if (*needle == '\0')
+        return 1; /* Empty substring is always "found" */
+
+    /*
+     * Search for the given string in set ID name
+     * (just omnit prefix "set-", if necessary).
+     */
+
+    return (int) (strstr(str_starts_with(name, "set-") ? name + 4 : name, needle) != NULL);
+}
 
 static int package_check_purchased_extralevels(const char *set_id)
 {
@@ -978,8 +993,7 @@ static int package_check_purchased_extralevels(const char *set_id)
 
     /* Limited offered game dependencies or region only */
     
-    if ((str_starts_with(set_id, "set-anime") ||
-         str_starts_with(set_id, "set-RF-anime")) &&
+    if (package_set_check_id(set_id, "anime") &&
         !package_superwaifu_game_installed() &&
         !config_cheat())
     {
@@ -1002,31 +1016,31 @@ static int package_check_purchased_extralevels(const char *set_id)
             return 0;
 #endif
     }
-
+    
     /* Limited special offers only */
 
-    if (str_starts_with(set_id, "set-valentine") &&
+    if (package_set_check_id(set_id, "valentine") &&
         curr_date_month != 2 &&
         !config_cheat()){
         log_errorf("Valentine is not available outside month February. (Current month: %d)\n", curr_date_month);
         return 0;
     }
 
-    if (str_starts_with(set_id, "set-freeland") &&
+    if (package_set_check_id(set_id, "freeland") &&
         curr_date_month != 5 &&
         !config_cheat()){
         log_errorf("Freeland is not available outside month May. (Current month: %d)\n", curr_date_month);
         return 0;
     }
 
-    if (str_starts_with(set_id, "set-halloween") &&
+    if (package_set_check_id(set_id, "halloween") &&
         curr_date_month != 10 &&
         !config_cheat()){
         log_errorf("Halloween is not available outside month October. (Current month: %d)\n", curr_date_month);
         return 0;
     }
 
-    if (str_starts_with(set_id, "set-christmas") &&
+    if (package_set_check_id(set_id, "christmas") &&
         curr_date_month != 12 &&
         !config_cheat()){
         log_errorf("Christmas is not available outside month December. (Current month: %d)\n", curr_date_month);

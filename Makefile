@@ -565,6 +565,7 @@ BALL_OBJS := \
 	share/console_control_gui.o\
 	share/mapclib_bak.o     \
 	ball/hud.o          \
+	ball/game_inputbindings.o \
 	ball/game_common.o  \
 	ball/game_client.o  \
 	ball/game_server.o  \

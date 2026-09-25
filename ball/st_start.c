@@ -1480,7 +1480,7 @@ static void start_snap_step(void)
 
     if (snap.curr < snap.count)
     {
-#if !defined(NDEBUG) && !defined(__EMSCRIPTEN__)
+#if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
         level_snap_offscreen(snap.queue[snap.curr], snap.dir, &snap.fbo);
 #endif
         snap.curr++;

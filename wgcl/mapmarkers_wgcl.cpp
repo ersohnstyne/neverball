@@ -186,6 +186,9 @@ static int mapmarkers_load_file(const char *path)
             }
 
             first = 0;
+
+            free(out_line);
+            out_line = NULL;
         }
 
         fs_close(fh);

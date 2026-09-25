@@ -1809,6 +1809,10 @@ static int main_init_checksteam(const char *filename, const char *needle) {
                 found = 1;
 
             if (found) break;
+
+            if (out_line) {
+                free(out_line); out_line = NULL;
+            }
         }
 
         if (out_line) {

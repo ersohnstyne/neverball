@@ -41,17 +41,12 @@
 #include "common.h"
 #include "key.h"
 #include "fbo.h"
-<<<<<<< HEAD
 #include "text.h"
 
 #include "activity_services.h"
 
 #include "game_common.h"
 #include "game_server.h"
-=======
-
-#include "game_common.h"
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
 #include "game_client.h"
 
 #include "st_malfunction.h"
@@ -1385,24 +1380,16 @@ static void start_wheel(int x, int y)
     if (y < 0) start_score(+1);
 }
 
-<<<<<<< HEAD
 struct start_snap_job
 {
     int active;
     int queue[MAXLVL_SET];
-=======
-struct snap_job
-{
-    int active;
-    int queue[MAXLVL];
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
     int count;
     int curr;
     char *dir;
     struct fbo fbo;
 };
 
-<<<<<<< HEAD
 /*
  * This struct member name will be redirected to start_snap_job for modern WGCL source project.
  * To continue with legacy source project Neverball,
@@ -1418,9 +1405,6 @@ static struct snap_job start_snap;
  * please change from `start_snap` to `snap`.
  */
 #define snap start_snap
-=======
-static struct snap_job snap;
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
 
 static void start_snap_finish(void)
 {
@@ -1439,10 +1423,7 @@ static void start_snap_finish(void)
 
     load_title_background();
     game_kill_fade();
-<<<<<<< HEAD
     game_disable_fade(1);
-=======
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
 }
 
 static void start_snap_init(void)
@@ -1455,11 +1436,7 @@ static void start_snap_init(void)
     snap.count = 0;
     snap.curr  = 0;
 
-<<<<<<< HEAD
     for (i = 0; i < MAXLVL_SET; i++)
-=======
-    for (i = 0; i < MAXLVL; i++)
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
         if (level_exists(i))
             snap.queue[snap.count++] = i;
 
@@ -1484,10 +1461,7 @@ static void start_snap_init(void)
 
         load_title_background();
         game_kill_fade();
-<<<<<<< HEAD
         game_disable_fade(1);
-=======
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
     }
 }
 
@@ -1498,13 +1472,9 @@ static void start_snap_step(void)
 
     if (snap.curr < snap.count)
     {
-<<<<<<< HEAD
 #if !defined(NDEBUG) && !defined(__EMSCRIPTEN__)
         level_snap_offscreen(snap.queue[snap.curr], snap.dir, &snap.fbo);
 #endif
-=======
-        level_snap_offscreen(snap.queue[snap.curr], snap.dir, &snap.fbo);
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
         snap.curr++;
     }
 
@@ -1549,23 +1519,7 @@ static int start_keybd(int c, int d)
 #endif
             )
         {
-<<<<<<< HEAD
-            char *dir = concat_string("Screenshots/shot-",
-                                      set_id(curr_set()), NULL);
-
-            fs_mkdir(dir);
-
-            /* Iterate over all levels, taking a screenshot of each. */
-
-            for (int i = first; i < MAXLVL_SET + first; i++)
-                if (level_exists(i))
-                    level_snap(i, dir);
-
-            free(dir);
-            dir = NULL;
-=======
             start_snap_init();
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
         }
         else
 #endif
@@ -1881,11 +1835,7 @@ int goto_start(int index, struct state *back_state)
 struct state st_start = {
     start_enter,
     start_leave,
-<<<<<<< HEAD
     start_paint,
-=======
-    shared_paint,
->>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
     start_timer,
     start_point,
     start_stick,

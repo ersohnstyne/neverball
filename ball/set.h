@@ -78,7 +78,7 @@ struct level *get_level(int);
 struct fbo;
 
 void level_snap(int, const char *);
-#if !defined(NDEBUG) && !defined(__EMSCRIPTEN__)
+#if !defined(NDEBUG) && !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
 int  level_snap_offscreen(int, const char *, struct fbo *);
 #endif
 void set_cheat(void);

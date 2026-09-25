@@ -1410,7 +1410,7 @@ static struct snap_job start_snap;
 
 static void start_snap_finish(void)
 {
-#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
+#if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
     if (snap.fbo.framebuffer)
         fbo_delete(&snap.fbo);
 #endif
@@ -1451,13 +1451,13 @@ static void start_snap_init(void)
     fs_mkdir(snap.dir);
 
     memset(&snap.fbo, 0, sizeof (snap.fbo));
-#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
+#if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
     if (fbo_create(&snap.fbo, 512, 512))
         snap.active = 1;
     else
 #endif
     {
-#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
+#if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
         fbo_delete(&snap.fbo);
 #endif
 

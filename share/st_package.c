@@ -699,12 +699,12 @@ static void package_select(int pi)
 
     /* HACK: Mojang made done this. */
     
-    const GLubyte *btn_color      = status == PACKAGE_INSTALLED || selected < 0 || package_manage_selected < 0 ?
+    const GLubyte *btn_color      = status == PACKAGE_INSTALLED || selected >= 0 ?
                                     gui_grn : gui_gry;
-    const GLubyte *btn_color_text = selected < 0 || package_manage_selected < 0 ?
+    const GLubyte *btn_color_text = selected > 0 ?
                                     gui_wht : gui_gry;
-
-    gui_set_state(install_id,        selected < 0 || package_manage_selected < 0 ? GUI_NONE : PACKAGE_INSTALL, 0);
+    
+    gui_set_state(install_id,        selected >= 0 ? PACKAGE_INSTALL : GUI_NONE, 0);
     gui_set_color(install_status_id, btn_color, btn_color);
     gui_set_color(install_label_id,  btn_color_text, btn_color_text);
 }

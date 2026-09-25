@@ -1246,7 +1246,7 @@ static int package_manage_gui(void)
                 gui_set_font(updatebtn_id, "ttf/DejaVuSans-Bold.ttf");
             }
 
-            gui_multi(btn_id, _("Update the new package"),
+            gui_multi(btn_id, _("Update this new addon"),
                               GUI_SML, GUI_COLOR_WHT);
 
             gui_set_state(btn_id, PACKAGE_MANAGE_UPDATE, package_manage_selected);

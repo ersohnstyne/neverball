@@ -609,7 +609,6 @@ void WGCL_LoadGameSystemSettings(void)
     EM_ASM({ systemsettings_conf_gfx_shadows           = $0; }, config_get_d(CONFIG_SHADOW));
     EM_ASM({ systemsettings_conf_gfx_background        = $0; }, config_get_d(CONFIG_BACKGROUND));
     EM_ASM({ systemsettings_conf_gfx_camera_shake      = $0; }, config_get_d(CONFIG_CAMERA_SHAKE));
-    EM_ASM({ systemsettings_conf_gfx_camera_nostalgic  = $0; }, config_get_d(CONFIG_VIEW_FOV_NOSTALGIC));
     EM_ASM({ systemsettings_conf_audio_volume_master   = $0; }, config_get_d(CONFIG_MASTER_VOLUME));
     EM_ASM({ systemsettings_conf_audio_volume_sfx      = $0; }, config_get_d(CONFIG_SOUND_VOLUME));
     EM_ASM({ systemsettings_conf_audio_volume_music    = $0; }, config_get_d(CONFIG_MUSIC_VOLUME));
@@ -646,7 +645,6 @@ void WGCL_SaveGameSystemSettings(void)
     config_set_d(CONFIG_SHADOW,               EM_ASM_INT({ return systemsettings_conf_gfx_shadows;                          }));
     config_set_d(CONFIG_BACKGROUND,           EM_ASM_INT({ return systemsettings_conf_gfx_background;                       }));
     config_set_d(CONFIG_CAMERA_SHAKE,         EM_ASM_INT({ return systemsettings_conf_gfx_camera_shake;                     }));
-    config_set_d(CONFIG_VIEW_FOV_NOSTALGIC,   EM_ASM_INT({ return systemsettings_conf_gfx_camera_nostalgic;                 }));
     config_set_d(CONFIG_MASTER_VOLUME,        EM_ASM_INT({ return systemsettings_conf_audio_volume_master;                  }));
     config_set_d(CONFIG_SOUND_VOLUME,         EM_ASM_INT({ return systemsettings_conf_audio_volume_sfx;                     }));
     config_set_d(CONFIG_MUSIC_VOLUME,         EM_ASM_INT({ return systemsettings_conf_audio_volume_music;                   }));

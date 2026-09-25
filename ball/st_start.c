@@ -40,6 +40,7 @@
 #include "config.h"
 #include "common.h"
 #include "key.h"
+#include "fbo.h"
 #include "text.h"
 
 #include "activity_services.h"
@@ -1377,6 +1378,108 @@ static void start_wheel(int x, int y)
 
     if (y > 0) start_score(-1);
     if (y < 0) start_score(+1);
+}
+
+struct start_snap_job
+{
+    int active;
+    int queue[MAXLVL_SET];
+    int count;
+    int curr;
+    char *dir;
+    struct fbo fbo;
+};
+
+/*
+ * This struct member name will be redirected to start_snap_job for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `start_snap_job` to `snap_job`.
+ */
+#define snap_job start_snap_job
+
+static struct snap_job start_snap;
+
+/*
+ * This struct member name will be redirected to start_snap for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `start_snap` to `snap`.
+ */
+#define snap start_snap
+
+static void start_snap_finish(void)
+{
+    if (snap.fbo.framebuffer)
+        fbo_delete(&snap.fbo);
+
+    if (snap.dir)
+    {
+        free(snap.dir);
+        snap.dir = NULL;
+    }
+
+    snap.active = 0;
+    snap.count  = 0;
+    snap.curr   = 0;
+
+    load_title_background();
+    game_kill_fade();
+    game_disable_fade(1);
+}
+
+static void start_snap_init(void)
+{
+    int i;
+
+    if (snap.active)
+        return;
+
+    snap.count = 0;
+    snap.curr  = 0;
+
+    for (i = 0; i < MAXLVL_SET; i++)
+        if (level_exists(i))
+            snap.queue[snap.count++] = i;
+
+    if (snap.count == 0)
+        return;
+
+    snap.dir = concat_string("Screenshots/shot-", set_id(curr_set()), NULL);
+    fs_mkdir(snap.dir);
+
+    memset(&snap.fbo, 0, sizeof (snap.fbo));
+    if (fbo_create(&snap.fbo, 512, 512))
+        snap.active = 1;
+    else
+    {
+        fbo_delete(&snap.fbo);
+
+        for (i = 0; i < snap.count; i++)
+            level_snap(snap.queue[i], snap.dir);
+
+        free(snap.dir);
+        snap.dir = NULL;
+
+        load_title_background();
+        game_kill_fade();
+        game_disable_fade(1);
+    }
+}
+
+static void start_snap_step(void)
+{
+    if (!snap.active)
+        return;
+
+    if (snap.curr < snap.count)
+    {
+#if !defined(NDEBUG) && !defined(__EMSCRIPTEN__)
+        level_snap_offscreen(snap.queue[snap.curr], snap.dir, &snap.fbo);
+#endif
+        snap.curr++;
+    }
+
+    if (snap.curr >= snap.count)
+        start_snap_finish();
 }
 
 static int start_keybd(int c, int d)

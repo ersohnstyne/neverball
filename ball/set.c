@@ -29,6 +29,7 @@
 #endif
 
 #include "glext.h"
+#include "fbo.h"
 #include "account.h"
 #include "config.h"
 #include "video.h"
@@ -1309,6 +1310,7 @@ void level_snap(int i, const char *path)
 
         game_client_fly(1.0f);
         game_kill_fade();
+        game_disable_fade(1);
         game_client_draw(POSE_LEVEL, 0);
         video_snap(filename);
         video_swap();
@@ -1318,6 +1320,76 @@ void level_snap(int i, const char *path)
     filename = NULL;
 #endif
 }
+
+#if !defined(NDEBUG) && !defined(__EMSCRIPTEN__)
+int level_snap_offscreen(int i, const char *path, struct fbo *snap_fbo)
+{
+    char *filename;
+    int success = 0;
+
+    if (!snap_fbo || !snap_fbo->framebuffer)
+    {
+        level_snap(i, path);
+
+        filename = concat_string(path,
+                                 "/",
+                                 str_ends_with(level_v[i].file, ".solx") ? base_name_sans(level_v[i].file, ".solx") : base_name_sans(level_v[i].file, ".sol"),
+                                 ".png",
+                                 NULL);
+
+        if (game_client_init(level_v[i].file))
+        {
+            union cmd cmd;
+            int saved_dw, saved_dh;
+            unsigned char *pixels;
+
+            cmd.type = CMD_GOAL_OPEN;
+            game_proxy_enq(&cmd);
+            game_client_sync(NULL);
+
+            game_client_fly(1.0f);
+            game_kill_fade();
+
+            /* Bind offscreen framebuffer. */
+
+            glBindFramebuffer_(GL_FRAMEBUFFER, snap_fbo->framebuffer);
+            glViewport(0, 0, snap_fbo->width, snap_fbo->height);
+
+            /* Temporarily override device dimensions for 4:3 perspective. */
+
+            saved_dw = video.device_w;
+            saved_dh = video.device_h;
+            video.device_w = 4;
+            video.device_h = 3;
+
+            video_clear();
+            game_client_draw(POSE_LEVEL, 0);
+
+            /* Read back pixels. */
+
+            if ((pixels = (unsigned char *) malloc(snap_fbo->width * snap_fbo->height * 4)))
+            {
+                glReadPixels(0, 0, snap_fbo->width, snap_fbo->height,
+                             GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+                success = image_save_png(filename, pixels,
+                                         snap_fbo->width, snap_fbo->height);
+                free(pixels);
+                pixels = NULL;
+            }
+
+            /* Restore viewport and device dimensions. */
+
+            video.device_w = saved_dw;
+            video.device_h = saved_dh;
+        }
+    }
+
+    free(filename);
+    filename = NULL;
+    return success;
+}
+#endif
 
 void set_cheat(void)
 {

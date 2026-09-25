@@ -77,6 +77,9 @@ void set_store_hs(void);
 struct level *get_level(int);
 
 void level_snap(int, const char *);
+#if !defined(NDEBUG) && !defined(__EMSCRIPTEN__)
+int  level_snap_offscreen(int, const char *, struct fbo *);
+#endif
 void set_cheat(void);
 void set_detect_bonus_product(void);
 

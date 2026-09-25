@@ -46,6 +46,7 @@
 extern int gui_img_used;
 
 void   image_snap(const char *);
+int    image_save_png(const char *, const unsigned char *, int, int);
 
 GLuint make_image_from_file(const char *, int);
 GLuint make_image_from_font(int *, int *,

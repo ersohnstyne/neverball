@@ -1198,6 +1198,7 @@ static void start_paint(int id, float t)
 #endif
 }
 
+static void start_snap_step(void);
 static void start_timer(int id, float dt)
 {
 #if ENABLE_MOON_TASKLOADER!=0
@@ -1214,6 +1215,7 @@ static void start_timer(int id, float dt)
 #endif
 
     gui_timer(id, dt);
+    start_snap_step();
 }
 
 static int start_howmany()
@@ -1408,8 +1410,10 @@ static struct snap_job start_snap;
 
 static void start_snap_finish(void)
 {
+#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
     if (snap.fbo.framebuffer)
         fbo_delete(&snap.fbo);
+#endif
 
     if (snap.dir)
     {
@@ -1447,11 +1451,15 @@ static void start_snap_init(void)
     fs_mkdir(snap.dir);
 
     memset(&snap.fbo, 0, sizeof (snap.fbo));
+#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
     if (fbo_create(&snap.fbo, 512, 512))
         snap.active = 1;
     else
+#endif
     {
+#if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
         fbo_delete(&snap.fbo);
+#endif
 
         for (i = 0; i < snap.count; i++)
             level_snap(snap.queue[i], snap.dir);
@@ -1814,12 +1822,6 @@ static int start_leave(struct state *st, struct state *next, int id, int intent)
         start_snap_finish();
 
     return shared_leave(st, next, id, intent);
-}
-
-static void start_timer(int id, float dt)
-{
-    shared_timer(id, dt);
-    start_snap_step();
 }
 
 /*---------------------------------------------------------------------------*/

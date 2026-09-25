@@ -28,10 +28,10 @@ struct fbo
     GLsizei height;
 };
 
-typedef struct fbo fbo;
+//typedef struct fbo fbo;
 
-GLboolean fbo_create(fbo *, GLsizei, GLsizei);
-void      fbo_delete(fbo *);
+GLboolean fbo_create(struct fbo *, GLsizei, GLsizei);
+void      fbo_delete(struct fbo *);
 
 /*----------------------------------------------------------------------------*/
 

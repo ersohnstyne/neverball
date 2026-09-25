@@ -24,8 +24,8 @@
 
 static glsl distortion = { 0, 0, 0 };
 
-static fbo    L_fbo = { 0, 0, 0 };
-static fbo    R_fbo = { 0, 0, 0 };
+static struct fbo L_fbo = { 0, 0, 0 };
+static struct fbo R_fbo = { 0, 0, 0 };
 
 static GLuint L_vbo = 0;
 static GLuint R_vbo = 0;

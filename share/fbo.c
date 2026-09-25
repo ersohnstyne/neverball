@@ -29,12 +29,12 @@
 /* OpenGL ES support in Neverball is targeted toward OpenGL ES version 1.1.  */
 /* This version of ES has no support for framebuffer objects.                */
 
-GLboolean fbo_create(fbo *F, GLsizei w, GLsizei h)
+GLboolean fbo_create(struct fbo *F, GLsizei w, GLsizei h)
 {
     return GL_FALSE;
 }
 
-void fbo_delete(fbo *F)
+void fbo_delete(struct fbo *F)
 {
 }
 
@@ -42,7 +42,7 @@ void fbo_delete(fbo *F)
 
 /*---------------------------------------------------------------------------*/
 
-GLboolean fbo_create(fbo *F, GLsizei w, GLsizei h)
+GLboolean fbo_create(struct fbo *F, GLsizei w, GLsizei h)
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -95,7 +95,7 @@ GLboolean fbo_create(fbo *F, GLsizei w, GLsizei h)
 #endif
 }
 
-void fbo_delete(fbo *F)
+void fbo_delete(struct fbo *F)
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -106,7 +106,7 @@ void fbo_delete(fbo *F)
     if (F->depth_texture) glDeleteTextures     (1, &F->depth_texture);
     if (F->framebuffer)   glDeleteFramebuffers_(1, &F->framebuffer);
 
-    memset(F, 0, sizeof (fbo));
+    memset(F, 0, sizeof (struct fbo));
 #endif
 }
 

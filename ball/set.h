@@ -75,11 +75,16 @@ void set_store_hs(void);
 /*---------------------------------------------------------------------------*/
 
 struct level *get_level(int);
+struct fbo;
 
 void level_snap(int, const char *);
+<<<<<<< HEAD
 #if !defined(NDEBUG) && !defined(__EMSCRIPTEN__)
 int  level_snap_offscreen(int, const char *, struct fbo *);
 #endif
+=======
+int  level_snap_offscreen(int, const char *, struct fbo *);
+>>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
 void set_cheat(void);
 void set_detect_bonus_product(void);
 

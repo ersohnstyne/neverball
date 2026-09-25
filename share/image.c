@@ -54,11 +54,14 @@
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 /* Do not allow mipmap and anisotropic in GUI. */
 int gui_img_used = 0;
 
 /*---------------------------------------------------------------------------*/
 
+=======
+>>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
 int image_save_png(const char *filename, const unsigned char *p, int w, int h)
 {
     fs_file     filep  = NULL;
@@ -67,7 +70,11 @@ int image_save_png(const char *filename, const unsigned char *p, int w, int h)
     png_bytep  *bytep  = NULL;
     int i, success = 0;
 
+<<<<<<< HEAD
     if (!filename || !*filename || !filename[0] || !p || w <= 0 || h <= 0)
+=======
+    if (!filename || !p || w <= 0 || h <= 0)
+>>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
         return 0;
 
     /* Initialize all PNG export data structures. */
@@ -115,7 +122,10 @@ int image_save_png(const char *filename, const unsigned char *p, int w, int h)
             png_write_end(writep, infop);
 
             free(bytep);
+<<<<<<< HEAD
             bytep = NULL;
+=======
+>>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
             success = 1;
         }
     }
@@ -139,7 +149,10 @@ void image_snap(const char *filename)
         glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, p);
         image_save_png(filename, p, w, h);
         free(p);
+<<<<<<< HEAD
         p = NULL;
+=======
+>>>>>>> 73ebd5fd5be810a0a60a5d7a590ae01da3e218ad
     }
 }
 

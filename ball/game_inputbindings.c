@@ -812,7 +812,7 @@ const char *game_level_msg_inputbindings(const char *msg)
                 input_mouse_cam_enbind_done = 1;
                 final_replace_count++;
             }
-            
+
             else if (strstr(final_replace_count == 0 ? relay_lvl_message[0] : final_lvl_message[0], "%MOUSE_BUTTON_PRESSTOSTART%") && !input_mouse_presstostart_enbind_done)
             {
                 char ks_ps_presstostart[MAXSTR];
@@ -894,7 +894,7 @@ const char *game_level_msg_inputbindings(const char *msg)
                 input_mouse_cam_enbind_done = 1;
                 final_replace_count++;
             }
-            
+
             else if (strstr(final_replace_count == 0 ? relay_lvl_message[0] : final_lvl_message[0], "%MOUSE_BUTTON_PRESSTOSTART%") && !input_mouse_presstostart_enbind_done)
             {
                 char ks_ps_presstostart[MAXSTR];

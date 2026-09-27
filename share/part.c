@@ -383,7 +383,6 @@ static void part_fall(const float *g, float dt)
         }
         else coin_part[i].t = 0.0f;
 
-
     for (i = 0; i < PART_MAX_GOAL; i++)
         if (goal_part[i].t > 0.f)
         {

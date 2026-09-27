@@ -185,6 +185,8 @@ static int title_check_balls_shown(void)
 
     game_client_toggle_show_balls(ball_shown);
 
+    if (!ball_shown) demo_replay_stop(0);
+
     return ball_shown;
 }
 

@@ -1600,26 +1600,21 @@ static void demo_play_timer(int id, float dt)
         transition = 1;
     }
 
-    if (speed != SPEED_NONE)
-    {
-        demo_timer_last = demo_timer_curr;
-        demo_timer_curr = curr_clock();
-    }
-
     /* Pause briefly before starting playback. */
 
     if (time_state() < prelude || st_global_animating()) {
-        demo_timer_upward = demo_timer_curr == 0;
-        demo_timer_down   = demo_timer_curr > 0;
+        demo_timer_upward = time_state() < prelude ?  0 : demo_timer_curr == 0;
+        demo_timer_down   = time_state() < prelude ? -1 : demo_timer_curr > 0;
         return;
-    } else if (time_state() >= prelude) {
+    } else if (time_state() >= prelude && !st_global_animating()) {
+        demo_timer_curr = curr_clock();
         demo_timer_down = demo_timer_last > demo_timer_curr        &&
                           demo_timer_last - demo_timer_curr <  200 &&
                           demo_timer_last - demo_timer_curr > -200;
     }
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    EM_ASM({ Neverball.WGCLshowGameHUD(); });
+    EM_ASM({ Pennyball.WGCLshowGameHUD(); });
 #endif
 
     if (demo_timer_down && !demo_timer_upward && curr_status() == GAME_NONE &&
@@ -1676,6 +1671,9 @@ static void demo_play_timer(int id, float dt)
         progress_step();
         game_client_blend(demo_replay_blend());
     }
+
+    if (speed != SPEED_NONE)
+        demo_timer_last = demo_timer_curr;
 }
 
 static void demo_play_stick(int id, int a, float v, int bump)

@@ -9,8 +9,8 @@
 | libvorbis | https://xiph.org/vorbis                |
 | libpng    | https://libpng.org/pub/png/libpng.html |
 | libjpeg   | https://ijg.org                        |
-| libcurl   | https://www.gnu.org/software/gettext/  |
-| libintl   | https://curl.se/                       |
+| libintl   | https://www.gnu.org/software/gettext/  |
+| libcurl   | https://curl.se/                       |
 
 You will also need to download OpenDriveAPI for each development platforms. This project code library is available from the OneDrive:
 

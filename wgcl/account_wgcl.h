@@ -20,6 +20,30 @@
 #define ACCOUNT_WGCL_RESTART_POST_ATTEMPT_THEN_GOTOSTATE(next_state, from, to)  \
     if (account_wgcl_restart_attempt()) goto_state(next_state); \
 
+/*---------------------------------------------------------------------------*/
+
+enum SCORE_WORLD_RANK
+{
+    WORLD_RANK_MIN = -1,
+
+    WORLD_RANK_HARD,
+    WORLD_RANK_MEDM,
+    WORLD_RANK_EASY,
+    WORLD_RANK_LAST,
+
+    WORLD_RANK_MAX
+};
+
+struct score_world_wgcl
+{
+    char player[WORLD_RANK_MAX][256];
+
+    int  timer[WORLD_RANK_MAX];         /* Time elapsed                      */
+    int  coins[WORLD_RANK_MAX];         /* Coins collected                   */
+};
+
+/*---------------------------------------------------------------------------*/
+
 int  account_wgcl_init(void);
 void account_wgcl_quit(void);
 int  account_wgcl_exists(void);
@@ -59,6 +83,10 @@ void account_wgcl_post_sync(const char *, const char *);
 
 #ifndef __EMSCRIPTEN__
 int account_wgcl_mapmarkers_place(const char *, int, int, int, int);
+
+int account_wgcl_seths_load(const char *,
+                            struct score_world_wgcl *,
+                            struct score_world_wgcl *);
 #endif
 
 void WGCL_KickScreenState(void);

@@ -378,14 +378,28 @@ static int operator_incidents_found_enter(struct state *st, struct state *prev, 
         gui_space(id);
         gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
+        
+        int backbtn_id = 0;
 
-        if (operator_readytosnap)
-            gui_start(id, _("Take photo!"), GUI_SML, 9999, 9999);
+        if ((float) ((float) video.device_w / (float) video.device_h > (4.0f / 3.0f)))
+        {
+            if ((jd = gui_harray(id)))
+            {
+                if (operator_readytosnap)
+                    gui_start(jd, _("Take photo!"), GUI_SML, 9999, 9999);
 
-        const int backbtn_id = gui_back_button(id);
+                backbtn_id = gui_back_button(jd);
+            }
+        }
+        else
+        {
+            if (operator_readytosnap)
+                gui_start(id, _("Take photo!"), GUI_SML, 9999, 9999);
+
+            backbtn_id = gui_back_button(id);
+        }
 
         if (!operator_readytosnap) gui_focus(backbtn_id);
-
         gui_layout(id, 0, 0);
     }
 

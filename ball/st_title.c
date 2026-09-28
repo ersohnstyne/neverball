@@ -173,7 +173,10 @@ static int title_check_balls_shown(void)
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
 #ifndef NDEBUG
-    const int ball_shown = config_cheat();
+    const int ball_shown = config_cheat() ||
+                           (!CHECK_ACCOUNT_BANKRUPT &&
+                            (output_tm.tm_hour > 5 &&
+                             output_tm.tm_hour < 22));
 #else
     const int ball_shown = (!CHECK_ACCOUNT_BANKRUPT &&
                             (output_tm.tm_hour > 5 &&

@@ -185,7 +185,7 @@ static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
     curl_easy_setopt(handle, CURLOPT_URL,           url);
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA,     out_data);
-    
+
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
 
     curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
@@ -803,7 +803,7 @@ int account_wgcl_login(const char *name, const char *password)
         !json_object_has_value(root_obj, "message_desc") ||
         !json_object_has_value(root_obj, "session_player_uuid4"))
     {
-        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+        log_errorf("WGCL + CURL error: Response's values does not matched exactly!\n");
         goto account_wgcl_login_fail;
     }
 
@@ -849,7 +849,7 @@ int account_wgcl_logout(void)
 
     read_only = 0;
 
-    fs_remove("neverball_wgcl.dat");
+    fs_remove("pennyball_wgcl.dat");
     return 1;
 }
 
@@ -965,7 +965,7 @@ int account_wgcl_try_add(int w_coins, int w_gems,
         !json_object_has_value(root_obj, "message_text") ||
         !json_object_has_value(root_obj, "message_desc"))
     {
-        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+        log_errorf("WGCL + CURL error: Response's values does not matched exactly!\n");
 
         account_wgcl_visit_browser_login();
 
@@ -1118,7 +1118,7 @@ int account_wgcl_try_set(int w_coins, int w_gems,
         !json_object_has_value(root_obj, "message_text") ||
         !json_object_has_value(root_obj, "message_desc"))
     {
-        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+        log_errorf("WGCL + CURL error: Response's values does not matched exactly!\n");
 
         account_wgcl_visit_browser_login();
 
@@ -1262,7 +1262,7 @@ int account_wgcl_try_buy(int w_coins_cost, int flags)
         !json_object_has_value(root_obj, "message_text") ||
         !json_object_has_value(root_obj, "message_desc"))
     {
-        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+        log_errorf("WGCL + CURL error: Response's values does not matched exactly!\n");
 
         account_wgcl_visit_browser_login();
 
@@ -1470,7 +1470,8 @@ int  account_wgcl_do_finish_challenge(int campaign, int coins, int gems,
 #else
     sprintf(in_url,
 #endif
-            hardcore ? "https://%s/api/internal/hardcorechallenge/finish" : "https://%s/api/internal/classicchallenge/finish", WGCL_URL);
+            hardcore ? "https://%s/api/internal/hardcorechallenge/finish" : "https://%s/api/internal/classicchallenge/finish",
+            WGCL_URL);
 
     struct wgcl_res_data res_data = {0};
 
@@ -1538,7 +1539,7 @@ int  account_wgcl_do_finish_challenge(int campaign, int coins, int gems,
         !json_object_has_value(root_obj, "message_text") ||
         !json_object_has_value(root_obj, "message_desc"))
     {
-        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+        log_errorf("WGCL + CURL error: Response's values does not matched exactly!\n");
 
         account_wgcl_visit_browser_login();
 
@@ -1736,7 +1737,7 @@ int account_wgcl_mapmarkers_place(const char *map_name, int status, int x_cm, in
         !json_object_has_value(root_obj, "message_text") ||
         !json_object_has_value(root_obj, "message_desc"))
     {
-        log_errorf("WGCL + CURL error: Session's column values does not matched exactly!\n");
+        log_errorf("WGCL + CURL error: Response's values does not matched exactly!\n");
 
         goto account_wgcl_mapmarkers_place_fail;
     }
@@ -1759,6 +1760,100 @@ account_wgcl_mapmarkers_place_fail:
     return 0;
 #else
     return 1;
+#endif
+}
+
+int account_wgcl_seths_load(const char *setid,
+                            struct score_world_wgcl *out_world_time_score,
+                            struct score_world_wgcl *out_world_coin_score)
+{
+#if _WIN32 && _MSC_VER
+    if (!out_world_time_score || !out_world_coin_score)
+        return 0;
+
+    char in_url[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_url, 512,
+#else
+    sprintf(in_url,
+#endif
+            "https://%s/api/internal/highscores/levelset", WGCL_URL);
+
+    struct wgcl_res_data res_data = {0};
+
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
+
+    char json_data[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(json_data, 512,
+#else
+    sprintf(json_data,
+#endif
+            "{"
+            "    \"fetch_post_date_iso\":\"%s\","
+            "    \"setid\":\"set-%s\""
+            "}",
+            wgcl_utc_strfmt, setid);
+
+    CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
+    CURLcode res = account_wgcl_curl_execute(handle);
+
+    account_wgcl_curl_quit(handle);
+    if (res != CURLE_OK)
+    {
+        log_errorf("WGCL + CURL error: Fetching world set highscores are not possible, you're offline!\n");
+
+        goto account_wgcl_seths_load_fail;
+    }
+
+    /* Now, parse JSON! */
+
+    JSON_Value  *root;
+    JSON_Object *root_obj;
+
+    if (!root || json_value_get_type(root) != JSONObject)
+    {
+        log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        goto account_wgcl_seths_load_fail;
+    }
+
+    root_obj = json_value_get_object(root);
+    if (!json_object_has_value(root_obj, "web_return_code") ||
+        !json_object_has_value(root_obj, "message_text") ||
+        !json_object_has_value(root_obj, "message_desc"))
+    {
+        log_errorf("WGCL + CURL error: Response's values does not matched exactly!\n");
+
+        goto account_wgcl_seths_load_fail;
+    }
+    else if (json_object_get_number(root_obj, "web_return_code") != 200)
+    {
+        log_errorf("WGCL + CURL error: Failed to load world set highscore: %s / %s\n",
+                   json_object_get_string(root_obj, "message_text"),
+                   json_object_get_string(root_obj, "message_desc"));
+
+        goto account_wgcl_seths_load_fail;
+    }
+
+    free(res_data.data);
+
+    log_printf("WGCL + CURL info: Done!\n");
+    return 1;
+
+account_wgcl_seths_load_fail:
+    free(res_data.data);
+    return 0;
+#else
+    return 0;
 #endif
 }
 #endif

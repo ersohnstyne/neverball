@@ -176,6 +176,13 @@ int glext_check_ext(const char *needle)
     return 0;
 }
 
+/*
+ * This function name will be redirected to glext_check_ext for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `glext_check_ext` to `glext_check`.
+ */
+#define glext_check glext_check_ext
+
 /*---------------------------------------------------------------------------*/
 
 #if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__) && !defined(__WII__)
@@ -190,7 +197,7 @@ int glext_fail(const char *title, const char *message);
 
 static int glext_assert_dbg(const char *ext)
 {
-    int have_ext = glext_check_ext(ext);
+    int have_ext = glext_check(ext);
 
     if (!have_ext)
     {
@@ -212,7 +219,7 @@ static int glext_assert_dbg(const char *ext)
 #else
 static int glext_assert(const char *ext)
 {
-    if (!glext_check_ext(ext))
+    if (!glext_check(ext))
     {
         log_errorf("Missing required OpenGL extension (%s)\n", ext);
         return 0;
@@ -346,8 +353,14 @@ int glext_init(void)
     glGetIntegerv(GL_MAX_TEXTURE_SIZE,  &gli.max_texture_size);
     glGetIntegerv(GL_MAX_TEXTURE_UNITS, &gli.max_texture_units);
 
-    if (glext_check_ext("GL_EXT_texture_filter_anisotropic"))
+    if (glext_check("GL_EXT_texture_filter_anisotropic"))
         gli.texture_filter_anisotropic = 1;
+
+#if defined(__EMSCRIPTEN__)
+    if (glext_check("ARB_framebuffer_object") ||
+        glext_check("EXT_framebuffer_object"))
+        gli.framebuffer_object = 1;
+#endif
 
 #if !defined(__WII__)
     /* Desktop init. */
@@ -380,7 +393,7 @@ int glext_init(void)
     else return 0;
 
 #ifndef _WIN32
-    if (glext_check_ext("ARB_shader_objects"))
+    if (glext_check("ARB_shader_objects"))
     {
         SDL_GL_GFPA(glGetShaderiv_,        "glGetShaderiv");
         SDL_GL_GFPA(glGetShaderInfoLog_,   "glGetShaderInfoLog");
@@ -404,7 +417,8 @@ int glext_init(void)
         gli.shader_objects = 1;
     }
 
-    if (glext_check_ext("ARB_framebuffer_object"))
+    if (glext_check("ARB_framebuffer_object") ||
+        glext_check("EXT_framebuffer_object"))
     {
         SDL_GL_GFPA(glBindFramebuffer_,        "glBindFramebuffer");
         SDL_GL_GFPA(glDeleteFramebuffers_,     "glDeleteFramebuffers");
@@ -415,7 +429,7 @@ int glext_init(void)
         gli.framebuffer_object = 1;
     }
 
-    if (glext_check_ext("GREMEDY_string_marker"))
+    if (glext_check("GREMEDY_string_marker"))
     {
         SDL_GL_GFPA(glStringMarkerGREMEDY_, "glStringMarkerGREMEDY");
 
@@ -459,12 +473,12 @@ int glext_init(void)
     }
     else return 0;
 
-    if (glext_check_ext("GL_NV_clip_space_w_scaling"))
+    if (glext_check("GL_NV_clip_space_w_scaling"))
     {
         SDL_GL_GFPA(glViewportPositionWScaleNV_, "glViewportPositionWScaleNV");
     }
 
-    if (glext_check_ext("GL_NV_occlusion_query"))
+    if (glext_check("GL_NV_occlusion_query"))
     {
         SDL_GL_GFPA(glGenOcclusionQueriesNV_,    "glGenOcclusionQueriesNV");
         SDL_GL_GFPA(glDeleteOcclusionQueriesNV_, "glDeleteOcclusionQueriesNV");

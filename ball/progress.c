@@ -1322,7 +1322,7 @@ void progress_exit(void)
 #endif
 
     activity_services_mode_update(AS_MODE_NONE);
-
+    
     if (done) {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1
@@ -1347,9 +1347,15 @@ void progress_exit(void)
 #endif
                 const int xppenalty_calculated = MIN(total_balls - ROUND(floorf(curr.score / 100)), 0);
 
-                account_wgcl_do_finish_challenge(coins, newgems_rfd, total_balls, timer,
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                account_wgcl_do_finish_challenge(campaign_used(), coins, newgems_rfd, total_balls, timer,
                                                  !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
-                                                 0, xppenalty_calculated, 0);
+                                                 0, xppenalty_calculated, 0, campaign_used() ? "campaign" : set_id(curr_set()));
+#else
+                account_wgcl_do_finish_challenge(0, coins, newgems_rfd, total_balls, timer,
+                                                 !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
+                                                 0, xppenalty_calculated, 0, set_id(curr_set()));
+#endif
             }
             else
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1360,9 +1366,9 @@ void progress_exit(void)
 #endif
                 )
             {
-                account_wgcl_do_finish_challenge(coins, ROUND(curr_score() / 10), 0, timer,
+                account_wgcl_do_finish_challenge(campaign_used(), coins, ROUND(curr_score() / 10), 0, timer,
                                                  !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
-                                                 0, 0, 1);
+                                                 0, 0, 1, campaign_used() ? "campaign" : set_id(curr_set()));
             }
             else
 #endif

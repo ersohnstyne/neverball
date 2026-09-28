@@ -1452,10 +1452,20 @@ static void start_snap_init(void)
 
     memset(&snap.fbo, 0, sizeof (snap.fbo));
 #if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
-    if (fbo_create(&snap.fbo, 512, 512))
+    if (fbo_create(&snap.fbo, 1024, 1024))
         snap.active = 1;
     else
 #endif
+    {
+#if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
+        fbo_delete(&snap.fbo);
+
+        if (fbo_create(&snap.fbo, 512, 512))
+            snap.active = 1;
+#endif
+    }
+
+    if (!snap.active)
     {
 #if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
         fbo_delete(&snap.fbo);

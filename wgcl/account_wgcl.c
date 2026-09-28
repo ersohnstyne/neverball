@@ -1452,9 +1452,9 @@ int account_wgcl_do_buy(int w_coins_cost, int flags)
     return 1;
 }
 
-int  account_wgcl_do_finish_challenge(int coins, int gems,
+int  account_wgcl_do_finish_challenge(int campaign, int coins, int gems,
                                       int balls, int total_time_ms,
-                                      int reward, int daily, int xppenalty, int hardcore)
+                                      int reward, int daily, int xppenalty, int hardcore, const char *setid)
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -1498,10 +1498,11 @@ int  account_wgcl_do_finish_challenge(int coins, int gems,
             "    \"gems\":%d,"
             "    \"balls\":%d,"
             "    \"total_time_ms\":%d,"
-            "    \"xp_penalty\":%d"
+            "    \"xp_penalty\":%d,"
+            "    \"setid\":%s"
             "}",
             wgcl_utc_strfmt, session_uuid4,
-            account_get_s(ACCOUNT_PLAYER), coins, gems, balls, total_time_ms, xppenalty);
+            account_get_s(ACCOUNT_PLAYER), coins, gems, balls, total_time_ms, xppenalty, setid);
 
     CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
     CURLcode res = account_wgcl_curl_execute(handle);
@@ -1579,9 +1580,10 @@ account_wgcl_do_finish_challenge_fail:
     return EM_ASM_INT({
         const player_uuid4 = UTF8ToString($0);
         const player_name  = UTF8ToString($1);
+        const setid        = UTF8ToString($10);
 
-        return Neverball.gamecore_account_try_finish_challenge(player_uuid4, player_name, $2, $3, $4, $5, $6, $7, $8, $9);
-    }, session_uuid4, config_get_s(CONFIG_PLAYER), coins, gems, balls, total_time_ms, reward, daily, hardcore, xppenalty);
+        return Neverball.gamecore_account_try_finish_challenge(player_uuid4, player_name, $2, $3, $4, $5, $6, $7, $8, $9, setid);
+    }, session_uuid4, config_get_s(CONFIG_PLAYER), coins, gems, balls, total_time_ms, reward, daily, hardcore, xppenalty, setid);
 #else
     return 0;
 #endif

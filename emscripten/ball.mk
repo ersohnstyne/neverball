@@ -99,6 +99,7 @@ BALL_SRCS := \
 	share/common.c \
 	share/config.c \
 	share/dir.c \
+	share/fbo.c \
 	share/fetch_emscripten.c \
 	share/font.c \
 	share/fs_common.c \

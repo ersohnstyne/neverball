@@ -362,10 +362,7 @@ int glext_init(void)
         gli.framebuffer_object = 1;
 #endif
 
-<<<<<<< HEAD
 #if !defined(__WII__)
-=======
->>>>>>> d9df382786d7e5635a1457b6b465ab943cf4fee6
     /* Desktop init. */
 
 #if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)

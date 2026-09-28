@@ -1451,7 +1451,11 @@ static void start_snap_init(void)
     fs_mkdir(snap.dir);
 
     memset(&snap.fbo, 0, sizeof (snap.fbo));
+<<<<<<< HEAD
 #if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
+=======
+
+>>>>>>> d9df382786d7e5635a1457b6b465ab943cf4fee6
     if (fbo_create(&snap.fbo, 1024, 1024))
         snap.active = 1;
     else
@@ -1462,14 +1466,21 @@ static void start_snap_init(void)
 
         if (fbo_create(&snap.fbo, 512, 512))
             snap.active = 1;
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> d9df382786d7e5635a1457b6b465ab943cf4fee6
     }
 
     if (!snap.active)
     {
+<<<<<<< HEAD
 #if !_WIN32 && !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__)
         fbo_delete(&snap.fbo);
 #endif
+=======
+        fbo_delete(&snap.fbo);
+>>>>>>> d9df382786d7e5635a1457b6b465ab943cf4fee6
 
         for (i = 0; i < snap.count; i++)
             level_snap(snap.queue[i], snap.dir);

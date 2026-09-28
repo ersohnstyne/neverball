@@ -1337,6 +1337,7 @@ int level_snap_offscreen(int i, const char *path, struct fbo *snap_fbo)
                                  ".png",
                                  NULL);
 
+<<<<<<< HEAD
         if (game_client_init(level_v[i].file))
         {
             union cmd cmd;
@@ -1400,6 +1401,63 @@ int level_snap_offscreen(int i, const char *path, struct fbo *snap_fbo)
 
             video.device_w = saved_dw;
             video.device_h = saved_dh;
+=======
+    if (game_client_init(level_v[i].file))
+    {
+        union cmd cmd;
+        int saved_dw, saved_dh;
+        unsigned char *pixels;
+
+        cmd.type = CMD_GOAL_OPEN;
+        game_proxy_enq(&cmd);
+        game_client_sync(NULL);
+
+        game_client_fly(1.0f);
+        game_kill_fade();
+
+        /* Bind offscreen framebuffer. */
+
+        glBindFramebuffer_(GL_FRAMEBUFFER, snap_fbo->framebuffer);
+        glViewport(0, 0, snap_fbo->width, snap_fbo->height);
+
+        /* Temporarily override device dimensions for 4:3 perspective. */
+
+        saved_dw = video.device_w;
+        saved_dh = video.device_h;
+        video.device_w = snap_fbo->height * 4 / 3;
+        video.device_h = snap_fbo->height;
+
+        video_clear();
+        game_client_draw(POSE_LEVEL, 0);
+
+        /* Read back pixels. */
+
+        if ((pixels = (unsigned char *) malloc(snap_fbo->width * snap_fbo->height * 4)))
+        {
+            int out_w = snap_fbo->width;
+            int out_h = snap_fbo->height;
+            unsigned char *out = pixels;
+
+            glReadPixels(0, 0, snap_fbo->width, snap_fbo->height,
+                         GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+            int factor = snap_fbo->width / 512;
+
+            if (factor > 1)
+            {
+                void *scaled = image_scale(pixels, snap_fbo->width, snap_fbo->height,
+                                           4, &out_w, &out_h, factor);
+                if (scaled)
+                    out = (unsigned char *) scaled;
+            }
+
+            success = image_save_png(filename, out, out_w, out_h);
+
+            if (out != pixels)
+                free(out);
+
+            free(pixels);
+>>>>>>> d9df382786d7e5635a1457b6b465ab943cf4fee6
         }
     }
 

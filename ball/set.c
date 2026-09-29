@@ -251,13 +251,13 @@ void WGCL_LevelSet_PostLoadHS(int load_mostcoins,
         switch (i)
         {
             case RANK_HARD:
-                score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_hard, time_hard, coin_hard);
+                if (strlen(player_hard) >= 3 && coin_hard >= 0) score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_hard, time_hard, coin_hard);
                 break;
             case RANK_MEDM:
-                score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_medm, time_medm, coin_medm);
+                if (strlen(player_medm) >= 3 && coin_medm >= 0) score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_medm, time_medm, coin_medm);
                 break;
             case RANK_EASY:
-                score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_easy, time_easy, coin_easy);
+                if (strlen(player_easy) >= 3 && coin_easy >= 0) score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_easy, time_easy, coin_easy);
                 break;
         }
     }

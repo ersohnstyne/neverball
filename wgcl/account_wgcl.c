@@ -1461,9 +1461,9 @@ int  account_wgcl_do_finish_challenge(int campaign, int coins, int gems,
     !defined(__EMSCRIPTEN__)
 #if _WIN32 && _MSC_VER
 #if NB_HAVE_PB_BOTH==1
+    if (!read_only) return 0;
 
     /* TODO: Do this for finish challenge network requests! */
-
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
     sprintf_s(in_url, 512,

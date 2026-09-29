@@ -286,8 +286,8 @@ static void set_load_hs_world(struct set *s)
         int time_rank_default = RANK_LAST;
         int coin_rank_default = RANK_LAST;
 
-        score_time_insert(&s->time_score, &time_rank_default, time_score_world.player[i], time_score_world.timer[i], time_score_world.coins[i]);
-        score_time_insert(&s->coin_score, &coin_rank_default, coin_score_world.player[i], coin_score_world.timer[i], coin_score_world.coins[i]);
+        if (time_score_world.coins[i] >= 0) score_time_insert(&s->time_score, &time_rank_default, time_score_world.player[i], time_score_world.timer[i], time_score_world.coins[i]);
+        if (coin_score_world.coins[i] >= 0) score_time_insert(&s->coin_score, &coin_rank_default, coin_score_world.player[i], coin_score_world.timer[i], coin_score_world.coins[i]);
     }
 #endif
 }

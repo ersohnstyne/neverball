@@ -1867,9 +1867,16 @@ int account_wgcl_seths_load(const char *setid,
 
                     if (out_world_time_score && in_timer != 0 && in_coins != 0)
                     {
-                        SAFECPY(out_world_time_score->player[i], in_player);
-                        out_world_time_score->coins[i] = in_coins;
-                        out_world_time_score->timer[i] = in_timer;
+                        if (in_timer != 0 && in_coins != 0) {
+                            SAFECPY(out_world_time_score->player[i], in_player);
+                            out_world_time_score->coins[i] = in_coins;
+                            out_world_time_score->timer[i] = in_timer;
+                        }
+                        else {
+                            SAFECPY(out_world_time_score->player[i], "0");
+                            out_world_time_score->coins[i] = -1;
+                            out_world_time_score->timer[i] = 359999;
+                        }
                     }
                 }
             }
@@ -1902,11 +1909,17 @@ int account_wgcl_seths_load(const char *setid,
                     in_timer = (int) json_object_get_number(hs_elem, "time_ms");
                     SAFECPY(in_player, json_object_get_string(hs_elem, "player_name"));
 
-                    if (out_world_time_score && in_timer != 0 && in_coins != 0)
+                    if (out_world_coin_score && in_timer != 0 && in_coins != 0)
                     {
-                        SAFECPY(out_world_time_score->player[i], in_player);
-                        out_world_time_score->coins[i] = in_coins;
-                        out_world_time_score->timer[i] = in_timer;
+                        if (in_timer != 0 && in_coins != 0) {
+                            SAFECPY(out_world_coin_score->player[i], in_player);
+                            out_world_coin_score->coins[i] = in_coins;
+                            out_world_coin_score->timer[i] = in_timer;
+                        } else {
+                            SAFECPY(out_world_coin_score->player[i], "0");
+                            out_world_coin_score->coins[i] = -1;
+                            out_world_coin_score->timer[i] = 359999;
+                        }
                     }
                 }
             }

@@ -20,6 +20,7 @@
 #include <string.h>
 
 #if NB_HAVE_PB_BOTH==1
+#include "account_wgcl.h"
 #include "campaign.h"
 #include "networking.h"
 
@@ -229,6 +230,79 @@ static int get_stats(fs_file fp, struct level *l)
     return 1;
 }
 
+#if NB_HAVE_PB_BOTH==1
+void WGCL_LevelSet_PostLoadHS(int load_mostcoins,
+                              const char *player_hard, int coin_hard, int time_hard,
+                              const char *player_medm, int coin_medm, int time_medm,
+                              const char *player_easy, int coin_easy, int time_easy)
+{
+    struct set *s = SET_GET(sets, curr);
+
+    struct score_world_wgcl time_score_world;
+    struct score_world_wgcl coin_score_world;
+
+    memset(&time_score_world, 0, sizeof (time_score_world));
+    memset(&coin_score_world, 0, sizeof (coin_score_world));
+
+    for (int i = 0; i < RANK_LAST; i++)
+    {
+        int rank_default = RANK_LAST;
+
+        switch (i)
+        {
+            case RANK_HARD:
+                score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_hard, time_hard, coin_hard);
+                break;
+            case RANK_MEDM:
+                score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_medm, time_medm, coin_medm);
+                break;
+            case RANK_EASY:
+                score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_easy, time_easy, coin_easy);
+                break;
+        }
+    }
+}
+
+/**
+ * WGCL: Load the world highscore for the current set.
+ *
+ * @param s The current level set
+ */
+static void set_load_hs_world(struct set *s)
+{
+    log_printf("WGCL: Loading world set highscore...: %s\n", s->id);
+
+#if defined(__EMSCRIPTEN__)
+    EM_ASM({ Pennyball.gamecore_levelset_loadhs(UTF8ToString($0)); }, s->id);
+#elif _WIN32 && _MSC_VER
+    struct score_world_wgcl time_score_world;
+    struct score_world_wgcl coin_score_world;
+
+    if (!account_wgcl_seths_load(s->id, &time_score_world, &coin_score_world))
+        return;
+
+    for (int i = 0; i < 3; i++)
+    {
+        int time_rank_default = RANK_LAST;
+        int coin_rank_default = RANK_LAST;
+
+        score_time_insert(&s->time_score, &time_rank_default, time_score_world.player[i], time_score_world.timer[i], time_score_world.coins[i]);
+        score_time_insert(&s->coin_score, &coin_rank_default, coin_score_world.player[i], coin_score_world.timer[i], coin_score_world.coins[i]);
+    }
+#endif
+}
+#else
+/**
+ * WGCL: Load the world highscore for the current set.
+ *
+ * You need to join Pennyball Discord Server in order
+ * to activate the world set highscore:
+ *
+ * https://discord.gg/qnJR263Hm2/
+ */
+#define set_load_hs_world(_ps) ((void *) 0)
+#endif
+
 static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
 {
     struct score time_score;
@@ -265,6 +339,7 @@ static void set_load_hs_v3(fs_file fp, struct set *s, char *buf, int size)
         {
             get_score(fp, &time_score);
             get_score(fp, &coin_score);
+            set_load_hs_world(s);
 
             set_score = 1;
         }
@@ -336,6 +411,7 @@ static void set_load_hs_v2(fs_file fp, struct set *s, char *buf, int size)
         {
             get_score(fp, &time_score);
             get_score(fp, &coin_score);
+            set_load_hs_world(s);
 
             set_score = 1;
         }
@@ -398,6 +474,7 @@ static void set_load_hs_v1(fs_file fp, struct set *s, char *buf, int size)
 
     get_score(fp, &s->time_score);
     get_score(fp, &s->coin_score);
+    set_load_hs_world(s);
 
     for (i = 0; i < n; i++)
     {
@@ -445,6 +522,7 @@ static void set_load_hs(void)
         fs_close(fp);
         fp = NULL;
     }
+    else set_load_hs_world(s);
 }
 
 /*---------------------------------------------------------------------------*/

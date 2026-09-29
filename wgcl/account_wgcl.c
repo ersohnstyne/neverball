@@ -1768,9 +1768,6 @@ int account_wgcl_seths_load(const char *setid,
                             struct score_world_wgcl *out_world_coin_score)
 {
 #if _WIN32 && _MSC_VER
-    if (!out_world_time_score || !out_world_coin_score)
-        return 0;
-
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
     sprintf_s(in_url, 512,
@@ -1819,6 +1816,8 @@ int account_wgcl_seths_load(const char *setid,
     JSON_Value  *root;
     JSON_Object *root_obj;
 
+    root = json_parse_string(res_data.data);
+
     if (!root || json_value_get_type(root) != JSONObject)
     {
         log_errorf("WGCL + CURL error: Not an JSON object!\n");
@@ -1842,6 +1841,80 @@ int account_wgcl_seths_load(const char *setid,
                    json_object_get_string(root_obj, "message_desc"));
 
         goto account_wgcl_seths_load_fail;
+    }
+
+    {
+        JSON_Array *hstime_elems = json_object_get_array(root_obj, "data_hs_time");
+        int len = hstime_elems ? json_array_get_count(hstime_elems) : -1;
+
+        if (hstime_elems && len > 0)
+            for (int i = 0; i < 3 && i < len; i++)
+            {
+                JSON_Object *hs_elem = json_array_get_object(hstime_elems, i);
+
+                if (!hs_elem || json_value_get_type(hs_elem) != JSONObject)
+                {
+                    log_errorf("WGCL + CURL error: Not an JSON object!: data_hs_time\n");
+
+                    goto account_wgcl_seths_load_fail;
+                }
+                else
+                {
+                    char in_player[256]; int in_coins, in_timer;
+                    in_coins = (int) json_object_get_number(hs_elem, "score");
+                    in_timer = (int) json_object_get_number(hs_elem, "time_ms");
+                    SAFECPY(in_player, json_object_get_string(hs_elem, "player_name"));
+
+                    if (out_world_time_score && in_timer != 0 && in_coins != 0)
+                    {
+                        SAFECPY(out_world_time_score->player[i], in_player);
+                        out_world_time_score->coins[i] = in_coins;
+                        out_world_time_score->timer[i] = in_timer;
+                    }
+                }
+            }
+
+        if (hstime_elems && len < 1)
+            log_errorf("WGCL + CURL error: No players recorded in world set highscore's best time.\n");
+        else
+            log_errorf("WGCL + CURL error: Not an JSON array: data_hs_time\n");
+    }
+
+    {
+        JSON_Array *hscoin_elems = json_object_get_array(root_obj, "data_hs_coin");
+        int len = hscoin_elems ? json_array_get_count(hscoin_elems) : -1;
+
+        if (hscoin_elems && len > 0)
+            for (int i = 0; i < 3 && i < len; i++)
+            {
+                JSON_Object *hs_elem = json_array_get_object(hscoin_elems, i);
+
+                if (!hs_elem || json_value_get_type(hs_elem) != JSONObject)
+                {
+                    log_errorf("WGCL + CURL error: Not an JSON object!: data_hs_coin\n");
+
+                    goto account_wgcl_seths_load_fail;
+                }
+                else if (out_world_coin_score)
+                {
+                    char in_player[256]; int in_coins, in_timer;
+                    in_coins = (int) json_object_get_number(hs_elem, "score");
+                    in_timer = (int) json_object_get_number(hs_elem, "time_ms");
+                    SAFECPY(in_player, json_object_get_string(hs_elem, "player_name"));
+
+                    if (out_world_time_score && in_timer != 0 && in_coins != 0)
+                    {
+                        SAFECPY(out_world_time_score->player[i], in_player);
+                        out_world_time_score->coins[i] = in_coins;
+                        out_world_time_score->timer[i] = in_timer;
+                    }
+                }
+            }
+
+        if (hscoin_elems && len < 1)
+            log_errorf("WGCL + CURL error: No players recorded in world set highscore's most coins.\n");
+        else
+            log_errorf("WGCL + CURL error: Not an JSON array: data_hs_coin\n");
     }
 
     free(res_data.data);

@@ -146,6 +146,8 @@ The top three fastest time and most coins scores for campaign are also stored. T
 
 The top three fastest time and most coins scores for each level set are also stored. To achieve a set score, the player must play through all levels of a set in Challenge mode.
 
+The world's fastest time and most coins for each level set are also stored on the WGCL (Pennyball + Neverball Game Core Launcher). To achieve a world set score, the player must have an internet connection and play through all levels of a set in Challenge mode. Only first attempt per levels to submit the world best time.
+
 The total set time will include time spent during both successful and unsuccessful level plays, thus time-outs and fall-outs count against the total time.
 
 The total campaign or set time will from checkpoint level time after respawn substracted.

@@ -273,7 +273,7 @@ static void set_load_hs_world(struct set *s)
     log_printf("WGCL: Loading world set highscore...: %s\n", s->id);
 
 #if defined(__EMSCRIPTEN__)
-    EM_ASM({ Pennyball.gamecore_levelset_loadhs(UTF8ToString($0)); }, s->id);
+    EM_ASM({ Neverball.gamecore_levelset_loadhs(UTF8ToString($0)); }, s->id);
 #elif _WIN32 && _MSC_VER
     struct score_world_wgcl time_score_world;
     struct score_world_wgcl coin_score_world;

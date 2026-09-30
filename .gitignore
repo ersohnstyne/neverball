@@ -74,7 +74,26 @@ doc/manual.txt
 /mapc
 /contrib/curve
 
+<<<<<<< HEAD
 # Emscripten Runtime files
+=======
+/.version
+/share/version.h
+
+*.bak
+*.autosave.map
+.vscode
+.DS_Store
+autosave
+*.po~
+
+/neverball.exe
+/neverputt.exe
+/mapc.exe
+/contrib/curve.exe
+/*.dll
+
+>>>>>>> 9b2ad6e6dd4dc310571f1423284fa0ca4e844507
 /js/neverball.data
 /js/neverball.js
 /js/neverball.wasm

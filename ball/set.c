@@ -238,26 +238,44 @@ void WGCL_LevelSet_PostLoadHS(int load_mostcoins,
 {
     struct set *s = SET_GET(sets, curr);
 
-    struct score_world_wgcl time_score_world;
-    struct score_world_wgcl coin_score_world;
+    int i, j;
 
-    memset(&time_score_world, 0, sizeof (time_score_world));
-    memset(&coin_score_world, 0, sizeof (coin_score_world));
-
-    for (int i = 0; i < RANK_LAST; i++)
+    for (i = 0; i < RANK_LAST; i++)
     {
-        int rank_default = RANK_LAST;
+        int time_rank_default = RANK_LAST, time_score_can_insert = 1;
+        int coin_rank_default = RANK_LAST, coin_score_can_insert = 1;
 
         switch (i)
         {
             case RANK_HARD:
-                if (strlen(player_hard) >= 3 && coin_hard >= 0) score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_hard, time_hard, coin_hard);
+                for (j = 0; j < 3; j++) {
+                    if (load_mostcoins && strcmp(s->coin_score.player[i], player_hard) == 0) coin_score_can_insert = 0;
+                    else if (strcmp(s->time_score.player[i], player_hard) == 0) time_score_can_insert = 0;
+                }
+                if (strlen(player_hard) >= 3 && coin_hard >= 0) {
+                    if (load_mostcoins && coin_score_can_insert) score_coin_insert(&s->coin_score, &coin_rank_default, player_hard, time_hard, coin_hard);
+                    else if (time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
+                }
                 break;
             case RANK_MEDM:
-                if (strlen(player_medm) >= 3 && coin_medm >= 0) score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_medm, time_medm, coin_medm);
+                for (j = 0; j < 3; j++) {
+                    if (load_mostcoins && strcmp(s->coin_score.player[i], player_medm) == 0) coin_score_can_insert = 0;
+                    else if (strcmp(s->time_score.player[i], player_medm) == 0) time_score_can_insert = 0;
+                }
+                if (strlen(player_medm) >= 3 && coin_medm >= 0) {
+                    if (load_mostcoins && coin_score_can_insert) score_coin_insert(&s->coin_score, &coin_rank_default, player_hard, time_hard, coin_hard);
+                    else if (time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
+                }
                 break;
             case RANK_EASY:
-                if (strlen(player_easy) >= 3 && coin_easy >= 0) score_time_insert(load_mostcoins ? &s->coin_score : &s->time_score, &rank_default, player_easy, time_easy, coin_easy);
+                for (j = 0; j < 3; j++) {
+                    if (load_mostcoins && strcmp(s->coin_score.player[i], player_easy) == 0) coin_score_can_insert = 0;
+                    else if (strcmp(s->time_score.player[i], player_easy) == 0) time_score_can_insert = 0;
+                }
+                if (strlen(player_easy) >= 3 && coin_easy >= 0) {
+                    if (load_mostcoins && coin_score_can_insert) score_coin_insert(&s->coin_score, &coin_rank_default, player_hard, time_hard, coin_hard);
+                    else if (time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
+                }
                 break;
         }
     }
@@ -273,7 +291,7 @@ static void set_load_hs_world(struct set *s)
     log_printf("WGCL: Loading world set highscore...: %s\n", s->id);
 
 #if defined(__EMSCRIPTEN__)
-    EM_ASM({ Neverball.gamecore_levelset_loadhs(UTF8ToString($0)); }, s->id);
+    EM_ASM({ Pennyball.gamecore_levelset_loadhs(UTF8ToString($0)); }, s->id);
 #elif _WIN32 && _MSC_VER
     struct score_world_wgcl time_score_world;
     struct score_world_wgcl coin_score_world;
@@ -281,13 +299,24 @@ static void set_load_hs_world(struct set *s)
     if (!account_wgcl_seths_load(s->id, &time_score_world, &coin_score_world))
         return;
 
-    for (int i = 0; i < 3; i++)
-    {
-        int time_rank_default = RANK_LAST;
-        int coin_rank_default = RANK_LAST;
+    int i, j;
 
-        if (time_score_world.coins[i] >= 0) score_time_insert(&s->time_score, &time_rank_default, time_score_world.player[i], time_score_world.timer[i], time_score_world.coins[i]);
-        if (coin_score_world.coins[i] >= 0) score_time_insert(&s->coin_score, &coin_rank_default, coin_score_world.player[i], coin_score_world.timer[i], coin_score_world.coins[i]);
+    for (i = 0; i < 3; i++)
+    {
+        int time_rank_default = RANK_LAST, time_score_can_insert = 1;
+        int coin_rank_default = RANK_LAST, coin_score_can_insert = 1;
+
+        for (j = 0; j < 3; j++)
+            if (strcmp(time_score_world.player[i], s->time_score.player[j]) == 0) time_score_can_insert = 0;
+
+        if (time_score_can_insert && time_score_world.coins[i] >= 0)
+            score_time_insert(&s->time_score, &time_rank_default, time_score_world.player[i], time_score_world.timer[i], time_score_world.coins[i]);
+
+        for (j = 0; j < 3; j++)
+            if (strcmp(coin_score_world.player[i], s->coin_score.player[j]) == 0) coin_score_can_insert = 0;
+
+        if (coin_score_can_insert && coin_score_world.coins[i] >= 0)
+            score_coin_insert(&s->coin_score, &time_rank_default, coin_score_world.player[i], coin_score_world.timer[i], coin_score_world.coins[i]);
     }
 #endif
 }

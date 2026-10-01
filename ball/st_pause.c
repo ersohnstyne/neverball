@@ -230,22 +230,10 @@ static int pause_action(int tok, int val)
             return goto_conf(&st_pause, 1, 0);
             break;
 
-<<<<<<< HEAD
         case GUI_BACK:
         case PAUSE_CONTINUE:
             PAUSED_ACTION_CONTINUE;
             break;
-=======
-    case PAUSE_CONTINUE:
-        audio_music_fade_in(1.0f);
-
-        /* Only gameplay states require mouse grab. */
-
-        if (st_continue != &st_level)
-            video_set_grab(0);
-
-        return goto_state(st_continue);
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
 
         case PAUSE_RESPAWN:
 #ifdef MAPC_INCLUDES_CHKP
@@ -381,15 +369,7 @@ static int pause_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-<<<<<<< HEAD
         gui_state_icon(id, GUI_GEAR, 0, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
-=======
-        if ((jd = gui_hstack(id)))
-        {
-            gui_state_icon(jd, GUI_GEAR, 0, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
-            gui_filler(jd);
-        }
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
 
         gui_space(id);
 
@@ -405,19 +385,10 @@ static int pause_gui(void)
 
         if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_vstack(id) : gui_harray(id)))
         {
-<<<<<<< HEAD
             if ((float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)))
                 pause_btns_vertical_gui(jd, quit_btn_text);
             else
                 pause_btns_horizontal_gui(jd, quit_btn_text);
-=======
-            gui_state_icon(jd, GUI_CROSS, gui_red, _("Give Up"), GUI_SML, PAUSE_EXIT, 0);
-
-            if (progress_same_avail())
-                gui_state_icon(jd, GUI_CIRCLE_ARROW, gui_yel, _("Restart"), GUI_SML, PAUSE_RESTART, 0);
-
-            gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
         }
 
         gui_pulse(title_id, 1.2f);
@@ -456,7 +427,6 @@ static int pause_leave(struct state *st, struct state *next, int id, int intent)
 
 static void pause_paint(int id, float t)
 {
-<<<<<<< HEAD
     game_client_draw(0, t);
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -470,14 +440,6 @@ static void pause_paint(int id, float t)
     }
 
     gui_paint(id);
-=======
-    shared_paint(id, t);
-
-    /* Intro screen does not display the in-game HUD. */
-
-    if (st_continue != &st_level)
-        hud_paint();
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
 }
 
 static void pause_timer(int id, float dt)
@@ -496,15 +458,9 @@ static void pause_timer(int id, float dt)
     }
 
     gui_timer(id, dt);
-<<<<<<< HEAD
     hud_timer(dt);
 
     hud_update(config_get_d(CONFIG_SCREEN_ANIMATIONS), dt);
-=======
-
-    if (st_continue != &st_level)
-        hud_timer(dt);
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
 }
 
 static int pause_keybd(int c, int d)

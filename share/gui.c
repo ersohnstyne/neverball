@@ -1452,7 +1452,6 @@ int gui_state(int pd, const char *text, int size, int token, int value)
 int gui_start_icon(int pd, const char *icon, const GLubyte *color,
                    const char *text, int size, int token, int value)
 {
-<<<<<<< HEAD
     return gui_start_icon_full(pd, icon, color, text, size, token, value, 1, 0);
 }
 
@@ -1471,8 +1470,6 @@ int gui_state_icon_LH(int pd, const char *icon, const GLubyte *color,
 int gui_start_icon_full(int pd, const char *icon, const GLubyte *color,
                         const char *text, int size, int token, int value, int enabled, int destructive)
 {
-=======
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
     int id;
 
     if ((id = gui_state_icon(pd, icon, color, text, size, token, value)))
@@ -1481,19 +1478,13 @@ int gui_start_icon_full(int pd, const char *icon, const GLubyte *color,
     return id;
 }
 
-<<<<<<< HEAD
 int gui_state_icon_full(int pd, const char *icon, const GLubyte *color,
                         const char *text, int size, int token, int value, int enabled, int destructive)
-=======
-int gui_state_icon(int pd, const char *icon, const GLubyte *color,
-                   const char *text, int size, int token, int value)
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
 {
     int id, ld;
 
     if ((id = gui_hstack(pd)))
     {
-<<<<<<< HEAD
         gui_filler(id);
 
         if (icon && *icon && icon[0])
@@ -1561,17 +1552,6 @@ int gui_state_icon_LH_full(int pd, const char *icon, const GLubyte *color,
         gui_set_rect(id, GUI_ALL);
     }
 
-=======
-        if (icon && *icon)
-            gui_label(id, icon, size, color, color);
-
-        if ((ld = gui_label(id, text, size, gui_wht, gui_wht)))
-            gui_set_fill(ld);
-
-        gui_set_state(id, token, value);
-        gui_set_rect(id, GUI_ALL);
-    }
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
     return id;
 }
 

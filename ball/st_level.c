@@ -71,13 +71,13 @@
 #include "game_common.h"
 
 #include "st_common.h"
-#include "st_pause.h"
 #include "st_level.h"
 #include "st_play.h"
 #include "st_start.h"
 #include "st_set.h"
 #include "st_over.h"
 #include "st_done.h"
+#include "st_pause.h"
 #include "st_shared.h"
 #include "st_title.h"
 #ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
@@ -728,7 +728,7 @@ static int level_gui(void)
         }
 
         gui_space(id);
-        
+
 #ifdef MAPC_INCLUDES_CHKP
         char *desc = strdup(last_active ? LEVEL_MESSAGE_CHKP_POST_RESPAWN :
                                           level_desc(curr_level()));
@@ -756,8 +756,7 @@ static int level_gui(void)
         {
             gui_filler(jd);
 
-            if ((kd = gui_start_button(jd, LEVEL_START)))
-                gui_focus(kd);
+            gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Start"), GUI_SML, LEVEL_START, 0);
 
 #ifndef __EMSCRIPTEN__
             if ((current_platform != PLATFORM_PC &&
@@ -821,6 +820,7 @@ static int level_enter(struct state *st, struct state *prev, int intent)
 {
     activity_services_powerup_update(AS_POWERUP_NONE);
     //game_lerp_pose_point_reset();
+    video_clr_grab();
     game_client_fly(1.0f);
 
     nodemo_warnonlyonce = prev != &st_level  &&

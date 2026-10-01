@@ -34,7 +34,6 @@
 #include "video.h"
 #include "progress.h"
 #include "demo.h"
-#include "level.h"
 #include "audio.h"
 #include "hud.h"
 #include "key.h"
@@ -315,70 +314,62 @@ static int pause_action(int tok, int val)
 
 static void pause_btns_horizontal_gui(int jd, const char *quit_btn_text)
 {
-    int kd;
+    int btn_ids[4] = { 0, 0, 0, 0 };
 
-    gui_text_icon_button(jd, _(quit_btn_text), GUI_CROSS, gui_red, PAUSE_EXIT, 0, 1, campaign_used() || curr_times() > 0);
-    kd = gui_text_icon_button(jd, _("Restart"), GUI_CIRCLE_ARROW, gui_yel, PAUSE_RESTART, 0, progress_same_avail(), 0);
+    btn_ids[3] = gui_state_icon_full(jd, GUI_CROSS, gui_red, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0, 1, campaign_used() || curr_times() > 0);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    btn_ids[2] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? (campaign_used() ? gui_red : gui_yel) : gui_gry, _("Restart"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0, progress_same_avail(), 0);
+#else
+    btn_ids[2] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_yel : gui_gry, _("Restart"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0, progress_same_avail(), 0);
+#endif
 
 #ifdef MAPC_INCLUDES_CHKP
     if (last_active)
-        kd = gui_text_icon_button(jd, _("Reset Puzzle"), GUI_CIRCLE_ARROW, gui_vio, PAUSE_RESPAWN, 0, progress_same_avail(), 0);
+        btn_ids[1] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_vio : gui_gry, _("Reset Puzzle"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0, progress_same_avail(), 0);
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
-        kd = gui_text_icon_button(jd, _("Continue"), GUI_TRIANGLE_RIGHT, gui_grn, PAUSE_CONTINUE, 0, progress_same_avail(), 0);
-
-    gui_focus(kd);
+        btn_ids[0] = gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
 }
 
 static void pause_btns_vertical_gui(int jd, const char *quit_btn_text)
 {
-    int kd = 0, kd_focus = 0;
+    int btn_ids[4] = { 0, 0, 0, 0 };
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
-    {
-        kd = gui_text_icon_button_LH(jd, _("Continue"), GUI_TRIANGLE_RIGHT, gui_grn, PAUSE_CONTINUE, 0, progress_same_avail(), 0);
-        if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
-    }
+        btn_ids[0] = gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Continue"), GUI_SML, PAUSE_CONTINUE, 0);
 
 #ifdef MAPC_INCLUDES_CHKP
     if (last_active)
-    {
-        kd = gui_text_icon_button_LH(jd, _("Reset Puzzle"), GUI_CIRCLE_ARROW, gui_vio, PAUSE_RESPAWN, 0, progress_same_avail(), 0);
-        if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
-    }
+        btn_ids[1] = gui_state_icon(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_vio : gui_gry, _("Reset Puzzle"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0);
+
+    if (!progress_same_avail() && btn_ids[1])
+        gui_set_color(btn_ids[1], GUI_COLOR_GRY);
 #endif
 
-    kd = gui_text_icon_button_LH(jd, _("Restart"), GUI_CIRCLE_ARROW, gui_yel, PAUSE_RESTART, 0, progress_same_avail(), 0);
-    gui_text_icon_button_LH(jd, _(quit_btn_text), GUI_CROSS, gui_red, PAUSE_EXIT, 0, 1, campaign_used() || curr_times() > 0);
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    btn_ids[2] = gui_state_icon(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? (campaign_used() ? gui_red : gui_yel) : gui_gry, _("Restart"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0);
+#else
+    btn_ids[2] = gui_state_icon(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_yel : gui_gry, _("Restart"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0);
+#endif
 
-    if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
+    btn_ids[3] = gui_state_icon_full(jd, GUI_CROSS, gui_red, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0, 1, campaign_used() || curr_times() > 0);
 }
 
 static int pause_gui(void)
 {
-    int id, jd, kd, title_id;
+    int id, jd, title_id;
 
     /* Build the pause GUI. */
 
     if ((id = gui_vstack(0)))
     {
-        if ((jd = gui_hstack(id)))
-        {
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_DEFAULT);
-                gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
-
-                gui_set_state(kd, PAUSE_OPTIONS, 0);
-                gui_set_rect(kd, GUI_ALL);
-            }
-            gui_filler(jd);
-        }
+        gui_state_icon(id, GUI_GEAR, 0, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
 
         gui_space(id);
 

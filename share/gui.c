@@ -1293,8 +1293,6 @@ void gui_clr_rect(int id)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
-    if (id == cursor_id) return;
-
     int jd;
 
     widget[id].flags &= ~GUI_RECT;
@@ -1315,6 +1313,8 @@ void gui_set_clip(int id)
 void gui_clr_clip(int id)
 {
     FUNC_VOID_CHECK_LIMITS(id);
+
+    if (id == cursor_id) return;
 
     int jd;
 
@@ -1446,6 +1446,112 @@ int gui_state(int pd, const char *text, int size, int token, int value)
         widget[id].value = value;
         gui_widget_size(id);
     }
+    return id;
+}
+
+int gui_start_icon(int pd, const char *icon, const GLubyte *color,
+                   const char *text, int size, int token, int value)
+{
+    return gui_start_icon_full(pd, icon, color, text, size, token, value, 1, 0);
+}
+
+int gui_state_icon(int pd, const char *icon, const GLubyte *color,
+                   const char *text, int size, int token, int value)
+{
+    return gui_state_icon_full(pd, icon, color, text, size, token, value, 1, 0);
+}
+
+int gui_state_icon_LH(int pd, const char *icon, const GLubyte *color,
+                      const char *text, int size, int token, int value)
+{
+    return gui_state_icon_LH_full(pd, icon, color, text, size, token, value, 1, 0);
+}
+
+int gui_start_icon_full(int pd, const char *icon, const GLubyte *color,
+                        const char *text, int size, int token, int value, int enabled, int destructive)
+{
+    int id;
+
+    if ((id = gui_state_icon(pd, icon, color, text, size, token, value)))
+        active = id;
+
+    return id;
+}
+
+int gui_state_icon_full(int pd, const char *icon, const GLubyte *color,
+                        const char *text, int size, int token, int value, int enabled, int destructive)
+{
+    int id, ld;
+
+    if ((id = gui_hstack(pd)))
+    {
+        gui_filler(id);
+
+        if (icon && *icon && icon[0])
+        {
+            const int icn_id = gui_label(id, icon, size, enabled ? color : gui_gry, enabled ? color : gui_gry);
+
+            if (strcmp(icon, GUI_FISHEYE)     == 0 ||
+                strcmp(icon, GUI_GEAR)        == 0 ||
+                strcmp(icon, GUI_CROWN)       == 0 ||
+                strcmp(icon, GUI_GAMEPAD)     == 0 ||
+                strcmp(icon, GUI_BATTERY)     == 0 ||
+                strcmp(icon, GUI_BATTERY_LOW) == 0 ||
+                strcmp(icon, GUI_GOAL)        == 0 ||
+                strcmp(icon, GUI_TIMEOUT)     == 0 ||
+                strcmp(icon, GUI_HEARTBROKEN) == 0 ||
+                strcmp(icon, GUI_SHOPCART)    == 0 ||
+                strcmp(icon, GUI_SAVETODISK)  == 0)
+                gui_set_font(icn_id, "ttf/seguiemj.ttf");
+        }
+
+        if ((ld = gui_label(id, text, size, enabled ? (destructive ? gui_red : gui_wht) : gui_gry, enabled ? (destructive ? gui_red : gui_wht) : gui_gry)))
+            gui_set_fill(ld);
+
+        gui_filler(id);
+
+        gui_set_state(id, enabled ? token : GUI_NONE, value);
+        gui_set_rect(id, GUI_ALL);
+    }
+
+    return id;
+}
+
+int gui_start_icon_LH_full(int pd, const char *icon, const GLubyte *color,
+                           const char *text, int size, int token, int value, int enabled, int destructive)
+{
+    int id;
+
+    if ((id = gui_state_icon_LH_full(pd, icon, color, text, size, token, value, enabled, destructive)))
+        active = id;
+
+    return id;
+}
+
+int gui_state_icon_LH_full(int pd, const char *icon, const GLubyte *color,
+                           const char *text, int size, int token, int value, int enabled, int destructive)
+{
+    int id, ld;
+
+    if ((id = gui_hstack(pd)))
+    {
+        gui_filler(id);
+
+        if ((ld = gui_label(id, text, size, enabled ? (destructive ? gui_red : gui_wht) : gui_gry, enabled ? (destructive ? gui_red : gui_wht) : gui_gry)))
+            gui_set_fill(ld);
+
+        if (icon && *icon && icon[0])
+        {
+            const int icn_id = gui_label(id, icon, size, enabled ? color : gui_gry, enabled ? color : gui_gry);
+            gui_set_font(icn_id, "ttf/seguiemj.ttf");
+        }
+
+        gui_filler(id);
+
+        gui_set_state(id, enabled ? token : GUI_NONE, value);
+        gui_set_rect(id, GUI_ALL);
+    }
+
     return id;
 }
 

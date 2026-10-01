@@ -185,7 +185,7 @@ static void WGCL_fail_call_incident(void)
         video_clear();
         game_client_draw(POSE_LEVEL, 0);
 
-        EM_ASM({ Pennyball.gamecore_mapmarker_incident_takescreenshot(); });
+        EM_ASM({ Neverball.gamecore_mapmarker_incident_takescreenshot(); });
 
         game_disable_fade(0);
 #endif
@@ -427,14 +427,14 @@ static void fail_btns_horizontal_gui_mojang(int jd, const int sync_done,
      * - Ersohn Styne
      */
 
-    int kd = 0, ld;
+    int kd = 0;
 
 #ifdef MAPC_INCLUDES_CHKP
     if (respawnable)
     {
         /* Use only Mojang's UI instead, which have recently already known. */
 
-        gui_text_icon_button(jd, _("Cancel"), GUI_CROSS, gui_red, FAIL_CHECKPOINT_CANCEL, 0, 1, 1);
+        gui_state_icon(jd, GUI_CROSS, gui_red, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
 
         /* vvv RESPAWN BUTTON vvv */
 
@@ -452,14 +452,12 @@ static void fail_btns_horizontal_gui_mojang(int jd, const int sync_done,
         {
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                gui_start(jd, _("Buy balls!"),
-                              GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                gui_start_icon(jd, GUI_SHOPCART, gui_grn, _("Buy balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
             else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
-                gui_start(jd, _("Upgrade edition!"),
-                              GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                gui_start_icon(jd, GUI_ARROW_UP, gui_grn, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
         } else
 #endif
-        kd = gui_text_icon_button(jd, _("Respawn"), GUI_CIRCLE_ARROW, gui_vio, FAIL_CHECKPOINT_RESPAWN, 0, progress_same_avail(), 0);
+        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_vio, _("Respawn"), GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0, progress_same_avail && !progress_dead(), 0);
 
         /* ^^^ END RESPAWN BUTTON ^^^ */
     }
@@ -471,7 +469,7 @@ static void fail_btns_horizontal_gui_mojang(int jd, const int sync_done,
         const char *quit_btn_text = (curr_mode() == MODE_STANDALONE || progress_dead() ?
                                      N_("Exit") : N_("Back To Menu"));
 
-        gui_text_icon_button(jd, _(quit_btn_text), GUI_CROSS, gui_red, FAIL_OVER, 0, 1, !progress_same_avail() && progress_dead());
+        gui_state_icon_full(jd, GUI_CROSS, gui_red, _(quit_btn_text), GUI_SML, FAIL_OVER, 0, 1, curr_mode() == MODE_STANDALONE || progress_dead());
 
         /* vvv RESTART BUTTON vvv */
 
@@ -489,38 +487,18 @@ static void fail_btns_horizontal_gui_mojang(int jd, const int sync_done,
         {
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                gui_start(jd, _("Buy balls!"),
-                              GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                gui_start_icon(jd, GUI_SHOPCART, gui_grn, _("Buy balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
             else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
-                gui_start(jd, _("Upgrade edition!"),
-                              GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                gui_start_icon(jd, GUI_ARROW_UP, gui_grn, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
         } else
 #endif
-        kd = gui_text_icon_button(jd, _("Retry Level"), GUI_CIRCLE_ARROW, gui_yel, FAIL_SAME, 0, progress_same_avail(), 0);
+        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_yel, _("Retry Level"), GUI_SML, FAIL_SAME, 0, progress_same_avail && !progress_dead(), 0);
 
         /* ^^^ END RESTART BUTTON ^^^ */
     }
 
-    gui_focus(kd);
-
     if (demo_saved() && demo_saveable)
-    {
-        if ((kd = gui_hstack(jd)))
-        {
-            const GLubyte *btn_color      = gui_grn;
-            const GLubyte *btn_color_text = gui_wht;
-
-            gui_filler(kd);
-            const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, btn_color, btn_color);
-            gui_set_font(icn_id, "ttf/seguiemj.ttf");
-            ld = gui_label(kd, _("Save Replay"), GUI_SML, btn_color_text, btn_color_text);
-            gui_filler(kd);
-
-            gui_set_fill(ld);
-            gui_set_state(kd, FAIL_SAVE, 0);
-            gui_set_rect(kd, GUI_ALL);
-        }
-    }
+        gui_state_icon(jd, GUI_SAVETODISK, gui_yel, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     if (!respawnable && account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&
@@ -553,7 +531,7 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
      * - Ersohn Styne
      */
 
-    int kd = 0, ld;
+    int kd = 0;
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     if (!respawnable && account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 1 &&
@@ -562,23 +540,7 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
 #endif
 
     if (demo_saved() && demo_saveable)
-    {
-        if ((kd = gui_hstack(jd)))
-        {
-            const GLubyte *btn_color      = gui_grn;
-            const GLubyte *btn_color_text = gui_wht;
-
-            gui_filler(kd);
-            const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, btn_color, btn_color);
-            gui_set_font(icn_id, "ttf/seguiemj.ttf");
-            ld = gui_label(kd, _("Save Replay"), GUI_SML, btn_color_text, btn_color_text);
-            gui_filler(kd);
-
-            gui_set_fill(ld);
-            gui_set_state(kd, FAIL_SAVE, 0);
-            gui_set_rect(kd, GUI_ALL);
-        }
-    }
+        gui_state_icon(jd, GUI_SAVETODISK, gui_yel, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
 
 #ifdef MAPC_INCLUDES_CHKP
     if (respawnable)
@@ -601,18 +563,16 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
         {
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                gui_start(jd, _("Buy balls!"),
-                              GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                gui_start_icon(jd, GUI_SHOPCART, gui_grn, _("Buy balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
             else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
-                gui_start(jd, _("Upgrade edition!"),
-                              GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                gui_start_icon(jd, GUI_ARROW_UP, gui_grn, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
         } else
 #endif
-        kd = gui_text_icon_button(jd, _("Respawn"), GUI_CIRCLE_ARROW, gui_vio, FAIL_CHECKPOINT_RESPAWN, 0, progress_same_avail(), 0);
+        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_vio, _("Respawn"), GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0, progress_same_avail && !progress_dead(), 0);
 
         /* ^^^ END RESPAWN BUTTON ^^^ */
 
-        gui_text_icon_button(jd, _("Cancel"), GUI_CROSS, gui_red, FAIL_CHECKPOINT_CANCEL, 0, 1, 1);
+        gui_state_icon(jd, GUI_CROSS, gui_red, _("Cancel"), GUI_SML, FAIL_CHECKPOINT_CANCEL, 0);
     }
     else
 #endif
@@ -621,7 +581,7 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
 
         const char *quit_btn_text = (curr_mode() == MODE_STANDALONE || progress_dead() ?
                                      N_("Exit") : N_("Back To Menu"));
-
+        
         /* vvv RESTART BUTTON vvv */
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__) && !defined(__NDS__) && !defined(__3DS__) && \
@@ -638,21 +598,17 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
         {
             if (server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                 server_policy_get_d(SERVER_POLICY_SHOP_ENABLED))
-                gui_start(jd, _("Buy balls!"),
-                              GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
+                gui_start_icon(jd, GUI_SHOPCART, gui_grn, _("Buy balls!"), GUI_SML, FAIL_ASK_MORE, ASK_MORE_BALLS);
             else if (server_policy_get_d(SERVER_POLICY_EDITION) < 0)
-                gui_start(jd, _("Upgrade edition!"),
-                              GUI_SML, FAIL_UPGRADE_EDITION, 0);
+                gui_start_icon(jd, GUI_ARROW_UP, gui_grn, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
         } else
 #endif
-        kd = gui_text_icon_button(jd, _("Retry Level"), GUI_CIRCLE_ARROW, gui_yel, FAIL_SAME, 0, progress_same_avail(), 0);
+        gui_state_icon_full(jd, GUI_CIRCLE_ARROW, gui_yel, _("Retry Level"), GUI_SML, FAIL_SAME, 0, progress_same_avail && !progress_dead(), 0);
 
         /* ^^^ END RESTART BUTTON ^^^ */
 
-        gui_text_icon_button(jd, _(quit_btn_text), GUI_CROSS, gui_red, FAIL_OVER, 0, 1, !progress_same_avail() && progress_dead());
+        gui_state_icon(jd, GUI_CROSS, gui_red, _(quit_btn_text), GUI_SML, FAIL_OVER, 0);
     }
-
-    gui_focus(kd);
 }
 
 static int fail_gui(void)
@@ -662,8 +618,6 @@ static int fail_gui(void)
         return tmp_online_session_data != undefined &&
                tmp_online_session_data != null;
     });
-
-    if (!wgcl_account_sync_done) return 1;
 #else
     const int wgcl_account_sync_done = 0;
 #endif
@@ -1274,7 +1228,7 @@ static int zen_warning_buttn(int b, int d)
 
 #if NB_HAVE_PB_BOTH==1
 
-#defineST_FAIL_CHALLENGE_GEMS_COST_DEFAULT 25
+#define ST_FAIL_CHALLENGE_GEMS_COST_DEFAULT 25
 
 enum
 {
@@ -1469,8 +1423,9 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                       server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP)))
                 gui_title_header(id, _("Buy Mediation?"),
                                      GUI_MED, gui_gry, gui_red);
-            else gui_title_header(id, _("Sorry!"),
-                                      GUI_MED, gui_gry, gui_red);
+            else
+                gui_title_header(id, _("Sorry!"),
+                                     GUI_MED, gui_gry, gui_red);
         }
 
         gui_space(id);
@@ -1893,7 +1848,7 @@ static int raise_gems_prepare_gui(void)
                 SAFECAT(infoattr_full, "\n");
                 SAFECAT(infoattr_full, bankrupt_str2);
             }
-#if (NB_STEAM_API == 1 || NB_EOS_SDK == 1) && ENABLE_IAP == 1 && \
+#if (NB_STEAM_API==1 || NB_EOS_SDK==1) && ENABLE_IAP==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)

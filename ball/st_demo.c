@@ -1614,7 +1614,7 @@ static void demo_play_timer(int id, float dt)
     }
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    EM_ASM({ Pennyball.WGCLshowGameHUD(); });
+    EM_ASM({ Neverball.WGCLshowGameHUD(); });
 #endif
 
     if (demo_timer_down && !demo_timer_upward && curr_status() == GAME_NONE &&
@@ -1835,7 +1835,7 @@ static void demo_end_btns_horizontal_gui(int jd, int continue_allowed)
     int kd;
 
     if (demo_paused || !console_gui_shown())
-        gui_text_icon_button(jd, _("Exit"), GUI_CROSS, gui_red, DEMO_QUIT, 0, 1, 0);
+        gui_state_icon(jd, GUI_CROSS, gui_red, _("Exit"), GUI_SML, DEMO_QUIT, 0);
 
 #if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
     /* Microsoft and Windows Games can do it! */
@@ -1844,8 +1844,7 @@ static void demo_end_btns_horizontal_gui(int jd, int continue_allowed)
         gui_state(jd, _("Delete"), GUI_SML, DEMO_DEL, 0);
 #endif
 
-    kd = gui_text_icon_button(jd, _("Repeat"), GUI_CIRCLE_ARROW, gui_yel, DEMO_REPLAY, 0, continue_allowed, 0);
-    gui_focus(kd);
+    if ((kd = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, gui_yel, _("Repeat"), GUI_SML, continue_allowed ? DEMO_REPLAY : GUI_NONE, 0, continue_allowed, 0)))
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
@@ -1853,32 +1852,24 @@ static void demo_end_btns_horizontal_gui(int jd, int continue_allowed)
     if (demo_paused)
 #endif
     {
-        kd = gui_text_icon_button(jd, _("Continue"), GUI_TRIANGLE_RIGHT, gui_grn, DEMO_REPLAY, 0, continue_allowed, 0);
-        if (continue_allowed) gui_focus(kd);
+        if ((kd = gui_state_icon_full(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Continue"), GUI_SML, continue_allowed ? DEMO_CONTINUE : GUI_NONE, 0, continue_allowed, 0)))
+            if (!continue_allowed)
+                gui_set_color(kd, GUI_COLOR_GRY);
     }
 }
 
 static void demo_end_btns_vertical_gui(int jd, int continue_allowed)
 {
-    int kd = 0, kd_focus = 0;
+    int kd;
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
 #else
     if (demo_paused)
 #endif
-    {
-        kd = gui_text_icon_button_LH(jd, _("Continue"), GUI_TRIANGLE_RIGHT, gui_grn, DEMO_REPLAY, 0, continue_allowed, 0);
-        if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
-    }
+        gui_state_icon_full(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Continue"), GUI_SML, continue_allowed ? DEMO_CONTINUE : GUI_NONE, 0, continue_allowed, 0);
 
-    kd = gui_text_icon_button_LH(jd, _("Repeat"), GUI_CIRCLE_ARROW, gui_yel, DEMO_REPLAY, 0, continue_allowed, 0);
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-    if (!demo_paused || current_platform != PLATFORM_PC || console_gui_shown())
-#else
-    if (!demo_paused)
-#endif
-        gui_focus(kd);
+    gui_state_icon_full(jd, GUI_CIRCLE_ARROW, gui_yel, _("Repeat"), GUI_SML, continue_allowed ? DEMO_REPLAY : GUI_NONE, 0, continue_allowed, 0);
 
 #if defined(_WIN32) && defined(_MSC_VER) && !defined(__EMSCRIPTEN__)
     /* Microsoft and Windows Games can do it! */
@@ -1888,7 +1879,7 @@ static void demo_end_btns_vertical_gui(int jd, int continue_allowed)
 #endif
 
     if (demo_paused || !console_gui_shown())
-        gui_text_icon_button_LH(jd, _("Exit"), GUI_CROSS, gui_red, DEMO_QUIT, 0, 1, 0);
+        gui_state_icon(jd, GUI_CROSS, gui_red, _("Exit"), GUI_SML, DEMO_QUIT, 0);
 }
 
 static int demo_end_gui(void)
@@ -1897,18 +1888,7 @@ static int demo_end_gui(void)
 
     if ((id = gui_vstack(0)))
     {
-        if ((jd = gui_hstack(id)))
-        {
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_DEFAULT);
-                gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
-
-                gui_set_state(kd, DEMO_CONF, 0);
-                gui_set_rect(kd, GUI_ALL);
-            }
-            gui_filler(jd);
-        }
+        gui_state_icon(id, GUI_GEAR, 0, _("Options"), GUI_SML, DEMO_CONF, 0);
 
         gui_space(id);
 

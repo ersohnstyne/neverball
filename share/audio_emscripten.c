@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Microsoft / Neverball Authors
+ * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -294,7 +294,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 void audio_music_stop(void)
 {
     EM_ASM({
-        Neverball.audioMusicStop();;
+        Neverball.audioMusicStop();
     });
 }
 

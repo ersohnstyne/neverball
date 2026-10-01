@@ -195,72 +195,40 @@ static int goal_action(int tok, int val)
 
 static void goal_btns_horizontal_gui(int jd, const int enabled, const int demo_saveable)
 {
-    int kd, ld;
+    int btn_ids[3] = { 0, 0, 0 };
 
+    const char *next_btn_icon = progress_next_avail() ? GUI_TRIANGLE_RIGHT : GUI_CHECKMARK;
     const char *next_btn_text = progress_next_avail() ? N_("Next Level") :
                                                         N_("Finish");
     const int   next_btn_tok  =  progress_done() ? GOAL_DONE :
                                 (progress_next_avail() ? GOAL_NEXT : GOAL_LAST);
 
-    kd = gui_text_icon_button(jd, _(next_btn_text), GUI_TRIANGLE_RIGHT, gui_grn, next_btn_tok, 0, enabled, 0);
-    gui_text_icon_button(jd, _("Retry Level"), GUI_CIRCLE_ARROW, gui_yel, GOAL_SAME, 0, enabled && !challenge_has_active_chkp && progress_same_avail(), 0);
+    btn_ids[2] = gui_start_icon_full(jd, next_btn_icon, enabled ? gui_grn : gui_gry, _(next_btn_text), GUI_SML, next_btn_tok, 0, enabled, 0);
+
+    if (!challenge_has_active_chkp && progress_same_avail())
+        btn_ids[1] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, enabled ? gui_yel : gui_gry, _("Retry Level"), GUI_SML, enabled ? GOAL_SAME : GUI_NONE, 0, enabled, 0);
 
     if (demo_saved() && demo_saveable)
-    {
-        if ((kd = gui_hstack(jd)))
-        {
-            const GLubyte *btn_color      = enabled ? gui_grn : gui_gry;
-            const GLubyte *btn_color_text = enabled ? gui_wht : gui_gry;
-
-            gui_filler(kd);
-            const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, btn_color, btn_color);
-            gui_set_font(icn_id, "ttf/seguiemj.ttf");
-            ld = gui_label(kd, _("Save Replay"), GUI_SML, btn_color_text, btn_color_text);
-            gui_filler(kd);
-
-            gui_set_fill(ld);
-            gui_set_state(kd, enabled ? GOAL_SAVE : GUI_NONE, 0);
-            gui_set_rect(kd, GUI_ALL);
-        }
-    }
-
-    gui_focus(kd);
+        btn_ids[0] = gui_state_icon_full(jd, GUI_SAVETODISK, enabled ? gui_grn : gui_gry, _("Save Replay"), GUI_SML, enabled ? GOAL_SAVE : GUI_NONE, 0, enabled, 0);
 }
 
 static void goal_btns_vertical_gui(int jd, const int enabled, const int demo_saveable)
 {
-    int kd = 0, ld, kd_focus = 0;
-
+    int btn_ids[3] = { 0, 0, 0 };
+    
+    const char *next_btn_icon = progress_next_avail() ? GUI_TRIANGLE_RIGHT : GUI_CHECKMARK;
     const char *next_btn_text = progress_next_avail() ? N_("Next Level") :
                                                         N_("Finish");
     const int   next_btn_tok  =  progress_done() ? GOAL_DONE :
                                 (progress_next_avail() ? GOAL_NEXT : GOAL_LAST);
 
-    if (demo_saveable)
-    {
-        if ((kd = gui_hstack(jd)))
-        {
-            const GLubyte *btn_color      = enabled ? gui_grn : gui_gry;
-            const GLubyte *btn_color_text = enabled ? gui_wht : gui_gry;
+    if (demo_saved() && demo_saveable)
+        btn_ids[0] = gui_state_icon_full(jd, GUI_SAVETODISK, enabled ? gui_grn : gui_gry, _("Save Replay"), GUI_SML, enabled ? GOAL_SAVE : GUI_NONE, 0, enabled, 0);
 
-            gui_filler(kd);
-            ld = gui_label(kd, _("Save Replay"), GUI_SML, btn_color_text, btn_color_text);
-            const int icn_id = gui_label(kd, GUI_SAVETODISK, GUI_SML, btn_color, btn_color);
-            gui_set_font(icn_id, "ttf/seguiemj.ttf");
-            gui_filler(kd);
+    if (!challenge_has_active_chkp && progress_same_avail())
+        btn_ids[1] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, enabled ? gui_yel : gui_gry, _("Retry Level"), GUI_SML, enabled ? GOAL_SAME : GUI_NONE, 0, enabled, 0);
 
-            gui_set_fill(ld);
-            gui_set_state(kd, enabled ? GOAL_SAVE : GUI_NONE, 0);
-            gui_set_rect(kd, GUI_ALL);
-            if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
-        }
-    }
-
-    kd = gui_text_icon_button(jd, _("Retry Level"), GUI_CIRCLE_ARROW, gui_yel, GOAL_SAME, 0, enabled && !challenge_has_active_chkp && progress_same_avail(), 0);
-    if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
-
-    kd = gui_text_icon_button(jd, _(next_btn_text), GUI_TRIANGLE_RIGHT, gui_grn, next_btn_tok, 0, enabled, 0);
-    if (kd != 0 && kd_focus == 0) { gui_focus(kd); kd_focus = kd; }
+    btn_ids[2] = gui_start_icon_full(jd, next_btn_icon, enabled ? gui_grn : gui_gry, _(next_btn_text), GUI_SML, next_btn_tok, 0, enabled, 0);
 }
 
 static int goal_gui(void)

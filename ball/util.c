@@ -148,14 +148,14 @@ static void gui_stats(int id)
 {
     int at;
 
-    if ((float) ((float) video.device_w / 
-                 (float) video.device_h) < (4.0f / 3.0f))
-        return;
-
     stats_labels.completed  = 0;
     stats_labels.timeout    = 0;
     stats_labels.fallout    = 0;
     stats_labels.clear_rate = 0;
+
+    if ((float) ((float) video.device_w / 
+                 (float) video.device_h) < (4.0f / 3.0f))
+        return;
 
     if ((at = gui_vstack(id)))
     {
@@ -232,6 +232,10 @@ static int score_type = GUI_SCORE_COIN;
 void gui_score_board(int pd, unsigned int types, int e, int h)
 {
     int id, jd, kd;
+
+    coin_btn_id = 0;
+    time_btn_id = 0;
+    goal_btn_id = 0;
 
 #ifndef NDEBUG
     assert((types & GUI_SCORE_COIN) ||
@@ -870,59 +874,19 @@ int gui_start_button(int pd, int tok)
 }*/
 
 int gui_text_icon_button(int pd,
-                         const char *text, const char *icon, const unsigned char *c0,
-                         const int tok, const int val,
+                         const char *text, const char *icon, const unsigned char *color,
+                         const int token, const int value,
                          const int enabled, const int destructive)
 {
-    int id;
-
-    if ((id = gui_hstack(pd)))
-    {
-        const GLubyte *btn_color      = enabled ? (destructive ? gui_red : c0)
-                                                : gui_gry;
-        const GLubyte *btn_color_text = enabled ? (destructive ? gui_red : gui_wht)
-                                                : gui_gry;
-
-        gui_filler(id);
-        const int icn_id = gui_label(id, icon, GUI_SML, btn_color, btn_color);
-        gui_label(id, text, GUI_SML, btn_color_text, btn_color_text);
-        gui_filler(id);
-
-        gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
-
-        gui_set_state(id, enabled ? tok : GUI_NONE, val);
-        gui_set_rect(id, GUI_ALL);
-    }
-
-    return id;
+    return gui_state_icon(pd, icon, color, text, GUI_SML, token, value);
 }
 
 int gui_text_icon_button_LH(int pd,
-                            const char *text, const char *icon, const unsigned char *c0,
-                            const int tok, const int val,
+                            const char *text, const char *icon, const unsigned char *color,
+                            const int token, const int value,
                             const int enabled, const int destructive)
 {
-    int id;
-
-    if ((id = gui_hstack(pd)))
-    {
-        const GLubyte *btn_color      = enabled ? (destructive ? gui_red : c0)
-                                                : gui_gry;
-        const GLubyte *btn_color_text = enabled ? (destructive ? gui_red : gui_wht)
-                                                : gui_gry;
-
-        gui_filler(id);
-        gui_label(id, text, GUI_SML, btn_color_text, btn_color_text);
-        const int icn_id = gui_label(id, icon, GUI_SML, btn_color, btn_color);
-        gui_filler(id);
-
-        gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
-
-        gui_set_state(id, enabled ? tok : GUI_NONE, val);
-        gui_set_rect(id, GUI_ALL);
-    }
-
-    return id;
+    return gui_state_icon_LH(pd, icon, color, text, GUI_SML, token, value);
 }
 
 void gui_scoreboard_free(void)

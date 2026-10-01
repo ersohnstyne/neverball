@@ -34,6 +34,8 @@ int  conf_slider_v2(int id, const char *text,
 void conf_set_slider_v2(int id, int val);
 int  conf_state (int id, const char *label, const char *text, int token);
 int  conf_start (int id, const char *label, const char *text, int token);
+int  conf_state_icon(int id, const char *label, const char *icon, const char *text, int token);
+int  conf_start_icon(int id, const char *label, const char *icon, const char *text, int token);
 void conf_toggle_simple(int id, const char *label, int token, int value,
                         int value1, int value0);
 void conf_toggle(int id, const char *label, int token, int value,

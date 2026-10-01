@@ -93,15 +93,24 @@ _CRT_NB_UTIL_DEPRECATED(int, (int, int), gui_start_button, gui_text_icon_button)
 #define gui_back_button(_pd) \
     (gui_text_icon_button(_pd, _("Back"), GUI_CROSS, gui_red, GUI_BACK, 0, 1, 0))
 
-int gui_text_icon_button(int pd,
-                         const char *text, const char *icon, const unsigned char *c0,
-                         const int tok, const int val,
-                         const int enabled, const int destructive);
-
-int gui_text_icon_button_LH(int pd,
-                            const char *text, const char *icon, const unsigned char *c0,
-                            const int tok, const int val,
-                            const int enabled, const int destructive);
+/*
+ * This function for button with icon will be replaced into the gui_state_icon.
+ * Your functions will be replaced using seven parameters.
+ */
+_CRT_NB_UTIL_DEPRECATED(int, (int pd,
+                              const char *text, const char *icon, const unsigned char *color,
+                              const int token, const int value,
+                              const int enabled, const int destructive),
+                             gui_text_icon_button, gui_state_icon);
+/*
+ * This function for button with icon will be replaced into the gui_state_icon_LH.
+ * Your functions will be replaced using seven parameters.
+ */
+_CRT_NB_UTIL_DEPRECATED(int, (int pd,
+                              const char *text, const char *icon, const unsigned char *color,
+                              const int token, const int value,
+                              const int enabled, const int destructive),
+                             gui_text_icon_button_LH, gui_state_icon_LH);
 
 void gui_scoreboard_free(void);
 

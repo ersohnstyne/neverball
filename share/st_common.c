@@ -230,6 +230,33 @@ int conf_start(int id, const char *label, const char *text, int token)
     return rd;
 }
 
+
+int conf_state_icon(int id, const char *label, const char *icon, const char *text, int token)
+{
+    int jd, kd, rd = 0;
+
+    if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
+    {
+        rd = gui_state_icon(kd, GUI_TRIANGLE_RIGHT, 0, text, GUI_SML, token, 0);
+        gui_label(jd, label, GUI_SML, 0, 0);
+    }
+
+    return rd;
+}
+
+int conf_start_icon(int id, const char *label, const char *icon, const char *text, int token)
+{
+    int jd, kd, rd = 0;
+
+    if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
+    {
+        rd = gui_start_icon(kd, GUI_TRIANGLE_RIGHT, 0, text, GUI_SML, token, 0);
+        gui_label(jd, label, GUI_SML, 0, 0);
+    }
+
+    return rd;
+}
+
 void conf_toggle_simple(int id, const char *label, int token, int value,
                         int value1, int value0)
 {
@@ -973,7 +1000,7 @@ static int video_action(int tok, int val)
         case VIDEO_SCREENANIMATIONS:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
-            config_set_d(CONFIG_TRANSITIONS, val);
+            config_set_d(CONFIG_TRANSITIONS,       val);
             config_save();
 
             return goto_state(&st_video);
@@ -1054,7 +1081,7 @@ static int video_action(int tok, int val)
 #else
                 r = video_mode(f, w, h);
 #endif
-                if (r) r = exit_state(&st_video);
+                if (r) exit_state(&st_video);
             }
 #endif
 

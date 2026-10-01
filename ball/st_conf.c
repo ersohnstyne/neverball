@@ -804,7 +804,7 @@ static int conf_account_gui(void)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
             if (CHECK_ACCOUNT_ENABLED && config_get_d(CONFIG_ONLINE))
             {
-                conf_state(id, _("Addons"), _("Manage"), CONF_ACCOUNT_PACKAGES);
+                conf_state_icon(id, _("Addons"), GUI_TRIANGLE_RIGHT, _("Manage"), CONF_ACCOUNT_PACKAGES);
                 gui_space(id);
             }
 #endif
@@ -1714,7 +1714,7 @@ static int conf_controls_gui(void)
                             _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
-            conf_state(id, _("Keyboard"), _("Configure"), CONTROLS_KEYBD);
+            conf_state_icon(id, _("Keyboard"), GUI_TRIANGLE_RIGHT, _("Configure"), CONTROLS_KEYBD);
         }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         else
@@ -1748,7 +1748,7 @@ static int conf_controls_gui(void)
                             _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
-            conf_state(id, _("Gamepad"), _("Configure"), CONTROLS_JOYSTICK);
+            conf_state_icon(id, _("Gamepad"), GUI_TRIANGLE_RIGHT, _("Configure"), CONTROLS_JOYSTICK);
 
             if (!config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
                 conf_state(id, _("Axis"), _("Calibrate"), CONTROLS_JOYSTICK_CALIBRATE);
@@ -1760,7 +1760,7 @@ static int conf_controls_gui(void)
 #endif
         {
             gui_space(id);
-            conf_state(id, _("Touch"), _("Configure"), CONTROLS_TOUCH);
+            conf_state_icon(id, _("Touch"), GUI_TRIANGLE_RIGHT, _("Configure"), CONTROLS_TOUCH);
         }
 
         gui_layout(id, 0, 0);
@@ -3798,18 +3798,18 @@ static int conf_gui(void)
             if (mainmenu_conf && !game_server_state() && !demo_state())
             {
 #ifdef GAME_TRANSFER_TARGET
-                rd = conf_state(id, _("Neverball Game Transfer"), _("Start"),
-                                    CONF_SYSTEMTRANSFER_TARGET);
+                rd = conf_state_icon(id, _("Neverball Game Transfer"), GUI_TRIANGLE_RIGHT, _("Start"),
+                                         CONF_SYSTEMTRANSFER_TARGET);
                 gui_set_color(rd, gui_wht, gui_yel);
 #else
-                rd = conf_state(id, _("Pennyball Transfer Tool"), _("Start"),
-                                    CONF_SYSTEMTRANSFER_SOURCE);
+                rd = conf_state_icon(id, _("Pennyball Transfer Tool"), GUI_TRIANGLE_RIGHT, _("Start"),
+                                         CONF_SYSTEMTRANSFER_SOURCE);
                 gui_set_color(rd, gui_wht, gui_cya);
 #endif
             }
 #endif
 
-            rd = conf_state(id, _("Community (Discord)"), _("Join"), CONF_SOCIAL);
+            rd = conf_state_icon(id, _("Community (Discord)"), GUI_TRIANGLE_RIGHT, _("Join"), CONF_SOCIAL);
             gui_set_color(rd, gui_wht, gui_cya);
 
             gui_space(id);
@@ -3830,18 +3830,18 @@ static int conf_gui(void)
 #endif
 
             gui_space(id);
-            conf_state(id, _("Gameplay"), _("Configure"), CONF_GAMEPLAY);
+            conf_state_icon(id, _("Gameplay"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_GAMEPLAY);
             gui_space(id);
 
             if (mainmenu_conf && !game_server_state() && !demo_state()) {
-                conf_state(id, _("Controls"), _("Configure"), CONF_CONTROLS);
+                conf_state_icon(id, _("Controls"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_CONTROLS);
                 gui_space(id);
-                conf_state(id, _("Graphics"), _("Configure"), CONF_VIDEO);
+                conf_state_icon(id, _("Graphics"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_VIDEO);
             }
 
             if (audio_available()) {
 #if NB_HAVE_PB_BOTH==1
-                conf_state(id, _("Audio"), _("Configure"), CONF_AUDIO);
+                conf_state_icon(id, _("Audio"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_AUDIO);
 #else
                 int master   = config_get_d(CONFIG_MASTER_VOLUME);
                 int sound    = config_get_d(CONFIG_SOUND_VOLUME);

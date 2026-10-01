@@ -43,23 +43,23 @@
 /*---------------------------------------------------------------------------*/
 
 #define GUI_ELLIPSIS       "…"
-#define GUI_AIRPLANE       "✈"
 #define GUI_ARROW_UP       "⬆️"
 #define GUI_ARROW_DN       "⬇"
-#define GUI_TRIANGLE_LEFT  "◀️"
-#define GUI_TRIANGLE_RIGHT "▶️"
 #define GUI_CHECKMARK      "✔"
 #define GUI_BALLOT_X       "✘"
-#define GUI_STAR           "✯"
-#define GUI_COIN           "⛁"
-#define GUI_CROWN          "♕"
-#define GUI_DIAMOND        "♦"
+#define GUI_TRIANGLE_LEFT  "◀️"
+#define GUI_TRIANGLE_RIGHT "▶️"
 #define GUI_CIRCLE_ARROW   "⟳"
 #define GUI_CROSS          "×"
 #define GUI_ROMAN_2        "Ⅱ"
 #define GUI_FISHEYE        "🎥" /* Was: "◉" */
 #define GUI_GEAR           "⚙️"
+#define GUI_STAR           "★"
 
+#define GUI_AIRPLANE       "✈"
+#define GUI_COIN           "⛁"
+#define GUI_CROWN          "♕"
+#define GUI_DIAMOND        "♦"
 #define GUI_GAMEPAD        "🎮"
 #define GUI_BATTERY        "🔋"
 #define GUI_BATTERY_LOW    "🪫"
@@ -70,11 +70,14 @@
 #define GUI_SAVETODISK     "💾"
 
 /*
+ * Tagesschau (Recommended): TheSansOffice-Bold.ttf
  * DejaVu Sans V1: DejaVuSans-Bold.ttf
  * DejaVu Sans V2: DejaVuSans-Bold-v2.ttf
  * Fiolex: FiolexGirls.ttf
+ * Volcaoid: VOC-RE.ttf
  */
 #define GUI_FACE "ttf/DejaVuSans-Bold.ttf"
+//#define GUI_FACE "ttf/TheSansOffice-Bold.ttf"
 
 #define GUI_TNY FONT_SIZE_TNY
 #define GUI_XS  FONT_SIZE_XS
@@ -209,6 +212,30 @@ void gui_set_hidden(int id, int hidden);
 
 /*---------------------------------------------------------------------------*/
 
+/*
+ * This function for button with icon will be replaced into the gui_start_icon_full.
+ * Your functions will be replaced using nine parameters.
+ */
+_CRT_NB_GUI_DEPRECATED(int, (int, const char *, const GLubyte *, const char *, int, int, int), gui_start_icon, gui_start_icon_full);
+
+/*
+ * This function for button with icon will be replaced into the gui_state_icon_full.
+ * Your functions will be replaced using nine parameters.
+ */
+_CRT_NB_GUI_DEPRECATED(int, (int, const char *, const GLubyte *, const char *, int, int, int), gui_state_icon, gui_state_icon_full);
+
+/*
+ * This function for button with icon will be replaced into the gui_state_icon_LH_full.
+ * Your functions will be replaced using nine parameters.
+ */
+_CRT_NB_GUI_DEPRECATED(int, (int, const char *, const GLubyte *, const char *, int, int, int), gui_start_icon_LH, gui_start_icon_LH_full);
+
+/*
+ * This function for button with icon will be replaced into the gui_state_icon_LH_full.
+ * Your functions will be replaced using nine parameters.
+ */
+_CRT_NB_GUI_DEPRECATED(int, (int, const char *, const GLubyte *, const char *, int, int, int), gui_state_icon_LH, gui_state_icon_LH_full);
+
 int  gui_harray(int);
 int  gui_varray(int);
 int  gui_hstack(int);
@@ -219,6 +246,10 @@ int  gui_root  (void);
 int  gui_image(int, const char *, int, int);
 int  gui_start(int, const char *, int, int, int);
 int  gui_state(int, const char *, int, int, int);
+int  gui_start_icon_full(int, const char *, const GLubyte *, const char *, int, int, int, int, int);
+int  gui_state_icon_full(int, const char *, const GLubyte *, const char *, int, int, int, int, int);
+int  gui_start_icon_LH_full(int, const char *, const GLubyte *, const char *, int, int, int, int, int);
+int  gui_state_icon_LH_full(int, const char *, const GLubyte *, const char *, int, int, int, int, int);
 int  gui_label(int, const char *, int, const GLubyte *, const GLubyte *);
 int  gui_multi(int, const char *, int, const GLubyte *, const GLubyte *);
 int  gui_title_header(int, const char *, int, const GLubyte *, const GLubyte *);

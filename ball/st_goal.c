@@ -610,6 +610,7 @@ static int goal_gui(void)
 
             if ((jd = (float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)) ? gui_vstack(id) : gui_harray(id)))
             {
+<<<<<<< HEAD
 #ifdef CONFIG_INCLUDES_ACCOUNT
                 if ((float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)))
                     goal_btns_vertical_gui(jd, !btns_disabled, demo_saved() && config_get_d(CONFIG_ACCOUNT_SAVE) >= 1);
@@ -624,6 +625,21 @@ static int goal_gui(void)
 
                 if (!resume_locked && goal_intro_animation_phase == 2)
                     gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.6, 0.8f, 0.05f);
+=======
+                if      (progress_done())
+                    gui_start_icon(jd, GUI_CHECKMARK, gui_grn, _("Finish"), GUI_SML, GOAL_DONE, 0);
+                else if (progress_last())
+                    gui_start_icon(jd, GUI_CHECKMARK, gui_grn, _("Finish"), GUI_SML, GOAL_LAST, 0);
+
+                if (progress_next_avail())
+                    gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Next Level"), GUI_SML, GOAL_NEXT, 0);
+
+                if (progress_same_avail())
+                    gui_state_icon(jd, GUI_CIRCLE_ARROW, gui_yel, _("Retry Level"), GUI_SML, GOAL_SAME, 0);
+
+                if (demo_saved())
+                    gui_state_icon(jd, GUI_STAR, gui_wht, _("Save Replay"), GUI_SML, GOAL_SAVE, 0);
+>>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
             }
 
             gui_layout(id, 0, 0);

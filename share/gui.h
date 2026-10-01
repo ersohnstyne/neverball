@@ -183,6 +183,22 @@ enum trunc
     TRUNC_TAIL
 };
 
+<<<<<<< HEAD
+=======
+#define GUI_ELLIPSIS "…"
+#define GUI_ARROW_DN "⬇"
+#define GUI_CHECKMARK "✔"
+#define GUI_BALLOT_X "✘"
+#define GUI_TRIANGLE_RIGHT "▶"
+#define GUI_TRIANGLE_LEFT "◀"
+#define GUI_CIRCLE_ARROW "⟳"
+#define GUI_CROSS "×"
+#define GUI_ROMAN_2 "Ⅱ"
+#define GUI_FISHEYE "◉"
+#define GUI_GEAR "⚙"
+#define GUI_STAR "★"
+
+>>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
 /*---------------------------------------------------------------------------*/
 
 void gui_init(void);
@@ -246,10 +262,15 @@ int  gui_root  (void);
 int  gui_image(int, const char *, int, int);
 int  gui_start(int, const char *, int, int, int);
 int  gui_state(int, const char *, int, int, int);
+<<<<<<< HEAD
 int  gui_start_icon_full(int, const char *, const GLubyte *, const char *, int, int, int, int, int);
 int  gui_state_icon_full(int, const char *, const GLubyte *, const char *, int, int, int, int, int);
 int  gui_start_icon_LH_full(int, const char *, const GLubyte *, const char *, int, int, int, int, int);
 int  gui_state_icon_LH_full(int, const char *, const GLubyte *, const char *, int, int, int, int, int);
+=======
+int  gui_start_icon(int, const char *, const GLubyte *, const char *, int, int, int);
+int  gui_state_icon(int, const char *, const GLubyte *, const char *, int, int, int);
+>>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
 int  gui_label(int, const char *, int, const GLubyte *, const GLubyte *);
 int  gui_multi(int, const char *, int, const GLubyte *, const GLubyte *);
 int  gui_title_header(int, const char *, int, const GLubyte *, const GLubyte *);

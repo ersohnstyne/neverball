@@ -865,6 +865,7 @@ char gui_keyboard_char(char c)
 
 int gui_start_button(int pd, int tok)
 {
+<<<<<<< HEAD
     return gui_text_icon_button(pd, _("Start"), GUI_TRIANGLE_RIGHT, gui_grn, tok, 0, 1, 0);
 }
 
@@ -908,6 +909,9 @@ void gui_scoreboard_free(void)
         score_name[i] = 0;
         score_time[i] = 0;
     }
+=======
+    return gui_state_icon(pd, GUI_CROSS, gui_red, _("Back"), GUI_SML, GUI_BACK, 0);
+>>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
 }
 
 /*---------------------------------------------------------------------------*/

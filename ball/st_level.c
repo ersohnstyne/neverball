@@ -112,10 +112,24 @@ static int level_check_playername(const char *reg_name)
 {
     for (int i = 0; i < text_length(reg_name); i++)
     {
+<<<<<<< HEAD
         if (reg_name[i] == '\\' || reg_name[i] == '/' || reg_name[i] == ':'  ||
             reg_name[i] == '*'  || reg_name[i] == '?' || reg_name[i] == '"'  ||
             reg_name[i] == '<'  || reg_name[i] == '>' || reg_name[i] == '|')
             return 0;
+=======
+        case LEVEL_START:
+            return goto_state(&st_play_ready);
+
+        case GUI_BACK:
+            /* Pausing protects session progress in challenge mode. */
+
+            if (curr_mode() == MODE_CHALLENGE)
+                return goto_state(&st_pause);
+
+            progress_stop();
+            return goto_exit();
+>>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
     }
 
     return 1;
@@ -754,6 +768,7 @@ static int level_gui(void)
 
         if ((jd = gui_hstack(id)))
         {
+<<<<<<< HEAD
             gui_filler(jd);
 
             gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Start"), GUI_SML, LEVEL_START, 0);
@@ -777,6 +792,11 @@ static int level_gui(void)
             if (level_infocard_intro)
                 gui_slide(level_infocard_ctrls_id,
                           GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.0f, 1.0f, 0.2f);
+=======
+            gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Start"), GUI_SML, LEVEL_START, 0);
+            gui_filler(jd);
+            gui_back_button(jd);
+>>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
         }
 
 #if NB_HAVE_PB_BOTH==1 && \
@@ -818,8 +838,11 @@ static int level_gui(void)
 
 static int level_enter(struct state *st, struct state *prev, int intent)
 {
+<<<<<<< HEAD
     activity_services_powerup_update(AS_POWERUP_NONE);
     //game_lerp_pose_point_reset();
+=======
+>>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
     video_clr_grab();
     game_client_fly(1.0f);
 
@@ -980,6 +1003,7 @@ static int level_keybd(int c, int d)
         if (current_platform == PLATFORM_PC)
 #endif
         {
+<<<<<<< HEAD
             if (c == KEY_EXIT)
                 return goto_pause(&st_level);
             if (c == KEY_POSE)
@@ -1011,6 +1035,15 @@ static int level_keybd(int c, int d)
                 show_info ? goto_state(&st_level) : exit_state(&st_level);
             }
 #endif
+=======
+            /* Pausing protects session progress in challenge mode. */
+
+            if (curr_mode() == MODE_CHALLENGE)
+                return goto_state(&st_pause);
+
+            progress_stop();
+            return goto_exit();
+>>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
         }
     }
     return 1;

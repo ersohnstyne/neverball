@@ -661,7 +661,6 @@ static int fail_gui(void)
 
             if ((jd = gui_vstack(id)))
             {
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1
                 if (balls_bought == 0)
 #endif
@@ -810,24 +809,6 @@ static int fail_gui(void)
 
                 if (!resume_locked && fail_intro_animation_phase == 2)
                     gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 0.8f, 0);
-=======
-                if (progress_dead())
-                    gui_start_icon(jd, GUI_CROSS, gui_red, _("Back To Menu"), GUI_SML, FAIL_OVER, 0);
-
-                if (progress_next_avail())
-                {
-                    if (progress_same_avail())
-                        gui_state_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Next Level"), GUI_SML, FAIL_NEXT, 0);
-                    else
-                        gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Next Level"), GUI_SML, FAIL_NEXT, 0);
-                }
-
-                if (progress_same_avail())
-                    gui_start_icon(jd, GUI_CIRCLE_ARROW, gui_yel, _("Retry Level"), GUI_SML, FAIL_SAME, 0);
-
-                if (demo_saved())
-                    gui_state_icon(jd, GUI_STAR, gui_wht, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
->>>>>>> 84d4264992fd9b469510f5268cd662ce9d5022b5
             }
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)

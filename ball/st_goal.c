@@ -753,7 +753,7 @@ static void goal_paint(int id, float t)
     if (console_gui_shown()) {
         if (goal_intro_animation_phase != 1)
             console_gui_death_paint();
-        else console_gui_putt_stop_paint();
+        else console_gui_putt_stop_paint(); /* HACK: Taken from Putt! */
     }
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))

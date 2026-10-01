@@ -611,6 +611,43 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
     }
 }
 
+static int fail_gui_wgcl(void)
+{
+#ifdef CONFIG_INCLUDES_ACCOUNT
+    const int demo_savemode = config_get_d(CONFIG_ACCOUNT_SAVE);
+#else
+    const int demo_savemode = 2;
+#endif
+
+#ifdef MAPC_NCLUDES_CHKP
+    const int wgcl_respawnable = respawnable && progress_same_avail();
+#else
+    const int wgcl_respawnable = 0;
+#endif
+    const int wgcl_restartable = progress_same_avail();
+    const int wgcl_saveable    = demo_saved() && ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME));
+    
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    return EM_ASM_INT({
+        try {
+            const status      = $0;
+            const respawnable = $1 != 0;
+            const restartable = $2 != 0;
+            const saveable    = $3 != 0;
+
+            if (!CoreLauncherGameplay_ST_FAIL_HasState)
+                CoreLauncherGameplay_ST_FAIL_Init(status, respawnable, restartable, saveable, false);
+
+            return 1;
+        } catch (e) {}
+
+        return 0;
+    }, status, wgcl_respawnable, wgcl_restartable, wgcl_saveable);
+#else
+    return 0;
+#endif
+}
+
 static int fail_gui(void)
 {
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
@@ -984,7 +1021,7 @@ static void fail_paint(int id, float t)
     if (console_gui_shown()) {
         if (fail_intro_animation_phase != 1)
             console_gui_death_paint();
-        else console_gui_putt_stop_paint();
+        else console_gui_putt_stop_paint(); /* HACK: Taken from Putt! */
     }
 #endif
     if (hud_visibility() || config_get_d(CONFIG_SCREEN_ANIMATIONS))

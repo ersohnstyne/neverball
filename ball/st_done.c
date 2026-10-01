@@ -486,13 +486,6 @@ static int done_keybd(int c, int d)
         if (EM_ASM_INT({ return wgclgame_gamefinished_state != -1; })) return 1;
 #endif
 
-/*#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
-        if (c == KEY_EXIT && current_platform == PLATFORM_PC)
-#else
-        if (c == KEY_EXIT)
-#endif
-            return done_action(GUI_BACK, 0);*/
-
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
             return done_action(GUI_SCORE, GUI_SCORE_NEXT(gui_score_get()));
     }
@@ -511,8 +504,6 @@ static int done_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return done_action(gui_token(active), gui_value(active));
-        /*if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return done_action(GUI_BACK, 0);*/
     }
     return 1;
 }
@@ -573,8 +564,7 @@ static int capital_keybd(int c, int d)
 
 static int capital_buttn(int b, int d)
 {
-    if (d && (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)
-        || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)))
+    if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
     {
         wealthlogo_done = 1;
         goto_state(&st_done);

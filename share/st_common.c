@@ -1398,6 +1398,7 @@ static int video_advanced_action(int tok, int val)
             config_set_d(CONFIG_CAMERA_SHAKE, val);
             config_save();
             r = goto_state(&st_video_advanced);
+            break;
 
         case VIDEO_ADVANCED_HMD:
             if (oldHmd == val) return 1;
@@ -1491,12 +1492,14 @@ static int video_advanced_action(int tok, int val)
             config_set_d(CONFIG_BACKGROUND, val);
             config_save();
             r = goto_state(&st_video_advanced);
+            break;
 
         case VIDEO_ADVANCED_SHADOW:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SHADOW, val);
             config_save();
             r = goto_state(&st_video_advanced);
+            break;
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
         case VIDEO_ADVANCED_MIPMAP:
@@ -1504,6 +1507,7 @@ static int video_advanced_action(int tok, int val)
             config_set_d(CONFIG_MIPMAP, val);
             config_save();
             r = goto_state(&st_video_advanced);
+            break;
 #endif
 
 #ifdef GL_TEXTURE_MAX_ANISOTROPY_EXT
@@ -1512,6 +1516,7 @@ static int video_advanced_action(int tok, int val)
             config_set_d(CONFIG_ANISO, val);
             config_save();
             r = goto_state(&st_video_advanced);
+            break;
 #endif
 
         case VIDEO_ADVANCED_VSYNC:
@@ -1607,18 +1612,21 @@ static int video_advanced_action(int tok, int val)
             config_set_d(CONFIG_TRANSITIONS,       val);
             config_save();
             r = goto_state(&st_video_advanced);
+            break;
 
         case VIDEO_ADVANCED_SMOOTH_FIX:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SMOOTH_FIX, val);
             config_save();
             r = goto_state(&st_video_advanced);
+            break;
 
         case VIDEO_ADVANCED_FORCE_SMOOTH_FIX:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_FORCE_SMOOTH_FIX, val);
             config_save();
             r = goto_state(&st_video_advanced);
+            break;
     }
 
     if (r && backups)

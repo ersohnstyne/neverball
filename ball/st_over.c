@@ -16,6 +16,11 @@
 #include <emscripten.h>
 #endif
 
+/*
+ * HACK: Used with console version
+ */
+#include "console_control_gui.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "networking.h"
 #include "campaign.h"
@@ -355,6 +360,56 @@ static int over_leave(struct state *st, struct state *next, int id, int intent)
     return transition_slide(id, 0, intent);
 }
 
+static void over_paint(int id, float t)
+{
+    game_client_draw(0, t);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__) && defined(LEADERBOARD_ALLOWANCE)
+    if (console_gui_shown())
+        console_gui_death_paint();
+#endif
+
+    gui_paint(id);
+}
+
+static void over_timer(int id, float dt)
+{
+#ifndef LEADERBOARD_ALLOWANCE
+    if (time_state() > 3.0f && !st_global_animating())
+    {
+        exit_state(&st_start);
+        return;
+    }
+#endif
+
+    gui_timer(id, dt);
+    game_step_fade(dt);
+}
+
+#ifndef LEADERBOARD_ALLOWANCE
+static int over_click(int b, int d)
+{
+#ifndef __EMSCRIPTEN__
+    if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return exit_state(&st_start);
+#endif
+
+    return (b == SDL_BUTTON_LEFT && d == 1) ? exit_state(&st_start) : 1;
+}
+#endif
+
+static void over_paint(int id, float t)
+{
+    game_client_draw(0, t);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__) && defined(LEADERBOARD_ALLOWANCE)
+    if (console_gui_shown())
+        console_gui_death_paint();
+#endif
+
+    gui_paint(id);
+}
+
 static void over_timer(int id, float dt)
 {
 #ifndef LEADERBOARD_ALLOWANCE
@@ -415,15 +470,8 @@ static int over_buttn(int b, int d)
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return over_action(gui_token(active), gui_value(active));
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return over_action(
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                               campaign_hardcore() ? OVER_TO_GROUP :
-#endif
-                GUI_BACK, 0);
 #else
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
-            config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return exit_state(&st_start);
 #endif
     }
@@ -436,7 +484,7 @@ static int over_buttn(int b, int d)
 struct state st_over = {
     over_enter,
     over_leave,
-    shared_paint,
+    over_paint,
     over_timer,
     shared_point,
     shared_stick,
@@ -449,7 +497,7 @@ struct state st_over = {
 struct state st_over = {
     over_enter,
     over_leave,
-    shared_paint,
+    over_paint,
     over_timer,
     NULL,
     NULL,

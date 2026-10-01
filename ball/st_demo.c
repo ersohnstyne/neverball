@@ -1860,8 +1860,6 @@ static void demo_end_btns_horizontal_gui(int jd, int continue_allowed)
 
 static void demo_end_btns_vertical_gui(int jd, int continue_allowed)
 {
-    int kd;
-
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (demo_paused && current_platform == PLATFORM_PC && !console_gui_shown())
 #else

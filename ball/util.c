@@ -366,7 +366,7 @@ void gui_levelgroup_stats(const struct level *l)
                  (float) video.device_h) < (4.0f / 3.0f))
         return;
 
-    char buffer[4][12];
+    char buffer[4][12]; memset(buffer, 0, sizeof (buffer));
 
 #if NB_HAVE_PB_BOTH==1 && _WIN32 && _MSC_VER
     /* Gather all map markers (MSVC++ exclusive only) */

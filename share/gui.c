@@ -355,19 +355,25 @@ static const GLushort rect_elem_base[RECT_ELEM] = {
 
 static void gui_geom_rect(int id, int x, int y, int w, int h, int f)
 {
-    GLushort rect_elem[RECT_ELEM];
+    GLushort rect_elem[RECT_ELEM]; memset(rect_elem, 0, sizeof (rect_elem));
 
     struct vert *v = vert_buf + id * WIDGET_VERT;
     struct vert *p = v;
 
-    int X[4];
-    int Y[4];
-
     int i, j;
 
     /* Generate vertex and element data for the widget's rectangle. */
+    
+    int X[4] = { x,
+                 x +     ((f & GUI_W) ? borders[0] : 0),
+                 x + w - ((f & GUI_E) ? borders[1] : 0),
+                 x + w };
+    int Y[4] = { y + h,
+                 y + h - ((f & GUI_N) ? borders[2] : 0),
+                 y +     ((f & GUI_S) ? borders[3] : 0),
+                 y };
 
-    X[0] = x;
+    /*X[0] = x;
     X[1] = x +     ((f & GUI_W) ? borders[0] : 0);
     X[2] = x + w - ((f & GUI_E) ? borders[1] : 0);
     X[3] = x + w;
@@ -375,7 +381,7 @@ static void gui_geom_rect(int id, int x, int y, int w, int h, int f)
     Y[0] = y + h;
     Y[1] = y + h - ((f & GUI_N) ? borders[2] : 0);
     Y[2] = y +     ((f & GUI_S) ? borders[3] : 0);
-    Y[3] = y;
+    Y[3] = y;*/
 
     for (i = 0; i < 4; i++)
         for (j = 0; j < 4; j++)
@@ -423,12 +429,8 @@ static void gui_geom_text(int id, int x, int y, int w, int h,
         const GLfloat s1 = 1.0f - s0;
         const GLfloat t1 = 1.0f - t0;
 
-        GLubyte color[4];
-
-        color[0] = gui_shd[0];
-        color[1] = gui_shd[1];
-        color[2] = gui_shd[2];
-        color[3] = c0[3] < 0xFF ? (GLubyte)(c0[3] * 0.5f) : gui_shd[3];
+        GLubyte color[4] = { gui_shd[0], gui_shd[1], gui_shd[2],
+                             c0[3] < 0xFF ? (GLubyte) (c0[3] * 0.5f) : gui_shd[3] };
 
         /* Generate vertex data for the colored text and its shadow. */
 
@@ -458,16 +460,18 @@ static void gui_geom_image(int id, int x, int y, int w, int h, int f)
 {
     struct vert *v = vert_buf + id * WIDGET_VERT + RECT_VERT;
 
-    int X[2];
-    int Y[2];
-
     /* Trace inner vertices of the background rectangle. */
 
-    X[0] = x +     ((f & GUI_W) ? borders[0] : 0);
+    int X[2] = { x +     ((f & GUI_W) ? borders[0] : 0),
+                 x + w - ((f & GUI_E) ? borders[1] : 0) };
+    int Y[2] = { y + h - ((f & GUI_N) ? borders[2] : 0),
+                 y +     ((f & GUI_S) ? borders[3] : 0) };
+
+    /*X[0] = x +     ((f & GUI_W) ? borders[0] : 0);
     X[1] = x + w - ((f & GUI_E) ? borders[1] : 0);
 
     Y[0] = y + h - ((f & GUI_N) ? borders[2] : 0);
-    Y[1] = y +     ((f & GUI_S) ? borders[3] : 0);
+    Y[1] = y +     ((f & GUI_S) ? borders[3] : 0);*/
 
     set_vert(v + 0, X[0], Y[0], 0.0f, 1.0f, gui_wht);
     set_vert(v + 1, X[0], Y[1], 0.0f, 0.0f, gui_wht);
@@ -1188,7 +1192,7 @@ void gui_set_multi(int id, const char *text)
 
     const char *p;
 
-    char s[GUI_LINES][MAXSTR];
+    char s[GUI_LINES][MAXSTR]; memset(s, 0, sizeof (s));
     int i, sc, lc, jd;
 
     size_t n = 0;
@@ -1676,7 +1680,7 @@ int gui_multi(int pd, const char *text, int size, const GLubyte *c0,
     {
         const char *p;
 
-        char s[GUI_LINES][MAXSTR];
+        char s[GUI_LINES][MAXSTR]; memset(s, 0, sizeof (s));
         int  i, j;
 
         size_t n = 0;

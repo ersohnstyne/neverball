@@ -230,7 +230,6 @@ int conf_start(int id, const char *label, const char *text, int token)
     return rd;
 }
 
-
 int conf_state_icon(int id, const char *label, const char *icon, const char *text, int token)
 {
     int jd, kd, rd = 0;

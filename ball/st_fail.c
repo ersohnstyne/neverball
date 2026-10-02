@@ -626,7 +626,9 @@ static int fail_gui_wgcl(void)
 #endif
     const int wgcl_restartable = progress_same_avail();
     const int wgcl_saveable    = demo_saved() && ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME));
-    
+
+    if (!wgcl_saveable) demo_play_stop(1);
+
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     EM_ASM({
         const wgcl_saveable_n = $0 == 0;

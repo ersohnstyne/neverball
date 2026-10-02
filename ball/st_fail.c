@@ -628,6 +628,13 @@ static int fail_gui_wgcl(void)
     const int wgcl_saveable    = demo_saved() && ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME));
     
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({
+        const wgcl_saveable_n = $0 == 0;
+
+        if (!CoreLauncherGameplay_ST_FAIL_ElemState)
+            CoreLauncherGameplay_ST_FAIL_StaticInt_SaveLocked = wgcl_saveable_n;
+    }, wgcl_saveable);
+
     return EM_ASM_INT({
         try {
             const status      = $0;
@@ -635,7 +642,7 @@ static int fail_gui_wgcl(void)
             const restartable = $2 != 0;
             const saveable    = $3 != 0;
 
-            if (!CoreLauncherGameplay_ST_FAIL_HasState)
+            if (!CoreLauncherGameplay_ST_FAIL_ElemState)
                 CoreLauncherGameplay_ST_FAIL_Init(status, respawnable, restartable, saveable, false);
 
             return 1;

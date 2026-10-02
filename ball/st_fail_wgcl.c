@@ -32,21 +32,46 @@
 #endif
 
 #include "demo.h"
+#include "demo_dir.h"
 #include "progress.h"
+
+#include "game_server.h"
 
 #include "st_level.h"
 
 /*---------------------------------------------------------------------------*/
 
 /*
- * This file implements from WGCL's javascript files, that supports
- * modern browser.
+ * This file implements WGCL's javascript files, that supports
+ * modern client browser.
  */
+
+int WGCL_ST_FAIL_CheckOverlayElement(void)
+{
+#ifdef __EMSCRIPTEN__
+#if NB_HAVE_PB_BOTH==1
+    return EM_ASM_INT({
+        const elem_overlay = document.getElementById("wgcl_ui_newmenu_st_fail_overlay");
+        return elem_overlay != undefined && elem_overlay != null &&
+               CoreLauncherGameplay_ST_FAIL_ElemState ? 1 : 0;
+    });
+#else
+    return EM_ASM_INT({
+        const elem_overlay = document.getElementById("wgcl_ui_newmenu_st_fail_overlay");
+        return elem_overlay != undefined && elem_overlay != null ? 1 : 0;
+    });
+#endif
+#else
+    /* Not available on outside Web Browser. */
+
+    return 0;
+#endif
+}
 
 void WGCL_ST_FAIL_StartRespawn(void)
 {
-    if (checkpoints_load() && progress_same_avail() && !progress_dead())
-    {
+    if (WGCL_ST_FAIL_CheckOverlayElement() && game_server_state() &&
+        progress_same_avail() && !progress_dead()) {
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
         powerup_stop();
@@ -58,23 +83,42 @@ void WGCL_ST_FAIL_StartRespawn(void)
 
 void WGCL_ST_FAIL_StartSaveReplay(const char *fileName)
 {
+    if (WGCL_ST_FAIL_CheckOverlayElement() && game_server_state()) {
 #ifdef __EMSCRIPTEN__
-    if (demo_exists(fileName))
-        EM_ASM({ CoreLauncherGameplay_ST_FAIL_Classic_RequestOverwriteReplay(UTF8ToString($0)); }, fileName);
-    else if (demo_saved()) demo_rename(fileName);
+        if (demo_exists(fileName))
+            EM_ASM({
+                CoreLauncherGameplay_ST_FAIL_Classic_RequestOverwriteReplay(UTF8ToString($0));
+            }, fileName);
+        else if (demo_saved()) {
+            demo_rename(fileName);
+
+#ifdef __EMSCRIPTEN__
+            EM_ASM({ CoreLauncherGameplay_ST_FAIL_StaticInt_SaveLocked = true; });
 #endif
+        }
+#endif
+    }
 }
 
 void WGCL_ST_FAIL_StartOverwriteReplay(const char *fileName)
 {
-    if (demo_saved()) demo_rename(fileName);
+    if (WGCL_ST_FAIL_CheckOverlayElement() && game_server_state() &&
+        demo_saved()) {
+        demo_rename(fileName);
+
+#ifdef __EMSCRIPTEN__
+        EM_ASM({ CoreLauncherGameplay_ST_FAIL_StaticInt_SaveLocked = true; });
+#endif
+    }
 }
 
 void WGCL_ST_FAIL_StartRestart(void)
 {
-    if (progress_same_avail() && !progress_dead())
-    {
+    if (WGCL_ST_FAIL_CheckOverlayElement() && game_server_state() &&
+        progress_same_avail() && !progress_dead()) {
+#ifdef MAPC_INCLUDES_CHKP
         checkpoints_stop();
+#endif
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
         powerup_stop();
@@ -86,7 +130,17 @@ void WGCL_ST_FAIL_StartRestart(void)
 
 void WGCL_ST_FAIL_CloseLevel(void)
 {
-    goto_exit();
+    if (!WGCL_ST_FAIL_CheckOverlayElement()) return;
+
+#ifdef MAPC_INCLUDES_CHKP
+    checkpoints_stop();
+#endif
+#if NB_HAVE_PB_BOTH==1 && \
+    defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
+    powerup_stop();
+#endif
+    if (game_server_state())
+        goto_exit();
 }
 
 /*---------------------------------------------------------------------------*/

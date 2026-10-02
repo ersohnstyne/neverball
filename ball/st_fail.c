@@ -999,6 +999,11 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
     if (fail_intro_animation_phase != 0)
         return fail_gui();
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (fail_intro_animation_phase != 1)
+        if (fail_gui_wgcl()) return 0;
+#endif
+
     return transition_slide(fail_gui(), 1, intent);
 }
 
@@ -1099,12 +1104,20 @@ static int fail_click(int b, int d)
         return (b == SDL_BUTTON_LEFT && d) ?
                st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (WGCL_ST_FAIL_CheckOverlayElement()) return 1;
+#endif
+
     return gui_click(b, d) ?
            st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 
 static int fail_keybd(int c, int d)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (WGCL_ST_FAIL_CheckOverlayElement()) return 1;
+#endif
+
     if (d)
     {
         /*
@@ -1163,10 +1176,15 @@ static int fail_buttn(int b, int d)
             return goto_state(&st_fail);
         }
 
-        int active = gui_active();
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        if (!WGCL_ST_FAIL_CheckOverlayElement())
+#endif
+        {
+            int active = gui_active();
 
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return fail_action(gui_token(active), gui_value(active));
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+                return fail_action(gui_token(active), gui_value(active));
+        }
     }
     return 1;
 }

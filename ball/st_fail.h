@@ -19,6 +19,10 @@
 
 extern struct state st_fail;
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+int WGCL_ST_FAIL_CheckOverlayElement(void);
+#endif
+
 int goto_raise_gems(struct state *, int);
 
 #endif

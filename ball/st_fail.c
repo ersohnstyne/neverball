@@ -619,7 +619,7 @@ static int fail_gui_wgcl(void)
     const int demo_savemode = 2;
 #endif
 
-#ifdef MAPC_NCLUDES_CHKP
+#ifdef MAPC_INCLUDES_CHKP
     const int wgcl_respawnable = respawnable && progress_same_avail();
 #else
     const int wgcl_respawnable = 0;

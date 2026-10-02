@@ -996,15 +996,15 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
         balls_bought = 0;
     }
 
-    if (fail_intro_animation_phase != 0)
-        return fail_gui();
-
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    if (fail_intro_animation_phase != 1)
-        if (fail_gui_wgcl()) return 0;
+    if (fail_gui_wgcl()) return 0; else
 #endif
+    {
+        if (fail_intro_animation_phase != 0)
+            return fail_gui();
 
-    return transition_slide(fail_gui(), 1, intent);
+        return transition_slide(fail_gui(), 1, intent);
+    }
 }
 
 static int fail_leave(struct state *st, struct state *next, int id, int intent)

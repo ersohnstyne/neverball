@@ -997,7 +997,7 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
     }
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    if (fail_gui_wgcl()) return 0; else
+    if (!advancedconfig_autoretry && fail_gui_wgcl()) return 0; else
 #endif
     {
         if (fail_intro_animation_phase != 0)

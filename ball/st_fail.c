@@ -1028,6 +1028,10 @@ static void fail_paint(int id, float t)
 {
     game_client_draw(0, t);
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (WGCL_ST_FAIL_CheckOverlayElement()) return;
+#endif
+
     gui_paint(id);
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (console_gui_shown()) {
@@ -1059,7 +1063,12 @@ static void fail_timer(int id, float dt)
         else if (fail_time_state >= 2.0f)
         {
             fail_intro_animation_phase = 2;
-            goto_state(&st_fail); return;
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+            if (!WGCL_ST_FAIL_CheckOverlayElement())
+#endif
+            {
+                goto_state(&st_fail); return;
+            }
         }
     }
     else fail_intro_speedmultiplier = 1.0f;

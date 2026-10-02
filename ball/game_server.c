@@ -86,6 +86,8 @@ static int server_state = 0;
 
 static struct s_vary vary;
 
+static float time_extra   = 0;
+
 static int   timer_hold   = 0;          /* Hold timer                        */
 #if NB_HAVE_PB_BOTH==1
 static float time_travel  = 0;          /* Time travel                       */
@@ -838,6 +840,7 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 
     /* Reset lockstep state. */
 
+    time_extra = 0;
     lockstep_clr(&server_step);
 
     return server_state;
@@ -1351,6 +1354,7 @@ int game_server_init(const char *file_name, int t, int e)
 
     /* Reset lockstep state. */
 
+    time_extra = 0;
     lockstep_clr(&server_step);
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
@@ -2284,6 +2288,17 @@ static struct lockstep server_step = { game_server_iter, DT };
 
 void game_server_step(float dt)
 {
+    /*
+     * HACK: Shift offset back from where was in use.
+     */
+
+#if NB_HAVE_PB_BOTH!=1
+    if (status != GAME_NONE) {
+        if (time_extra > status == GAME_GOAL ? 1.0f : 2.0f) return;
+        else time_extra += dt;
+    }
+#endif
+
     lockstep_run(&server_step, dt);
 }
 

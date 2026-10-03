@@ -1853,7 +1853,7 @@ int account_wgcl_seths_load(const char *setid,
             {
                 JSON_Object *hs_elem = json_array_get_object(hstime_elems, i);
 
-                if (!hs_elem || json_value_get_type(hs_elem) != JSONObject)
+                if (!hs_elem)
                 {
                     log_errorf("WGCL + CURL error: Not an JSON object!: data_hs_time\n");
 
@@ -1884,6 +1884,8 @@ int account_wgcl_seths_load(const char *setid,
 
         if (hstime_elems && len < 1)
             log_errorf("WGCL + CURL error: No players recorded in world set highscore's best time.\n");
+        else if (hstime_elems)
+            log_printf("WGCL + CURL info: World best time set highscore succesfully loaded!\n");
         else
             log_errorf("WGCL + CURL error: Not an JSON array: data_hs_time\n");
     }
@@ -1897,7 +1899,7 @@ int account_wgcl_seths_load(const char *setid,
             {
                 JSON_Object *hs_elem = json_array_get_object(hscoin_elems, i);
 
-                if (!hs_elem || json_value_get_type(hs_elem) != JSONObject)
+                if (!hs_elem)
                 {
                     log_errorf("WGCL + CURL error: Not an JSON object!: data_hs_coin\n");
 
@@ -1927,6 +1929,8 @@ int account_wgcl_seths_load(const char *setid,
 
         if (hscoin_elems && len < 1)
             log_errorf("WGCL + CURL error: No players recorded in world set highscore's most coins.\n");
+        else if (hscoin_elems)
+            log_printf("WGCL + CURL info: World most coins set highscore succesfully loaded!\n");
         else
             log_errorf("WGCL + CURL error: Not an JSON array: data_hs_coin\n");
     }

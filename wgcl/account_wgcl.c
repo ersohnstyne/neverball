@@ -1501,7 +1501,7 @@ int  account_wgcl_do_finish_challenge(int campaign, int coins, int gems,
             "    \"total_time_ms\":%d,"
             "    \"xp_penalty\":%d,"
             "    \"setid\":\"%s\","
-            "    \"flawless_runs\":\"%s\","
+            "    \"flawless_runs\":\"%s\""
             "}",
             wgcl_utc_strfmt, session_uuid4,
             account_get_s(ACCOUNT_PLAYER), coins, gems, balls, total_time_ms, xppenalty, setid, flawless_runs);

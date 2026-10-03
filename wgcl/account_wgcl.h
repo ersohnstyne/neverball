@@ -77,7 +77,7 @@ int  account_wgcl_do_buy(int w_coins_cost, int flags);
 
 int  account_wgcl_do_finish_challenge(int campaign, int coins, int gems,
                                       int balls, int total_time_ms,
-                                      int stars, int daily, int xppenalty, int hardcore, const char *setid);
+                                      int stars, int daily, int xppenalty, int hardcore, int flawless_runs, const char *setid);
 
 void account_wgcl_post_sync(const char *, const char *);
 

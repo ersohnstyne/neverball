@@ -290,6 +290,11 @@ struct progress
     int   balls;
     int   score;
     int   times;
+
+#if NB_HAVE_PB_BOTH==1
+    int   flawless_runs;
+#endif
+
     float speedpercent;
 };
 
@@ -501,11 +506,14 @@ void progress_init_home(void)
 
     mode   = MODE_NONE;
     replay = 0;
-
-    curr.balls        = 0;
-    curr.score        = 0;
-    curr.times        = 0;
-    curr.speedpercent = 0;
+    
+    curr.balls         = 0;
+    curr.score         = 0;
+    curr.times         = 0;
+#if NB_HAVE_PB_BOTH==1
+    curr.flawless_runs = 0;
+#endif
+    curr.speedpercent  = 0;
 
     done = 0;
 
@@ -550,9 +558,12 @@ void progress_init(int m)
     }
 #endif
 
-    curr.score        = 0;
-    curr.times        = 0;
-    curr.speedpercent = 0;
+    curr.score         = 0;
+    curr.times         = 0;
+#if NB_HAVE_PB_BOTH==1
+    curr.flawless_runs = 1;
+#endif
+    curr.speedpercent  = 0;
 
     prev = curr;
 #ifdef MAPC_INCLUDES_CHKP
@@ -1350,11 +1361,11 @@ void progress_exit(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                 account_wgcl_do_finish_challenge(campaign_used(), coins, newgems_rfd, total_balls, timer,
                                                  !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
-                                                 0, xppenalty_calculated, 0, campaign_used() ? "campaign" : set_id(curr_set()));
+                                                 0, xppenalty_calculated, 0, curr.flawless_runs, campaign_used() ? "campaign" : set_id(curr_set()));
 #else
                 account_wgcl_do_finish_challenge(0, coins, newgems_rfd, total_balls, timer,
                                                  !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
-                                                 0, xppenalty_calculated, 0, set_id(curr_set()));
+                                                 0, xppenalty_calculated, 0, curr.flawless_runs, set_id(curr_set()));
 #endif
             }
             else
@@ -1368,7 +1379,7 @@ void progress_exit(void)
             {
                 account_wgcl_do_finish_challenge(campaign_used(), coins, ROUND(curr_score() / 10), 0, timer,
                                                  !campaign_used() && set_star(curr_set()) > 0 && set_star_gained(curr_set()) == 0 ? set_star(curr_set()) : 0,
-                                                 0, 0, 1, campaign_used() ? "campaign" : set_id(curr_set()));
+                                                 0, 0, 1, curr.flawless_runs, campaign_used() ? "campaign" : set_id(curr_set()));
             }
             else
 #endif
@@ -1673,6 +1684,10 @@ int  progress_same(void)
 
     if (!progress_dead())
     {
+#if NB_HAVE_PB_BOTH==1
+        curr.flawless_runs = 0;
+#endif
+
         progress_stop();
 
         /* Reset progress and goal enabled state. */

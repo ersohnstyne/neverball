@@ -337,16 +337,16 @@ static int demo_action(int tok, int val)
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
                 if (config_cheat()) {
-                    const int demo_curr_balls = df->balls == 0;
+                    const int demo_curr_balls = df->balls <= 0;
 
                     const int demo_curr_challenge =
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     (df->status == GAME_TIME || df->status == GAME_FALL) &&
-                    (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE ||
+                    (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE &&
                      df->mode != MODE_ZEN    && df->mode != MODE_CAMPAIGN);
 #else
                     (df->status == GAME_TIME || df->status == GAME_FALL) &&
-                    (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE ||
+                    (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE &&
                      df->mode != MODE_ZEN);
 #endif
 
@@ -551,19 +551,19 @@ static void gui_demo_update_thumbs(void)
                 gui_set_color(thumbs[i].icon_id, GUI_COLOR_GRN);
             }
 
-            if (demo->balls == 0 &&
+            if (demo->mode != MODE_NORMAL && demo->mode != MODE_STANDALONE &&
+                demo->mode != MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                (demo->status == GAME_TIME || demo->status == GAME_FALL) &&
-                (demo->mode != MODE_NORMAL && demo->mode != MODE_STANDALONE ||
-                 demo->mode != MODE_ZEN    && demo->mode != MODE_CAMPAIGN)
-#else
-                (demo->status == GAME_TIME || demo->status == GAME_FALL) &&
-                (demo->mode != MODE_NORMAL && demo->mode != MODE_STANDALONE ||
-                 demo->mode != MODE_ZEN)
+             && demo->mode != MODE_CAMPAIGN
 #endif
                 ) {
-                gui_set_image(thumbs[i].shot_id, "gui/filters/bankrupted.jpg");
-                gui_set_color(thumbs[i].name_id, gui_red, gui_blk);
+                if (demo->balls <= 0 &&
+                    (demo->status == GAME_TIME || demo->status == GAME_FALL)) {
+                    gui_set_image(thumbs[i].shot_id, "gui/filters/bankrupted.jpg");
+                    gui_set_color(thumbs[i].name_id, gui_red, gui_blk);
+                }
+                else if (stat_max <= stat_limit)
+                    gui_set_image(thumbs[i].shot_id, "gui/filters/challenge.jpg");
             }
         }
         else
@@ -751,26 +751,23 @@ static void gui_demo_update_status(int i)
         gui_set_color(coin_id, GUI_COLOR_DEFAULT);
         gui_set_color(time_id, GUI_COLOR_DEFAULT);
     }
-
-    if (d->balls == 0 &&
+    
+    if (d->mode != MODE_NORMAL && d->mode != MODE_STANDALONE &&
+        d->mode != MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        (d->status == GAME_TIME || d->status == GAME_FALL) &&
-        (d->mode != MODE_NORMAL && d->mode != MODE_STANDALONE ||
-         d->mode != MODE_ZEN    && d->mode != MODE_CAMPAIGN)
-#else
-        (d->status == GAME_TIME || d->status == GAME_FALL) &&
-        (d->mode != MODE_NORMAL && d->mode != MODE_STANDALONE ||
-         d->mode != MODE_ZEN)
+     && d->mode != MODE_CAMPAIGN
 #endif
-        )
-    {
-        gui_set_color(name_id,   gui_red, gui_blk);
-        gui_set_color(date_id,   gui_red, gui_blk);
-        gui_set_color(player_id, gui_red, gui_blk);
-        gui_set_color(coin_id,   gui_red, gui_blk);
-        gui_set_color(time_id,   gui_red, gui_blk);
-        gui_set_color(status_id, gui_red, gui_blk);
-        gui_set_label(status_id, _("Bankrupt"));
+        ) {
+        if (d->balls <= 0 &&
+            (d->status == GAME_TIME || d->status == GAME_FALL)) {
+            gui_set_color(name_id, gui_red, gui_blk);
+            gui_set_color(date_id, gui_red, gui_blk);
+            gui_set_color(player_id, gui_red, gui_blk);
+            gui_set_color(coin_id, gui_red, gui_blk);
+            gui_set_color(time_id, gui_red, gui_blk);
+            gui_set_color(status_id, gui_red, gui_blk);
+            gui_set_label(status_id, _("Bankrupt"));
+        }
     }
 
     /* Make sure, that the level status limit is underneath it. */

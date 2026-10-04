@@ -42,6 +42,10 @@
 #include "game_server.h"
 #include "game_client.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_sha256.h"
+#endif
+
 #include "st_common.h"
 #include "st_play.h"
 #include "st_level.h"
@@ -74,6 +78,26 @@ static int keybd_restart_shift = 0;
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_HAVE_PB_BOTH==1
+#define PAUSED_ACTION_CONTINUE                                \
+    do {                                                      \
+        if (!game_sha256_check(curr_flawless_runs()))         \
+            GAME_SHA256_CHECK_ERROR;                          \
+        if (curr_state() == &st_pause) {                      \
+            if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS)) \
+                st_autocalibrate_stick();                     \
+            audio_music_fade_in(0.5f);                        \
+            if (st_continue == &st_play_ready ||              \
+                st_continue == &st_play_loop)                 \
+                video_set_grab(1);                            \
+            exit_state(st_continue); st_continue = NULL;      \
+        } else {                                              \
+            quit_uses_resetpuzzle = 0;                        \
+            quit_uses_restart     = 0;                        \
+            return exit_state(&st_pause);                     \
+        }                                                     \
+    } while (0)
+#else
 #define PAUSED_ACTION_CONTINUE                                \
     do {                                                      \
         if (curr_state() == &st_pause) {                      \
@@ -90,6 +114,7 @@ static int keybd_restart_shift = 0;
             return exit_state(&st_pause);                     \
         }                                                     \
     } while (0)
+#endif
 
 int goto_pause(struct state *returnable)
 {

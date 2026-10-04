@@ -111,6 +111,10 @@ int  curr_times(void);
 int  curr_mode (void);
 int  curr_goal (void);
 
+#if NB_HAVE_PB_BOTH==1
+int curr_flawless_runs(void);
+#endif
+
 int  progress_time_rank(void);
 int  progress_goal_rank(void);
 int  progress_coin_rank(void);

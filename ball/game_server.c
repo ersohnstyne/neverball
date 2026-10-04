@@ -69,6 +69,10 @@
 #include "game_proxy.h"
 #include "game_switchball.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_sha256.h"
+#endif
+
 #include "cmd.h"
 
 #if NB_HAVE_PB_BOTH==1 && !defined(MAPC_INCLUDES_CHKP)
@@ -2195,6 +2199,17 @@ static void game_server_iter(float dt)
 
     if (status == GAME_TIME) return;
 
+    /* HACK: Shift offset back from where was in use. */
+
+#if NB_HAVE_PB_BOTH==1
+    if (!game_sha256_state()) return;
+#else
+    if (status != GAME_NONE) {
+        if (time_extra > status == GAME_GOAL ? 1.0f : 2.0f) return;
+        else time_extra += dt;
+    }
+#endif
+
     float g[3] = { 0.0f, -9.8f, 0.0f };
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -2288,17 +2303,6 @@ static struct lockstep server_step = { game_server_iter, DT };
 
 void game_server_step(float dt)
 {
-    /*
-     * HACK: Shift offset back from where was in use.
-     */
-
-#if NB_HAVE_PB_BOTH!=1
-    if (status != GAME_NONE) {
-        if (time_extra > status == GAME_GOAL ? 1.0f : 2.0f) return;
-        else time_extra += dt;
-    }
-#endif
-
     lockstep_run(&server_step, dt);
 }
 

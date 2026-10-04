@@ -73,6 +73,10 @@
 #include "game_server.h"
 #include "game_client.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_sha256.h"
+#endif
+
 #include "st_common.h"
 #include "st_play.h"
 #include "st_goal.h"
@@ -526,6 +530,7 @@ static int goal_gui(void)
                                     (!resume || (!resume_locked && goal_intro_animation_phase == 2)) &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #endif
+                    gui_filler(scoreboard_id);
                 }
 
                 gui_campaign_stats(curr_level());
@@ -559,6 +564,7 @@ static int goal_gui(void)
                                     (!resume || (!resume_locked && goal_intro_animation_phase == 2)) &&
                                     (shop_product_available || challenge_disable_all_buttons) ? 0 : high);
 #endif
+                    gui_filler(scoreboard_id);
                 }
 
                 gui_set_stats(curr_level());

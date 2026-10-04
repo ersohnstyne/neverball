@@ -66,10 +66,10 @@
 #include "lang.h"
 #include "score.h"
 #include "audio.h"
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 #include "video.h"
+#endif
 #include "util.h"
-
-#include "state.h"
 
 #if ENABLE_DUALDISPLAY==1
 #include "game_dualdisplay.h"
@@ -79,7 +79,9 @@
 #include "game_server.h"
 #include "game_switchball.h"
 
-#include "st_level.h"
+#if NB_HAVE_PB_BOTH==1
+#include "game_sha256.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -584,6 +586,10 @@ void progress_init(int m)
     game_dualdisplay_set_heart(curr.balls);
 #endif
 
+#if NB_HAVE_PB_BOTH==1
+    if (!game_sha256_init()) return;
+#endif
+
     is_init = 1;
 }
 
@@ -895,7 +901,14 @@ int  progress_play(struct level *l)
 
         activity_services_level_update(curr.balls + account_curr_balls);
 
-        return init_level();
+#if NB_HAVE_PB_BOTH==1
+        if (mode != MODE_NORMAL && mode != MODE_STANDALONE &&
+            mode != MODE_ZEN && mode != MODE_CAMPAIGN)
+            if (!game_sha256_compare_date()) return 0;
+
+        if (game_sha256_play())
+#endif
+            return init_level();
     }
     return 0;
 }
@@ -1279,6 +1292,10 @@ void progress_stat(int s)
         break;
     }
 
+#if NB_HAVE_PB_BOTH==1
+    game_sha256_stat(status);
+#endif
+
     demo_play_stat(status, coins, timer);
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1324,6 +1341,10 @@ void progress_stop(void)
 void progress_exit(void)
 {
     if (!is_init) return;
+
+#if NB_HAVE_PB_BOTH==1
+    game_sha256_free();
+#endif
 
     progress_stop();
 
@@ -1588,6 +1609,10 @@ int  progress_next_avail(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
+#if NB_HAVE_PB_BOTH==1
+    if (!game_sha256_state()) return 0;
+#endif
+
     if (next &&
         (str_ends_with(next->file, ".csol")  ||
          str_ends_with(next->file, ".csolx") ||
@@ -1609,6 +1634,10 @@ int  progress_next_avail(void)
 int  progress_same_avail(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
+#if NB_HAVE_PB_BOTH==1
+    if (!game_sha256_state()) return 0;
+#endif
 
     /* Cannot restart in home room or hardcore mode. */
 
@@ -1638,6 +1667,11 @@ int  progress_same_avail(void)
 int  progress_next(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
+
+#if NB_HAVE_PB_BOTH==1
+    if (!game_sha256_check(curr.flawless_runs))
+        return 0;
+#endif
 
     if (next && status == GAME_GOAL && !progress_dead() &&
         (str_ends_with(next->file, ".csol")  ||
@@ -1682,9 +1716,16 @@ int  progress_same(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
+#if NB_HAVE_PB_BOTH==1
+    if (!game_sha256_state()) return 0;
+#endif
+
     if (!progress_dead())
     {
 #if NB_HAVE_PB_BOTH==1
+        if (!game_sha256_check(curr.flawless_runs) || !game_sha256_same())
+            return 0;
+
         curr.flawless_runs = 0;
 #endif
 
@@ -1721,6 +1762,10 @@ int  progress_dead(void)
 
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
     if (config_cheat()) return 0;
+#endif
+
+#if NB_HAVE_PB_BOTH==1
+    if (!game_sha256_state()) return 1;
 #endif
 
     if (status != GAME_NONE) return 0;
@@ -1885,6 +1930,10 @@ int curr_score(void) { return curr.score; }
 int curr_times(void) { return curr.times; }
 int curr_mode (void) { return mode;       }
 int curr_goal (void) { return goal;       }
+
+#if NB_HAVE_PB_BOTH==1
+int curr_flawless_runs(void) { return curr.flawless_runs; }
+#endif
 
 int progress_time_rank(void) { return time_rank; }
 int progress_goal_rank(void) { return goal_rank; }

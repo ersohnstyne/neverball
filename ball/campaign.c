@@ -468,8 +468,8 @@ int campaign_load(const char *filename)
         free(scores); scores = NULL;
 
         time_trial_leaderboard = strdup(config_cheat() ?
-                                        "Campaign/time-trial.txt" :
-                                        "Campaign/time-trial-cheat.txt");
+                                        "Campaign/time-trial-cheat.txt" :
+                                        "Campaign/time-trial.txt");
 
         campaign_count = 0;
 

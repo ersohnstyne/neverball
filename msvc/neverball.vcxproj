@@ -216,12 +216,13 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
       <SDLCheck>false</SDLCheck>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\sdk\curl\builds\libcurl-vc17-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
@@ -260,6 +261,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\game_inputbindings.c" />
     <ClCompile Include="..\ball\game_proxy.c" />
     <ClCompile Include="..\ball\game_server.c" />
+    <ClCompile Include="..\ball\game_sha256.c" />
     <ClCompile Include="..\ball\game_switchball.c" />
     <ClCompile Include="..\ball\game_transitions.c" />
     <ClCompile Include="..\ball\hud.c" />
@@ -441,6 +443,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\game_inputbindings.h" />
     <ClInclude Include="..\ball\game_proxy.h" />
     <ClInclude Include="..\ball\game_server.h" />
+    <ClInclude Include="..\ball\game_sha256.h" />
     <ClInclude Include="..\ball\game_switchball.h" />
     <ClInclude Include="..\ball\game_transitions.h" />
     <ClInclude Include="..\ball\hud.h" />

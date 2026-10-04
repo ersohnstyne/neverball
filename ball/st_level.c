@@ -70,6 +70,10 @@
 #include "game_client.h"
 #include "game_common.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_sha256.h"
+#endif
+
 #include "st_common.h"
 #include "st_level.h"
 #include "st_play.h"
@@ -295,6 +299,11 @@ static int level_action(int tok, int val)
 
         case LEVEL_START:
             show_info = 0;
+
+#if NB_HAVE_PB_BOTH==1
+            if (!game_sha256_check(curr_flawless_runs()))
+                GAME_SHA256_CHECK_ERROR;
+#endif
 
 #ifdef SWITCHBALL_HAVE_TIP_AND_TUTORIAL
             if (!tutorial_check() && !hint_check())
@@ -574,7 +583,7 @@ static int level_gui(void)
                 if (t && *t && t[0])
                 {
                     SAFECPY(lvlattr, t);
-
+                    
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     if (curr_mode() == MODE_CAMPAIGN)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -592,6 +601,7 @@ static int level_gui(void)
                         sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln, mode_to_str(MODE_HARDCORE, 1));
 #endif
+                    else
 #endif
                     if (curr_mode() == MODE_CHALLENGE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -693,8 +703,8 @@ static int level_gui(void)
                         sprintf(setattr, _("Standalone Level"));
 #endif
                 }
-
-                int font_size = (!*t && b) ? GUI_MED : GUI_LRG;
+                
+                int font_size = (!(t && *t && t[0]) && (m || b)) ? GUI_MED : GUI_LRG;
                 const int max_w = video.device_w;
 
                 if (gui_measure(lvlattr, font_size).w > max_w)
@@ -704,7 +714,7 @@ static int level_gui(void)
                 /* ^^^ AFTER REPLACE ^^^ */
 
                 gui_title_header(kd, lvlattr,
-                                     m || b ? GUI_MED : GUI_LRG,
+                                     font_size,
                                      m ? gui_wht : (b ? gui_wht : 0),
                                      m ? gui_red : (b ? gui_grn : 0));
 
@@ -1103,8 +1113,16 @@ static int level_click(int b, int d)
             }
         }
 #elif SWITCHBALL_HAVE_TIP_AND_TUTORIAL
+#if NB_HAVE_PB_BOTH==1
+        if (!tutorial_check() && !hint_check() && !game_sha256_check(curr_flawless_runs()))
+            GAME_SHA256_CHECK_ERROR;
+#endif
         return (!tutorial_check() && !hint_check()) ? goto_state(&st_play_ready) : 1;
 #else
+#if NB_HAVE_PB_BOTH==1
+        if (!game_sha256_check(curr_flawless_runs()))
+            GAME_SHA256_CHECK_ERROR;
+#endif
         return goto_state(&st_play_ready);
 #endif
     }
@@ -1195,18 +1213,28 @@ static int nodemo_keybd(int c, int d)
     {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
+        {
+            if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
+                GAME_SHA256_CHECK_ERROR;
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
             return exit_state(&st_level);
 #endif
+        }
 #else
         if (c == KEY_EXIT)
+        {
+#if NB_HAVE_PB_BOTH==1
+            if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
+                GAME_SHA256_CHECK_ERROR;
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
             return exit_state(&st_level);
 #endif
+        }
 #endif
     }
     return 1;
@@ -1218,6 +1246,10 @@ static int nodemo_buttn(int b, int d)
               config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)))
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+#if NB_HAVE_PB_BOTH==1
+        if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
+            GAME_SHA256_CHECK_ERROR;
+#endif
         return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
         return exit_state(&st_level);
@@ -1267,7 +1299,12 @@ static int level_signin_required_buttn(int b, int d)
     if (d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+        {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+#if NB_HAVE_PB_BOTH==1
+            if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
+                GAME_SHA256_CHECK_ERROR;
+#endif
             return goto_name(ST_LEVEL_CHECK_NODEMO ?
                              (campaign_used() ? &st_play_ready : &st_level) :
                              &st_nodemo, &st_level_signin_required, 0, 0, 0);
@@ -1275,6 +1312,7 @@ static int level_signin_required_buttn(int b, int d)
             return goto_name(ST_LEVEL_CHECK_NODEMO ? &st_level : &st_nodemo,
                              &st_level_signin_required, 0, 0, 0);
 #endif
+        }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return goto_exit();
     }
@@ -1392,6 +1430,11 @@ int goto_play_level(void)
     if (config_get_d(CONFIG_ACCOUNT_SAVE) > 0 &&
         curr_mode() != MODE_NONE && ST_LEVEL_CHECK_NODEMO)
         return fn_state(&st_nodemo);
+
+#if NB_HAVE_PB_BOTH==1
+    if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
+        GAME_SHA256_CHECK_ERROR;
+#endif
 
     return fn_state(
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

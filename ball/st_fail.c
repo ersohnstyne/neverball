@@ -70,6 +70,10 @@
 #include "game_client.h"
 #include "game_switchball.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_sha256.h"
+#endif
+
 #include "st_common.h"
 #include "st_play.h"
 #include "st_shop.h"

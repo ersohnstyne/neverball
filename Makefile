@@ -569,6 +569,7 @@ BALL_OBJS := \
 	ball/game_common.o  \
 	ball/game_client.o  \
 	ball/game_server.o  \
+	ball/game_sha256.o  \
 	ball/game_proxy.o   \
 	ball/game_draw.o    \
 	ball/game_transitions.o \

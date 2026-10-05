@@ -583,7 +583,7 @@ static int level_gui(void)
                 if (t && *t && t[0])
                 {
                     SAFECPY(lvlattr, t);
-                    
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     if (curr_mode() == MODE_CAMPAIGN)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -703,7 +703,7 @@ static int level_gui(void)
                         sprintf(setattr, _("Standalone Level"));
 #endif
                 }
-                
+
                 int font_size = (!(t && *t && t[0]) && (m || b)) ? GUI_MED : GUI_LRG;
                 const int max_w = video.device_w;
 

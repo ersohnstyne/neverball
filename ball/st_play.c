@@ -46,6 +46,10 @@
 //#include "geom.h"
 //#include "vec3.h"
 
+//#if NB_HAVE_PB_BOTH==1
+//#include "game_sha256.h"
+//#endif
+
 //#include "game_draw.h"
 //#include "game_common.h"
 //#include "game_server.h"
@@ -965,9 +969,6 @@ static void play_loop_timer(int id, float dt)
 
     game_lerp_pose_point_tick(dt);
 
-    if (!game_client_get_jump_b() && !play_freeze_all)
-        geom_step(dt);
-
     /* Boost rush uses auto forward */
     if (curr_mode() == MODE_BOOST_RUSH)
         game_set_x(curr_speed_percent() / 100.0f * -0.875f +
@@ -1065,12 +1066,20 @@ static void play_loop_timer(int id, float dt)
         rotation_offset = 0;
     }
 
-    game_camshake_update(dt);
     game_step_fade(dt);
 
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+    if (game_sha256_server_state() && !play_freeze_all &&
+        play_update_server && !play_update_client)
+#else
     if (!play_freeze_all &&
         play_update_server && !play_update_client)
+#endif
     {
+        if (!game_client_get_jump_b())
+            geom_step(dt);
+
+        game_camshake_update(dt);
         game_server_step(dt);
 
         play_update_server = 0;

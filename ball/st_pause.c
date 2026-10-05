@@ -81,7 +81,8 @@ static int keybd_restart_shift = 0;
 #if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
 #define PAUSED_ACTION_CONTINUE                                \
     do {                                                      \
-        if (!game_sha256_check(curr_flawless_runs()))         \
+        if (!game_sha256_check(curr_flawless_runs()) ||       \
+            !game_sha256_server_state())                      \
             GAME_SHA256_CHECK_ERROR;                          \
         if (curr_state() == &st_pause) {                      \
             if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS)) \

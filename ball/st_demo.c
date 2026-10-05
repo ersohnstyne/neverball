@@ -41,6 +41,10 @@
 #include "text.h"
 #include "log.h"
 
+//#if NB_HAVE_PB_BOTH==1
+//#include "game_sha256.h"
+//#endif
+
 //#include "game_common.h"
 //#include "game_client.h"
 //#include "game_server.h"
@@ -751,7 +755,7 @@ static void gui_demo_update_status(int i)
         gui_set_color(coin_id, GUI_COLOR_DEFAULT);
         gui_set_color(time_id, GUI_COLOR_DEFAULT);
     }
-    
+
     if (d->mode != MODE_NORMAL && d->mode != MODE_STANDALONE &&
         d->mode != MODE_ZEN
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN

@@ -36,6 +36,10 @@
 #include "geom.h"
 #include "vec3.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_sha256.h"
+#endif
+
 #include "game_draw.h"
 #include "game_common.h"
 #include "game_server.h"

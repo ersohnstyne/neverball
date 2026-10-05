@@ -219,7 +219,7 @@ static void goal_btns_horizontal_gui(int jd, const int enabled, const int demo_s
 static void goal_btns_vertical_gui(int jd, const int enabled, const int demo_saveable)
 {
     int btn_ids[3] = { 0, 0, 0 };
-    
+
     const char *next_btn_icon = progress_next_avail() ? GUI_TRIANGLE_RIGHT : GUI_CHECKMARK;
     const char *next_btn_text = progress_next_avail() ? N_("Next Level") :
                                                         N_("Finish");

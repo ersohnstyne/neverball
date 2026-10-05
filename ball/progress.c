@@ -508,7 +508,7 @@ void progress_init_home(void)
 
     mode   = MODE_NONE;
     replay = 0;
-    
+
     curr.balls         = 0;
     curr.score         = 0;
     curr.times         = 0;
@@ -905,7 +905,7 @@ int  progress_play(struct level *l)
 #endif
 
         activity_services_level_update(curr.balls + account_curr_balls);
-        
+
 #if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
         if (mode != MODE_NORMAL && mode != MODE_STANDALONE &&
             mode != MODE_ZEN    && mode != MODE_CAMPAIGN)
@@ -1359,7 +1359,7 @@ void progress_exit(void)
 #endif
 
     activity_services_mode_update(AS_MODE_NONE);
-    
+
     if (done) {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
         if (server_policy_get_d(SERVER_POLICY_EDITION) > -1

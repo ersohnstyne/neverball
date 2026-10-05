@@ -275,6 +275,10 @@ static int game_sha256_update_digest(void)
     return 1;
 }
 
+/**
+ * Initialize SHA256 game (WGCL).
+ * @return 1 = success; 0 = error
+ */
 int game_sha256_init(void)
 {
     game_sha256_free();
@@ -340,6 +344,10 @@ int game_sha256_state(void)
     return sha256_state;
 }
 
+/**
+ * Compare challenge date as checksum (WGCL).
+ * @return 1 = success; 0 = error
+ */
 int game_sha256_compare_date(void)
 {
     if (!sha256_state) return 0;
@@ -447,6 +455,11 @@ int game_sha256_same(void)
     return 1;
 }
 
+/**
+ * Compare gamemode progress as checksum (WGCL).
+ * @param curr_flawless The active flawless state on challenge gameplay
+ * @return 1 = success; 0 = error
+ */
 int game_sha256_check(int curr_flawless)
 {
     if (!sha256_state) return 0;
@@ -553,3 +566,454 @@ int game_sha256_check(int curr_flawless)
 
     return 1;
 }
+
+/*---------------------------------------------------------------------------*/
+
+static int sha256_server_state = 0;
+
+static struct game_server_sha256_digest server_sha256_curr;
+
+#ifdef MAPC_INCLUDES_CHKP
+int  game_sha256_server_init_chkp(int curr_timer_hold, int curr_time_limit,
+                                  int curr_status,     int curr_coins,
+                                  int curr_goal_e,     int curr_jump_e,
+                                  int curr_jump_b,     int curr_chkp_e,
+                                  int curr_chkp_id)
+{
+    game_sha256_server_free();
+
+    if (!game_sha256_server_init(curr_timer_hold, curr_time_limit,
+                                 curr_status,     curr_coins,
+                                 curr_goal_e,     curr_jump_e,
+                                 curr_jump_b))
+    {
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (!game_sha256_server_update_chkp(curr_chkp_e, curr_chkp_id))
+    {
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    return (sha256_server_state = 1);
+}
+#endif
+
+int  game_sha256_server_init(int curr_timer_hold, int curr_time_limit,
+                             int curr_status,     int curr_coins,
+                             int curr_goal_e,     int curr_jump_e,
+                             int curr_jump_b)
+{
+    game_sha256_server_free();
+
+    if (!game_sha256_server_update(curr_timer_hold, curr_time_limit,
+                                   curr_status,     curr_coins,
+                                   curr_goal_e,     curr_jump_e,
+                                   curr_jump_b))
+    {
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (!game_sha256_server_update(curr_timer_hold, curr_time_limit,
+                                   curr_status,     curr_coins,
+                                   curr_goal_e,     curr_jump_e,
+                                   curr_jump_b))
+    {
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    return (sha256_server_state = 1);
+}
+
+void game_sha256_server_free(void)
+{
+    if (!sha256_server_state) return;
+
+    memset(&server_sha256_curr, 0, sizeof (server_sha256_curr));
+
+    sha256_server_state = 0;
+}
+
+int  game_sha256_server_state(void)
+{
+    return sha256_server_state;
+}
+
+#ifdef MAPC_INCLUDES_CHKP
+int game_sha256_server_check_chkp(int curr_timer_hold, int curr_time_limit,
+                                  int curr_status,     int curr_coins,
+                                  int curr_goal_e,     int curr_jump_e,
+                                  int curr_jump_b,     int curr_chkp_e,
+                                  int curr_chkp_id)
+{
+    if (!game_sha256_server_check(curr_timer_hold, curr_time_limit,
+                                  curr_status,     curr_coins,
+                                  curr_goal_e,     curr_jump_e,
+                                  curr_jump_b))
+    {
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    char in_raw_server_chkp_e [SHA256_DIGEST_SIZE],
+         in_raw_server_chkp_id[SHA256_DIGEST_SIZE];
+
+    unsigned char sha256_server_digest_chkp_e [SHA256_DIGEST_SIZE],
+                  sha256_server_digest_chkp_id[SHA256_DIGEST_SIZE];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_chkp_e, sizeof (in_raw_server_chkp_e),
+#else
+    sprintf(in_raw_server_chkp_e,
+#endif
+              "SERVER_CHKP_E:%d", curr_chkp_e);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_chkp_id, sizeof (in_raw_server_chkp_id),
+#else
+    sprintf(in_raw_server_chkp_id,
+#endif
+              "SERVER_CHKP_ID:%d", curr_chkp_id);
+
+    if (SHA256((const unsigned char *) in_raw_server_chkp_e, strlen(in_raw_server_chkp_e), sha256_server_digest_chkp_e) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_chkp_e[i] != server_sha256_curr.chkp_e[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_chkp_e): %s; Expected (server_sha256_curr.chkp_e): %s\n",
+                       sha256_server_digest_chkp_e, server_sha256_curr.chkp_e);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_chkp_id, strlen(in_raw_server_chkp_id), sha256_server_digest_chkp_id) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_chkp_id[i] != server_sha256_curr.chkp_id[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_chkp_id): %s; Expected (server_sha256_curr.chkp_id): %s\n",
+                       sha256_server_digest_chkp_id, server_sha256_curr.chkp_id);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    return 1;
+}
+
+int game_sha256_server_update_chkp(int curr_chkp_e, int curr_chkp_id)
+{
+    char in_raw_server_chkp_e [SHA256_DIGEST_SIZE],
+         in_raw_server_chkp_id[SHA256_DIGEST_SIZE];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_chkp_e, sizeof (in_raw_server_chkp_e),
+#else
+    sprintf(in_raw_server_chkp_e,
+#endif
+              "SERVER_CHKP_E:%d", curr_chkp_e);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_chkp_id, sizeof (in_raw_server_chkp_id),
+#else
+    sprintf(in_raw_server_chkp_id,
+#endif
+              "SERVER_CHKP_ID:%d", curr_chkp_id);
+
+    if (SHA256((const unsigned char *) in_raw_server_chkp_e, strlen(in_raw_server_chkp_e), server_sha256_curr.chkp_e) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_chkp_id, strlen(in_raw_server_chkp_id), server_sha256_curr.chkp_id) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    return 1;
+}
+
+#endif
+
+int game_sha256_server_check(int curr_timer_hold, int curr_time_limit,
+                             int curr_status,     int curr_coins,
+                             int curr_goal_e,     int curr_jump_e,
+                             int curr_jump_b)
+{
+    char in_raw_server_timer_hold[SHA256_DIGEST_SIZE],
+         in_raw_server_time_limit[SHA256_DIGEST_SIZE],
+         in_raw_server_status    [SHA256_DIGEST_SIZE],
+         in_raw_server_coins     [SHA256_DIGEST_SIZE],
+         in_raw_server_goal_e    [SHA256_DIGEST_SIZE],
+         in_raw_server_jump_e    [SHA256_DIGEST_SIZE],
+         in_raw_server_jump_b    [SHA256_DIGEST_SIZE];
+
+    unsigned char
+         sha256_server_digest_timer_hold[SHA256_DIGEST_SIZE],
+         sha256_server_digest_time_limit[SHA256_DIGEST_SIZE],
+         sha256_server_digest_status    [SHA256_DIGEST_SIZE],
+         sha256_server_digest_coins     [SHA256_DIGEST_SIZE],
+         sha256_server_digest_goal_e    [SHA256_DIGEST_SIZE],
+         sha256_server_digest_jump_e    [SHA256_DIGEST_SIZE],
+         sha256_server_digest_jump_b    [SHA256_DIGEST_SIZE];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_timer_hold, sizeof (in_raw_server_timer_hold),
+#else
+    sprintf(in_raw_server_timer_hold,
+#endif
+            "SERVER_TIMERHOLD_START:%d", curr_timer_hold);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_time_limit, sizeof (in_raw_server_time_limit),
+#else
+    sprintf(in_raw_server_time_limit,
+#endif
+            "SERVER_TIME_LIMIT:%d", curr_time_limit);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_status, sizeof (in_raw_server_status),
+#else
+    sprintf(in_raw_server_status,
+#endif
+            "SERVER_STATUS:%d", curr_status);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_coins, sizeof (in_raw_server_coins),
+#else
+    sprintf(in_raw_server_coins,
+#endif
+            "SERVER_COINS:%d", curr_coins);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_goal_e, sizeof (in_raw_server_goal_e),
+#else
+    sprintf(in_raw_server_goal_e,
+#endif
+            "SERVER_GOAL_E:%d", curr_goal_e);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_jump_e, sizeof (in_raw_server_jump_e),
+#else
+    sprintf(in_raw_server_jump_e,
+#endif
+            "SERVER_JUMP_E:%d", curr_goal_e);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_jump_b, sizeof (in_raw_server_jump_b),
+#else
+    sprintf(in_raw_server_jump_b,
+#endif
+            "SERVER_JUMP_B:%d", curr_goal_e);
+
+    if (SHA256((const unsigned char *) in_raw_server_timer_hold, strlen(in_raw_server_timer_hold), sha256_server_digest_timer_hold) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_timer_hold[i] != server_sha256_curr.timer_hold[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_timer_hold): %s; Expected (server_sha256_curr.timer_hold): %s\n",
+                       sha256_server_digest_timer_hold, server_sha256_curr.timer_hold);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_time_limit, strlen(in_raw_server_time_limit), sha256_server_digest_time_limit) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_time_limit[i] != server_sha256_curr.time_limit[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_time_limit): %s; Expected (server_sha256_curr.time_limit): %s\n",
+                       sha256_server_digest_time_limit, server_sha256_curr.time_limit);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_status, strlen(in_raw_server_status), sha256_server_digest_status) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_status[i] != server_sha256_curr.status[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_status): %s; Expected (server_sha256_curr.status): %s\n",
+                       sha256_server_digest_status, server_sha256_curr.status);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_coins, strlen(in_raw_server_coins), sha256_server_digest_coins) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_coins[i] != server_sha256_curr.coins[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_coins): %s; Expected (server_sha256_curr.coins): %s\n",
+                       sha256_server_digest_coins, server_sha256_curr.coins);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_goal_e, strlen(in_raw_server_goal_e), sha256_server_digest_goal_e) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_goal_e[i] != server_sha256_curr.goal_e[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_goal_e): %s; Expected (server_sha256_curr.goal_e): %s\n",
+                       sha256_server_digest_goal_e, server_sha256_curr.goal_e);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_jump_e, strlen(in_raw_server_jump_e), sha256_server_digest_jump_e) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_jump_e[i] != server_sha256_curr.jump_e[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_jump_e): %s; Expected (server_sha256_curr.jump_e): %s\n",
+                       sha256_server_digest_jump_e, server_sha256_curr.jump_e);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_jump_b, strlen(in_raw_server_jump_b), sha256_server_digest_jump_b) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
+        if (sha256_server_digest_jump_b[i] != server_sha256_curr.jump_b[i]) {
+            log_errorf("Compare checksum failed!: Currrent (sha256_server_digest_jump_b): %s; Expected (server_sha256_curr.jump_b): %s\n",
+                       sha256_server_digest_jump_b, server_sha256_curr.jump_b);
+            game_sha256_server_free();
+            return (sha256_server_state = 0);
+        }
+    }
+
+    return 1;
+}
+
+int  game_sha256_server_update(int curr_timer_hold, int curr_time_limit,
+                               int curr_status,     int curr_coins,
+                               int curr_goal_e,     int curr_jump_e,
+                               int curr_jump_b)
+{
+    char in_raw_server_timer_hold[SHA256_DIGEST_SIZE],
+         in_raw_server_time_limit[SHA256_DIGEST_SIZE],
+         in_raw_server_status    [SHA256_DIGEST_SIZE],
+         in_raw_server_coins     [SHA256_DIGEST_SIZE],
+         in_raw_server_goal_e    [SHA256_DIGEST_SIZE],
+         in_raw_server_jump_e    [SHA256_DIGEST_SIZE],
+         in_raw_server_jump_b    [SHA256_DIGEST_SIZE];
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_timer_hold, sizeof (in_raw_server_timer_hold),
+#else
+    sprintf(in_raw_server_timer_hold,
+#endif
+            "SERVER_TIMERHOLD_START:%d", curr_timer_hold);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_time_limit, sizeof (in_raw_server_time_limit),
+#else
+    sprintf(in_raw_server_time_limit,
+#endif
+            "SERVER_TIME_LIMIT:%d", curr_time_limit);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_status, sizeof (in_raw_server_status),
+#else
+    sprintf(in_raw_server_status,
+#endif
+            "SERVER_STATUS:%d", curr_status);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_coins, sizeof (in_raw_server_coins),
+#else
+    sprintf(in_raw_server_coins,
+#endif
+            "SERVER_COINS:%d", curr_coins);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_goal_e, sizeof (in_raw_server_goal_e),
+#else
+    sprintf(in_raw_server_goal_e,
+#endif
+            "SERVER_GOAL_E:%d", curr_goal_e);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_jump_e, sizeof (in_raw_server_jump_e),
+#else
+    sprintf(in_raw_server_jump_e,
+#endif
+            "SERVER_JUMP_E:%d", curr_goal_e);
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(in_raw_server_jump_b, sizeof (in_raw_server_jump_b),
+#else
+    sprintf(in_raw_server_jump_b,
+#endif
+            "SERVER_JUMP_B:%d", curr_goal_e);
+
+    if (SHA256((const unsigned char *) in_raw_server_timer_hold, strlen(in_raw_server_timer_hold), server_sha256_curr.timer_hold) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_time_limit, strlen(in_raw_server_time_limit), server_sha256_curr.time_limit) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_status, strlen(in_raw_server_status), server_sha256_curr.status) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_coins, strlen(in_raw_server_coins), server_sha256_curr.coins) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_goal_e, strlen(in_raw_server_goal_e), server_sha256_curr.goal_e) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_jump_e, strlen(in_raw_server_jump_e), server_sha256_curr.jump_e) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    if (SHA256((const unsigned char *) in_raw_server_jump_b, strlen(in_raw_server_jump_b), server_sha256_curr.jump_b) != 0) {
+        log_errorf("Hashing failed!\n");
+        game_sha256_server_free();
+        return (sha256_server_state = 0);
+    }
+
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/

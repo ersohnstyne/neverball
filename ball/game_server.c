@@ -118,9 +118,9 @@ static float view_zoom_end;             /* Target zoom level                 */
 static float view_zoom_time;            /* Running zoom animation time       */
 
 #define ZOOM_DELAY (GROW_TIME * 0.5f)
-#define ZOOM_TIME (ZOOM_DELAY + GROW_TIME)
-#define ZOOM_MIN 0.75f
-#define ZOOM_MAX 1.25f
+#define ZOOM_TIME  (ZOOM_DELAY + GROW_TIME)
+#define ZOOM_MIN   0.75f
+#define ZOOM_MAX   1.25f
 
 static int   coins  = 0;                /* Collected coins                   */
 static int   goal_e = 0;                /* Goal enabled flag                 */
@@ -771,6 +771,25 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 #endif
     }
 
+    /* Initialize SHA256 server. */
+
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+#ifdef MAPC_INCLUDES_CHKP
+    if (!game_sha256_server_init_chkp(timer_hold, ROUND(time_limit / 100.0f),
+                                      status, coins,
+                                      goal_e, jump_e, jump_b, chkp_e, chkp_id))
+#else
+    if (!game_sha256_server_init(timer_hold, ROUND(time_limit / 100.0f),
+                                 status, coins,
+                                 goal_e, jump_e, jump_b))
+#endif
+    {
+        sol_free_vary(&vary);
+        game_base_free(&server_base, NULL);
+        return (server_state = 0);
+    }
+#endif
+
     /* HACK: Make sure that works! */
 
     if (vary.base->vc < 1 || !vary.base->vv ||
@@ -1261,6 +1280,25 @@ int game_server_init(const char *file_name, int t, int e)
         sol_init_sim(&vary);
 #endif
     }
+
+    /* Initialize SHA256 server. */
+
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+#ifdef MAPC_INCLUDES_CHKP
+    if (!game_sha256_server_init_chkp(timer_hold, ROUND(time_limit / 100.0f),
+                                      status, coins,
+                                      goal_e, jump_e, jump_b, chkp_e, chkp_id))
+#else
+    if (!game_sha256_server_init(timer_hold, ROUND(time_limit / 100.0f),
+                                 status, coins,
+                                 goal_e, jump_e, jump_b))
+#endif
+    {
+        sol_free_vary(&vary);
+        game_base_free(&server_base, NULL);
+        return (server_state = 0);
+    }
+#endif
 
     /* HACK: Make sure that works! */
 
@@ -1788,19 +1826,32 @@ static int game_update_state(int bt)
     struct b_goal *zp;
     int hi, cami;
 
-    /* New: Hold timer mode */
-
-    if (vary.uv[CURR_PLAYER].p[0] < server_base.base.uv[CURR_PLAYER].p[0] - .01f ||
-        vary.uv[CURR_PLAYER].p[0] > server_base.base.uv[CURR_PLAYER].p[0] + .01f ||
-        vary.uv[CURR_PLAYER].p[1] < server_base.base.uv[CURR_PLAYER].p[1] - .25f ||
-        vary.uv[CURR_PLAYER].p[1] > server_base.base.uv[CURR_PLAYER].p[1] + .01f ||
-        vary.uv[CURR_PLAYER].p[2] < server_base.base.uv[CURR_PLAYER].p[2] - .01f ||
-        vary.uv[CURR_PLAYER].p[2] > server_base.base.uv[CURR_PLAYER].p[2] + .01f)
-        timer_hold = 0;
-
     /* Cannot update state in home room. */
 
     if (curr_mode() == MODE_NONE) return GAME_NONE;
+
+    /* New: Hold timer mode */
+    
+    if ((vary.uv[CURR_PLAYER].p[0] < server_base.base.uv[CURR_PLAYER].p[0] - .01f ||
+         vary.uv[CURR_PLAYER].p[0] > server_base.base.uv[CURR_PLAYER].p[0] + .01f ||
+         vary.uv[CURR_PLAYER].p[1] < server_base.base.uv[CURR_PLAYER].p[1] - .25f ||
+         vary.uv[CURR_PLAYER].p[1] > server_base.base.uv[CURR_PLAYER].p[1] + .01f ||
+         vary.uv[CURR_PLAYER].p[2] < server_base.base.uv[CURR_PLAYER].p[2] - .01f ||
+         vary.uv[CURR_PLAYER].p[2] > server_base.base.uv[CURR_PLAYER].p[2] + .01f) &&
+        timer_hold) {
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+        if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                     goal_e, jump_e, jump_b)) return GAME_NONE;
+        else
+#endif
+        {
+            timer_hold = 0;
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+            if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                           goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
+        }
+    }
 
     /* Test for an item. */
 
@@ -1814,7 +1865,19 @@ static int game_update_state(int bt)
 
         if (hp && hp->t == ITEM_COIN)
         {
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+            if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                          goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
+#ifdef ENABLE_POWERUP
             coins += hp->n * powerup_get_coin_multiply();
+#else
+            coins += hp->n;
+#endif
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+            if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                           goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
             game_cmd_coins();
 
             progress_rush_collect_coin_value(hp->n);
@@ -1852,6 +1915,11 @@ static int game_update_state(int bt)
 
             audio_play(AUD_CLOCK, 1.0f);
 
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+            if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                          goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
+
             /* Calculate elapsed time against coin clocks. */
 
             if (time_limit > 0)
@@ -1864,6 +1932,11 @@ static int game_update_state(int bt)
                 time_elapsed = MAX(0.0f, time_elapsed - value);
 #endif
             }
+
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+            if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                           goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
 
             game_update_time(0.0f, bt);
         }
@@ -1926,10 +1999,19 @@ static int game_update_state(int bt)
     if (curr_balls() != 0 && !progress_dead())
 #endif
     {
+        int new_chkp_id = -1;
+        
         if (bt && chkp_e &&
             sol_chkp_test(&vary, game_proxy_enq, CURR_PLAYER,
-                          &chkp_id) == CHKP_INSIDE)
+                          &new_chkp_id) == CHKP_INSIDE && new_chkp_id != chkp_id)
         {
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+            if (!game_sha256_server_check_chkp(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                               goal_e, jump_e, jump_b, chkp_e, chkp_id)) return GAME_NONE;
+#endif
+
+            chkp_id = new_chkp_id;
+
             audio_play(AUD_SWITCH, 1.f);
 
             for (int backupidx = 0; backupidx < vary.cc; backupidx++)
@@ -1959,6 +2041,10 @@ static int game_update_state(int bt)
                     game_proxy_enq(&cmd);
                 }
             }
+
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+            if (!game_sha256_server_update_chkp(chkp_e, chkp_id)) return GAME_NONE;
+#endif
         }
     }
 #endif
@@ -1966,8 +2052,13 @@ static int game_update_state(int bt)
     /* Test for a jump. */
 
     if (bt && jump_e == 1 && jump_b == 0 && (sol_jump_test(&vary, jump_p, 0) ==
-                                       JUMP_INSIDE))
+                                             JUMP_INSIDE))
     {
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+        if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                      goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
+
         jump_b  = 1;
         jump_e  = 0;
         jump_dt = 0.0f;
@@ -1975,12 +2066,28 @@ static int game_update_state(int bt)
         audio_play(AUD_JUMP, 1.0f);
 
         game_cmd_jump(1);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+        if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                       goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
     }
     if (jump_e == 0 && jump_b == 0 && (sol_jump_test(&vary, jump_p, 0) ==
                                        JUMP_OUTSIDE))
     {
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+        if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                      goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
+
         jump_e = 1;
+
         game_cmd_jump(0);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+        if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                       goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
     }
 
 #if ENABLE_DEDICATED_SERVER==1
@@ -2127,7 +2234,15 @@ static int game_step(const float g[3], float dt, int bt)
                     v_sub(dp,     jump_p, vary.uv[CURR_PLAYER].p);
                     v_add(view.p, view.p, dp);
 
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+                    if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                                  goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
                     jump_b = 2;
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+                    if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                                   goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
                 }
 
                 /* Translate ball and hold it at the destination. */
@@ -2135,7 +2250,18 @@ static int game_step(const float g[3], float dt, int bt)
                 v_cpy(vary.uv[CURR_PLAYER].p, jump_p);
             }
 
-            if (jump_dt >= 1.0f) jump_b = 0;
+            if (jump_dt >= 1.0f)
+            {
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+                if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                              goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
+                jump_b = 0;
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+                if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                               goal_e, jump_e, jump_b)) return GAME_NONE;
+#endif
+            }
         }
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -2169,7 +2295,7 @@ static int game_step(const float g[3], float dt, int bt)
                 float k = (b - 0.5f) * 2.0f;
 
 #ifdef __EMSCRIPTEN__
-                EM_ASM({ Neverball.events.vibratePhone($1); Neverball.events.vibrateGamepad($0, $1); }, k, 0.2f);
+                EM_ASM({ Pennyball.events.vibratePhone($1); Pennyball.events.vibrateGamepad($0, $1); }, k, 0.2f);
 #endif
 
                 if      (vary.uv->r > vary.uv->sizes[1]) audio_play(AUD_BUMPL, k);
@@ -2203,7 +2329,7 @@ static void game_server_iter(float dt)
 
 #if NB_HAVE_PB_BOTH==1
 #ifndef GAME_SHA256_NOENCRYPTION
-    if (!game_sha256_state()) return;
+    if (!game_sha256_state() || !game_sha256_server_state()) return;
 #endif
 #else
     if (status != GAME_NONE) {
@@ -2227,6 +2353,11 @@ static void game_server_iter(float dt)
 #endif
         v_scl(g, g, -1);
 
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+    if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                  goal_e, jump_e, jump_b)) return;
+#endif
+
     if (status != GAME_NONE)
         game_step(g, dt, 0);
     else if ((status = game_step(g,
@@ -2237,6 +2368,11 @@ static void game_server_iter(float dt)
 #endif
                                  )) != GAME_NONE)
     {
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+        if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                       goal_e, jump_e, jump_b)) return;
+#endif
+
         /*
          * CAUTION!: Map marker incidents for WGCL is not available
          * in standalone mode.
@@ -2248,7 +2384,7 @@ static void game_server_iter(float dt)
             /* HACK: OK, but now, with WGCL's Emscripten first! */
 
             const int r = EM_ASM_INT({
-                return Neverball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
+                return Pennyball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
             }, server_base.path, status,
                ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #elif defined(__EMSCRIPTEN__)
@@ -2319,8 +2455,18 @@ void game_set_goal(void)
 {
     if (goal_e) return;
 
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+    if (!game_sha256_server_check(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                  goal_e, jump_e, jump_b)) return;
+#endif
+
     audio_play(AUD_SWITCH, 1.0f);
     goal_e = 1;
+
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+    if (!game_sha256_server_update(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                   goal_e, jump_e, jump_b)) return;
+#endif
 
     game_cmd_goalopen();
 }
@@ -2331,9 +2477,14 @@ void game_disable_chkp(void)
     if (chkp_e && time_limit > 0)
     {
         if (vary.cc) audio_play(AUD_SWITCH, 1.0f);
-
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+        if (!game_sha256_server_check_chkp(timer_hold, ROUND(time_limit / 100.0f), status, coins,
+                                           goal_e, jump_e, jump_b, chkp_e, chkp_id)) return;
+#endif
         chkp_e = 0;
-
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+        if (!game_sha256_server_update_chkp(chkp_e, chkp_id)) return;
+#endif
         game_cmd_chkp_disable();
     }
 }

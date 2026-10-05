@@ -585,7 +585,7 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
 
         const char *quit_btn_text = (curr_mode() == MODE_STANDALONE || progress_dead() ?
                                      N_("Exit") : N_("Back To Menu"));
-        
+
         /* vvv RESTART BUTTON vvv */
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__) && !defined(__NDS__) && !defined(__3DS__) && \

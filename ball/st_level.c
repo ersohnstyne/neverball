@@ -300,7 +300,7 @@ static int level_action(int tok, int val)
         case LEVEL_START:
             show_info = 0;
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
             if (!game_sha256_check(curr_flawless_runs()))
                 GAME_SHA256_CHECK_ERROR;
 #endif
@@ -986,12 +986,16 @@ static int level_keybd(int c, int d)
 {
     if (d)
     {
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* HACK: Do not attempt, when the level is loading. */
+
+        if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
+
         if (current_platform == PLATFORM_PC)
 #endif
         {
             if (c == KEY_EXIT)
-                return goto_pause(&st_level);
+                return goto_pause(curr_state());
             if (c == KEY_POSE)
                 return goto_state(&st_poser);
         }
@@ -1030,6 +1034,12 @@ static int level_buttn(int b, int d)
 {
     if (d)
     {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        /* HACK: Do not attempt, when the level is loading. */
+
+        if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
+#endif
+
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
             int active = gui_active();
@@ -1085,6 +1095,12 @@ static int level_buttn(int b, int d)
 
 static int level_click(int b, int d)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* HACK: Do not attempt, when the level is loading. */
+
+    if (d && EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
+#endif
+
 #ifndef __EMSCRIPTEN__
     if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
         return st_keybd(KEY_EXIT, d);
@@ -1113,13 +1129,13 @@ static int level_click(int b, int d)
             }
         }
 #elif SWITCHBALL_HAVE_TIP_AND_TUTORIAL
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
         if (!tutorial_check() && !hint_check() && !game_sha256_check(curr_flawless_runs()))
             GAME_SHA256_CHECK_ERROR;
 #endif
         return (!tutorial_check() && !hint_check()) ? goto_state(&st_play_ready) : 1;
 #else
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
         if (!game_sha256_check(curr_flawless_runs()))
             GAME_SHA256_CHECK_ERROR;
 #endif
@@ -1214,8 +1230,10 @@ static int nodemo_keybd(int c, int d)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
         if (c == KEY_EXIT && current_platform == PLATFORM_PC)
         {
+#ifndef GAME_SHA256_NOENCRYPTION
             if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
                 GAME_SHA256_CHECK_ERROR;
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             return campaign_used() ? goto_state(&st_play_ready) : exit_state(&st_level);
 #else
@@ -1225,7 +1243,7 @@ static int nodemo_keybd(int c, int d)
 #else
         if (c == KEY_EXIT)
         {
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
             if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
                 GAME_SHA256_CHECK_ERROR;
 #endif
@@ -1246,7 +1264,7 @@ static int nodemo_buttn(int b, int d)
               config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b)))
     {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
         if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
             GAME_SHA256_CHECK_ERROR;
 #endif
@@ -1301,7 +1319,7 @@ static int level_signin_required_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
             if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
                 GAME_SHA256_CHECK_ERROR;
 #endif
@@ -1347,8 +1365,6 @@ static int level_superwaifu_action(int tok, int val) {
 static int level_superwaifu_enter(struct state* st, struct state* prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
-
-    //game_lerp_pose_point_reset();
     game_client_fly(1.0f);
 
     int id, jd;
@@ -1431,7 +1447,7 @@ int goto_play_level(void)
         curr_mode() != MODE_NONE && ST_LEVEL_CHECK_NODEMO)
         return fn_state(&st_nodemo);
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
     if (campaign_used() && !game_sha256_check(curr_flawless_runs()))
         GAME_SHA256_CHECK_ERROR;
 #endif

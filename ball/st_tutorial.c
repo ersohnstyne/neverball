@@ -39,6 +39,10 @@
 #include "game_client.h"
 #include "game_common.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "game_sha256.h"
+#endif
+
 #include "st_tutorial.h"
 #include "st_play.h"
 #include "st_shared.h"
@@ -288,6 +292,11 @@ static int tutorial_action(int tok, int val)
     if (config_get_d(CONFIG_ACCOUNT_HINT) && hint_check())
         return 1;
 
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+    if (!game_sha256_check(curr_flawless_runs()))
+        GAME_SHA256_CHECK_ERROR;
+#endif
+
     video_set_grab(1);
     return exit_state(st_continue);
 }
@@ -356,7 +365,7 @@ static int tutorial_enter(struct state *st, struct state *prev, int intent)
             const char *toggle_tutorial_text = config_get_d(CONFIG_ACCOUNT_TUTORIAL) ?
                                                N_("Tutorial Off") : N_("Tutorial On");
             toggle_id = gui_state(jd, _(toggle_tutorial_text), GUI_SML, TUTORIAL_TOGGLE, 0);
-            gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
+            gui_start_icon(jd, GUI_CHECKMARK, gui_grn, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }
 
@@ -548,6 +557,11 @@ static int hint_action(int tok, int val)
             return 1;
     }
 
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+    if (!game_sha256_check(curr_flawless_runs()))
+        GAME_SHA256_CHECK_ERROR;
+#endif
+
     video_set_grab(1);
     return exit_state(st_continue);
 }
@@ -573,7 +587,7 @@ static int hint_enter(struct state *st, struct state *prev, int intent)
             const char *toggle_hint_text = config_get_d(CONFIG_ACCOUNT_HINT) ?
                                            N_("Hint Off") : N_("Hint On");
             toggle_id = gui_state(jd, _(toggle_hint_text), GUI_SML, HINT_TOGGLE, 0);
-            gui_start(jd, _("OK"), GUI_SML, GUI_BACK, 0);
+            gui_start_icon(jd, GUI_CHECKMARK, gui_grn, _("OK"), GUI_SML, GUI_BACK, 0);
         }
     }
 

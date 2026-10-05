@@ -928,7 +928,6 @@ static int shop_unregistered_gui(void)
 static int shop_unregistered_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play(AUD_WARNING, 1.0f);
-
     return transition_slide(shop_unregistered_gui(), 1, intent);
 }
 

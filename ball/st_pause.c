@@ -78,7 +78,7 @@ static int keybd_restart_shift = 0;
 
 /*---------------------------------------------------------------------------*/
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
 #define PAUSED_ACTION_CONTINUE                                \
     do {                                                      \
         if (!game_sha256_check(curr_flawless_runs()))         \
@@ -116,6 +116,13 @@ static int keybd_restart_shift = 0;
     } while (0)
 #endif
 
+/**
+ * Call pause the game
+ *
+ * HACK: This applies for all game modes! - Ersohn Styne
+ *
+ * @param returnable The returned state
+ */
 int goto_pause(struct state *returnable)
 {
     audio_play("snd/2.2/game_pause.ogg", 1.0f);
@@ -124,13 +131,12 @@ int goto_pause(struct state *returnable)
     if (!st_continue && returnable)
     {
         if (returnable == &st_play_ready || returnable == &st_play_set ||
-            returnable == &st_play_loop || returnable == &st_look)
+            returnable == &st_play_loop  || returnable == &st_look)
         {
             if (returnable == &st_play_set) st_continue = &st_play_ready;
             if (returnable == &st_look)     st_continue = &st_play_loop;
         }
-        else if (returnable)
-            st_continue = returnable;
+        else st_continue = returnable;
     }
 
 #if ENABLE_LIVESPLIT!=0
@@ -140,6 +146,11 @@ int goto_pause(struct state *returnable)
     return goto_state(&st_pause);
 }
 
+/**
+ * Call restart the level
+ *
+ * HACK: This applies only for campaign or classic game modes! - Ersohn Styne
+ */
 static int pause_restart(void)
 {
     if (progress_same_avail())
@@ -198,6 +209,11 @@ static int pause_restart(void)
     return 1;
 }
 
+/**
+ * Call exit the level
+ *
+ * HACK: This function with confirm exit applies only for campaign or challenge! - Ersohn Styne
+ */
 static int pause_quit(void)
 {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -225,17 +241,13 @@ static int pause_quit(void)
         }
         else return goto_state(&st_pause_quit);
     }
-    else
-    {
-        if (curr_status() == GAME_NONE)
-            progress_stat(GAME_NONE);
 
-        audio_music_stop();
-        st_continue = NULL;
-        return goto_exit();
-    }
+    if (curr_status() == GAME_NONE)
+        progress_stat(GAME_NONE);
 
-    return 1;
+    audio_music_stop();
+    st_continue = NULL;
+    return goto_exit();
 #else
     if (curr_status() == GAME_NONE)
         progress_stat(GAME_NONE);
@@ -648,7 +660,6 @@ static int pause_quit_enter(struct state *st, struct state *prev, int intent)
         audio_music_fade_out(0.5f);
 
     audio_play(AUD_WARNING, 1.0f);
-
     return transition_slide(pause_quit_gui(), 1, intent);
 }
 

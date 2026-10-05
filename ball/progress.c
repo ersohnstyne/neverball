@@ -586,7 +586,7 @@ void progress_init(int m)
     game_dualdisplay_set_heart(curr.balls);
 #endif
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
     if (!game_sha256_init()) return;
 #endif
 
@@ -792,6 +792,11 @@ int  progress_play(struct level *l)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+    if (!game_sha256_check(curr.flawless_runs))
+        return 0;
+#endif
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     game_fade_color(mode == MODE_HARDCORE ? 0.25f : 0.0f, 0.0f, 0.0f);
 #endif
@@ -900,10 +905,10 @@ int  progress_play(struct level *l)
 #endif
 
         activity_services_level_update(curr.balls + account_curr_balls);
-
-#if NB_HAVE_PB_BOTH==1
+        
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
         if (mode != MODE_NORMAL && mode != MODE_STANDALONE &&
-            mode != MODE_ZEN && mode != MODE_CAMPAIGN)
+            mode != MODE_ZEN    && mode != MODE_CAMPAIGN)
             if (!game_sha256_compare_date()) return 0;
 
         if (game_sha256_play())
@@ -1292,8 +1297,8 @@ void progress_stat(int s)
         break;
     }
 
-#if NB_HAVE_PB_BOTH==1
-    game_sha256_stat(status);
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
+    if (!replay) game_sha256_stat(status);
 #endif
 
     demo_play_stat(status, coins, timer);
@@ -1342,7 +1347,7 @@ void progress_exit(void)
 {
     if (!is_init) return;
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
     game_sha256_free();
 #endif
 
@@ -1609,7 +1614,7 @@ int  progress_next_avail(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
     if (!game_sha256_state()) return 0;
 #endif
 
@@ -1635,7 +1640,7 @@ int  progress_same_avail(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
     if (!game_sha256_state()) return 0;
 #endif
 
@@ -1668,7 +1673,7 @@ int  progress_next(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
     if (!game_sha256_check(curr.flawless_runs))
         return 0;
 #endif
@@ -1716,15 +1721,17 @@ int  progress_same(void)
 {
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
     if (!game_sha256_state()) return 0;
 #endif
 
     if (!progress_dead())
     {
 #if NB_HAVE_PB_BOTH==1
+#ifndef GAME_SHA256_NOENCRYPTION
         if (!game_sha256_check(curr.flawless_runs) || !game_sha256_same())
             return 0;
+#endif
 
         curr.flawless_runs = 0;
 #endif
@@ -1764,7 +1771,7 @@ int  progress_dead(void)
     if (config_cheat()) return 0;
 #endif
 
-#if NB_HAVE_PB_BOTH==1
+#if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
     if (!game_sha256_state()) return 1;
 #endif
 

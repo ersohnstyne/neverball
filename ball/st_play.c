@@ -642,6 +642,12 @@ static int play_prep_click(int b, int d)
 
 static int play_prep_keybd(int c, int d)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* HACK: Do not attempt, when the level is loading. */
+
+    if (EM_ASM_INT({ return Neverball.wgclIsLevelLoading ? 1 : 0; })) return 1;
+#endif
+
     hud_show(0.0f);
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     EM_ASM({ Neverball.WGCLshowGameHUD(); });

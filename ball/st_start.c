@@ -300,8 +300,9 @@ static int start_action(int tok, int val)
 #endif
 
     const int curr_balls =
-        server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
-        account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
+              server_policy_get_d(SERVER_POLICY_EDITION)    >  0 &&
+              account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) >= 2 ?
+              account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
 #else
     const int curr_balls = 3;
 #endif
@@ -529,10 +530,11 @@ static int start_star_view_gui(void)
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
                 const int curr_balls =
-                    server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
-                    account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
+                          server_policy_get_d(SERVER_POLICY_EDITION)    >  0 &&
+                          account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) >= 2 ?
+                          account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
 #else
-                const int curr_balls = 0;
+                const int curr_balls = 3;
 #endif
 
                 const int lbl_id = gui_label(jd, set_star_attr,
@@ -836,10 +838,11 @@ static int start_gui(void)
                         {
 #ifdef CONFIG_INCLUDES_ACCOUNT
                             const int curr_balls =
-                                server_policy_get_d(SERVER_POLICY_EDITION) > 0 ?
-                                account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
+                                      server_policy_get_d(SERVER_POLICY_EDITION)    >  0 &&
+                                      account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) >= 2 ?
+                                      account_get_d(ACCOUNT_CONSUMEABLE_EXTRALIVES) : 3;
 #else
-                            const int curr_balls = 0;
+                            const int curr_balls = 3;
 #endif
 
                             if ((md = gui_harray(ld)))

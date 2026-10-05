@@ -496,12 +496,12 @@ int game_sha256_check(int curr_flawless)
 #endif
               "CHALLENGE_FLAWLESS_RUNS:%d", curr_flawless);
 #endif
-    
+
     if (SHA256((const unsigned char *) in_raw_curr_balls, strlen(in_raw_curr_balls), sha256_client_digest_balls) != 0) {
         log_errorf("Hashing failed!\n");
         game_sha256_free();
         return (sha256_state = 0);
-    } else for (int i = 0; i < 32; i++) {
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
         if (sha256_client_digest_balls[i] != sha256_curr.balls[i]) {
             log_errorf("Compare checksum failed!: Currrent (sha256_client_digest_balls): %s; Expected (sha256_curr.balls): %s\n",
                        sha256_client_digest_balls, sha256_curr.balls);
@@ -514,7 +514,7 @@ int game_sha256_check(int curr_flawless)
         log_errorf("Hashing failed!\n");
         game_sha256_free();
         return (sha256_state = 0);
-    } else for (int i = 0; i < 32; i++) {
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
         if (sha256_client_digest_score[i] != sha256_curr.score[i]) {
             log_errorf("Compare checksum failed!: Currrent (sha256_client_digest_score): %s; Expected (sha256_curr.score): %s\n",
                        sha256_client_digest_score, sha256_curr.score);
@@ -527,7 +527,7 @@ int game_sha256_check(int curr_flawless)
         log_errorf("Hashing failed!\n");
         game_sha256_free();
         return (sha256_state = 0);
-    } else for (int i = 0; i < 32; i++) {
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
         if (sha256_client_digest_timer[i] != sha256_curr.timer[i]) {
             log_errorf("Compare checksum failed!: Currrent (sha256_client_digest_timer): %s; Expected (sha256_curr.timer): %s\n",
                        sha256_client_digest_timer, sha256_curr.timer);
@@ -541,7 +541,7 @@ int game_sha256_check(int curr_flawless)
         log_errorf("Hashing failed!\n");
         game_sha256_free();
         return (sha256_state = 0);
-    } else for (int i = 0; i < 32; i++) {
+    } else for (int i = 0; i < SHA256_DIGEST_SIZE; i++) {
         if (sha256_client_digest_flawless_runs[i] != sha256_curr.flawless_runs[i]) {
             log_errorf("Compare checksum failed!: Currrent (sha256_client_digest_flawless_runs): %s; Expected (sha256_curr.flawless_runs): %s\n",
                        sha256_client_digest_flawless_runs, sha256_curr.flawless_runs);

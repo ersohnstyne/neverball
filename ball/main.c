@@ -1736,6 +1736,9 @@ static void step(void *data)
             SDL_Delay((1.0f / 60.0f) * 1000);
     }
 
+    if (main_loop_nowindowfocused)
+        SDL_Delay(40);
+
     mainloop->done = !running;
 
 #ifdef __EMSCRIPTEN__

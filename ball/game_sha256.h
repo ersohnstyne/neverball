@@ -35,6 +35,10 @@ int SHA256(const unsigned char *msg, size_t msgLen, unsigned char *digest);
 #define GAME_SHA256_CHECK_ERROR do { return 0; } while (0)
 #endif
 
+#if !defined(_WIN32) && !defined(_MAC) && !defined(__linux__)
+#define GAME_SHA256_NOENCRYPTION
+#endif
+
 struct game_sha256_digest
 {
     unsigned char balls[SHA256_DIGEST_SIZE];

@@ -2202,7 +2202,9 @@ static void game_server_iter(float dt)
     /* HACK: Shift offset back from where was in use. */
 
 #if NB_HAVE_PB_BOTH==1
+#ifndef GAME_SHA256_NOENCRYPTION
     if (!game_sha256_state()) return;
+#endif
 #else
     if (status != GAME_NONE) {
         if (time_extra > status == GAME_GOAL ? 1.0f : 2.0f) return;

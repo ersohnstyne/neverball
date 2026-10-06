@@ -254,31 +254,31 @@ void WGCL_LevelSet_PostLoadHS(int load_mostcoins,
             case RANK_HARD:
                 for (j = 0; j < 3; j++) {
                     if (load_mostcoins && strcmp(s->coin_score.player[j], player_hard) == 0) coin_score_can_insert = 0;
-                    else if (strcmp(s->time_score.player[j], player_hard) == 0) time_score_can_insert = 0;
+                    else if (!load_mostcoins && strcmp(s->time_score.player[j], player_hard) == 0) time_score_can_insert = 0;
                 }
                 if (strlen(player_hard) >= 3 && coin_hard >= 0) {
                     if (load_mostcoins && coin_score_can_insert) score_coin_insert(&s->coin_score, &coin_rank_default, player_hard, time_hard, coin_hard);
-                    else if (time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
+                    else if (!load_mostcoins && time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
                 }
                 break;
             case RANK_MEDM:
                 for (j = 0; j < 3; j++) {
                     if (load_mostcoins && strcmp(s->coin_score.player[j], player_medm) == 0) coin_score_can_insert = 0;
-                    else if (strcmp(s->time_score.player[j], player_medm) == 0) time_score_can_insert = 0;
+                    else if (!load_mostcoins && strcmp(s->time_score.player[j], player_medm) == 0) time_score_can_insert = 0;
                 }
                 if (strlen(player_medm) >= 3 && coin_medm >= 0) {
                     if (load_mostcoins && coin_score_can_insert) score_coin_insert(&s->coin_score, &coin_rank_default, player_hard, time_hard, coin_hard);
-                    else if (time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
+                    else if (!load_mostcoins && time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
                 }
                 break;
             case RANK_EASY:
                 for (j = 0; j < 3; j++) {
                     if (load_mostcoins && strcmp(s->coin_score.player[j], player_easy) == 0) coin_score_can_insert = 0;
-                    else if (strcmp(s->time_score.player[j], player_easy) == 0) time_score_can_insert = 0;
+                    else if (!load_mostcoins && strcmp(s->time_score.player[j], player_easy) == 0) time_score_can_insert = 0;
                 }
                 if (strlen(player_easy) >= 3 && coin_easy >= 0) {
                     if (load_mostcoins && coin_score_can_insert) score_coin_insert(&s->coin_score, &coin_rank_default, player_hard, time_hard, coin_hard);
-                    else if (time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
+                    else if (!load_mostcoins && time_score_can_insert) score_time_insert(&s->time_score, &time_rank_default, player_hard, time_hard, coin_hard);
                 }
                 break;
         }

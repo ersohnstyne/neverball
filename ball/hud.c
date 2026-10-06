@@ -75,6 +75,7 @@ static int fps_id;
 static int camcompass_id;
 #endif
 static int lvlname_id;
+static int incomecall_id;
 
 static int speed_id;
 static int speed_ids[SPEED_MAX];
@@ -98,6 +99,9 @@ static float speedup_logo_timer;
 static float cam_timer;
 static float speed_timer_length;
 static float touch_timer;
+
+static int   incomecall_state;
+static float incomecall_timer;
 
 /* Visibility */
 
@@ -310,6 +314,15 @@ void hud_init(void)
         gui_set_trunc(lvlname_id, TRUNC_TAIL);
         gui_layout(lvlname_id, 0, 1);
     }
+    
+    if ((incomecall_id = gui_label(0, "XXXXXXXXXXXXXXXXXXXXXXXXX",
+                                       GUI_SML, gui_blu, gui_grn)))
+    {
+        gui_set_rect(incomecall_id, GUI_BOT);
+        gui_set_label(incomecall_id, "");
+        gui_set_trunc(incomecall_id, TRUNC_TAIL);
+        gui_layout(incomecall_id, 0, 1);
+    }
 
 #if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
     if ((camcompass_id = gui_label(0, "199 Deg (NONE)",
@@ -351,6 +364,7 @@ void hud_free(void)
     gui_delete(xppenalty_hud_id); xppenalty_hud_id = 0;
     gui_delete(fps_id);           fps_id = 0;
     gui_delete(lvlname_id);       lvlname_id = 0;
+    gui_delete(incomecall_id);    incomecall_id = 0;
 
 #if defined(LEVELGROUPS_INCLUDES_CAMPAIGN) && ENABLE_COMPASS==1
     gui_delete(camcompass_id); camcompass_id = 0;
@@ -393,6 +407,8 @@ static void hud_update_alpha(void)
     gui_set_alpha(speed_id,        replay_hud_alpha,
                                    GUI_ANIMATION_S_CURVE);
     gui_set_alpha(lvlname_id,      standard_hud_alpha,
+                                   GUI_ANIMATION_N_CURVE);
+    gui_set_alpha(incomecall_id,   standard_hud_alpha,
                                    GUI_ANIMATION_N_CURVE);
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN)
     gui_set_alpha(camcompass_id,   standard_hud_alpha,
@@ -480,7 +496,10 @@ void hud_paint(void)
         }
     }
 
-    if (config_get_d(CONFIG_FPS)) gui_paint(fps_id);
+    if (incomecall_state)
+        gui_paint(incomecall_id);
+    if (config_get_d(CONFIG_FPS) && !incomecall_state)
+        gui_paint(fps_id);
 
     hud_cam_paint();
     hud_speed_paint();
@@ -785,6 +804,7 @@ void hud_timer(float dt)
     gui_timer(camcompass_id, dt);
 #endif
     gui_timer(lvlname_id, dt);
+    gui_timer(incomecall_id, dt);
     gui_timer(fps_id, dt);
     gui_timer(speed_percent_id, dt);
 
@@ -792,6 +812,7 @@ void hud_timer(float dt)
     hud_cam_timer(dt);
     hud_speed_timer(dt);
     hud_touch_timer(dt);
+    //hud_incomecall_timer(dt);
 }
 
 void hud_show(float delay)
@@ -807,6 +828,7 @@ void hud_show(float delay)
     gui_slide(camcompass_id,    GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
 #endif
     gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
+    gui_slide(incomecall_id,    GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(fps_id,           GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK, delay + 0.1f, 0.3f, 0);
     gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK, delay + 0.2f, 0.3f, 0);
@@ -829,6 +851,7 @@ void hud_hide(void)
     gui_slide(camcompass_id,    GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
 #endif
     gui_slide(lvlname_id,       GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(incomecall_id,    GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(fps_id,           GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(speed_percent_id, GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
     gui_slide(Rhud_id,          GUI_SE | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
@@ -993,7 +1016,7 @@ void hud_lvlname_set_ana(const char *name, int b)
 
 void hud_lvlname_paint(void)
 {
-    if (config_get_d(CONFIG_FPS)) return;
+    if (config_get_d(CONFIG_FPS) || incomecall_state) return;
 
     if (speed_timer_length < 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS)) {
 #if NB_HAVE_PB_BOTH==1
@@ -1122,6 +1145,54 @@ void hud_touch_paint(void)
 {
     if (touch_timer > 0.0f || config_get_d(CONFIG_SCREEN_ANIMATIONS))
         gui_paint(Touch_id);
+}
+
+/*---------------------------------------------------------------------------*/
+
+void hud_incomecall_start(void)
+{
+    if (!incomecall_state)
+    {
+        incomecall_state = 1;
+        incomecall_timer = 0.0f;
+    }
+}
+
+void hud_incomecall_end(void)
+{
+    incomecall_state = 0;
+}
+
+void hud_incomecall_timer(float dt)
+{
+    if (incomecall_state)
+        incomecall_timer += dt;
+
+    if (incomecall_timer >= 0.0f) {
+        char incomecall_attr[MAXSTR];
+        
+        if (incomecall_timer >= 3600.0f)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(incomecall_attr, MAXSTR,
+#else
+            sprintf(incomecall_attr,
+#endif
+                    _("Incoming Call: %d:%02d:%02d"),
+                    ROUND((incomecall_timer / 3600.0f)) % 24,
+                    ROUND((incomecall_timer /   60.0f)) % 60,
+                    ROUND( incomecall_timer)            % 60);
+        else
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            sprintf_s(incomecall_attr, MAXSTR,
+#else
+            sprintf(incomecall_attr,
+#endif
+                    _("Incoming Call: %d:%02d"),
+                    ROUND((incomecall_timer / 60.0f))   % 60,
+                    ROUND( incomecall_timer)            % 60);
+
+        gui_set_label(incomecall_id, incomecall_attr);
+    } else gui_set_label(incomecall_id, _("Incoming Call: --:--"));
 }
 
 /*---------------------------------------------------------------------------*/

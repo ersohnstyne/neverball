@@ -298,6 +298,18 @@ void audio_music_stop(void)
     });
 }
 
+void audio_music_call_start(float t)
+{
+}
+
+void audio_music_call_end(float t)
+{
+}
+
+void audio_music_call_step(float dt)
+{
+}
+
 /*---------------------------------------------------------------------------*/
 
 void audio_ambient_play(const char *filename)

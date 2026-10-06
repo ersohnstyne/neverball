@@ -106,6 +106,10 @@ static float sound_vol    = 1.0f;
 static float music_vol    = 1.0f;
 static float narrator_vol = 1.0f;
 
+static int   incomecall_state = 0;
+static float incomecall_amp   = 0.0f;
+static float incomecall_damp  = 0.0f;
+
 static SDL_AudioSpec spec;
 
 /* HACK: Have fun using AudioDevice for MSVC++ */
@@ -508,7 +512,7 @@ static void audio_step(void *data, Uint8 *stream, int length)
     if (voices_music)
     {
         if (voices_music->play &&
-            voice_step(voices_music, music_vol, stream, length))
+            voice_step(voices_music, music_vol * incomecall_amp, stream, length))
         {
 #if defined(__WII__)
             voices_music->play = 0;
@@ -1063,9 +1067,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
         }
         else if (!voices_music->name || strcmp(filename, voices_music->name) != 0)
         {
-            /*
-             * Just fade music transitions!
-             */
+            /* Just fade music transitions! */
 
             audio_music_fade_out(splitted_time);
             audio_music_queue(filename, splitted_time, loop);
@@ -1078,6 +1080,28 @@ void audio_music_fade_to(float t, const char *filename, int loop)
         audio_music_play(filename, loop);
         audio_music_fade_in(clamped_time);
     }
+}
+
+void audio_music_call_start(float t)
+{
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
+    incomecall_damp = -1.0f / t;
+}
+
+void audio_music_call_end(float t)
+{
+    float clamped_time = CLAMP(0.001f, t, 1.0f);
+    incomecall_damp = +1.0f / t;
+}
+
+void audio_music_call_step(float dt)
+{
+    while (lock_hold) {}
+    lock_hold = 1;
+
+    incomecall_amp = CLAMP(0.0f, incomecall_amp + (incomecall_damp * dt), 1.0f);
+
+    lock_hold = 0;
 }
 
 /*---------------------------------------------------------------------------*/

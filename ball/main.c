@@ -154,6 +154,7 @@ extern "C" {
 #include "strbuf/substr.h"
 #include "strbuf/joinstr.h"
 #include "lang.h"
+#include "hud.h"
 
 #include "activity_services.h"
 
@@ -552,6 +553,33 @@ static int handle_key_dn(SDL_Event *e)
     }
 #endif
 #endif
+
+    /* ====== WGCL OPERATOR ====== */
+
+    if (c == SDLK_CALL || c == SDLK_ENDCALL) {
+        if (e->key.repeat) return d;
+
+        if (c == SDLK_CALL) {
+            audio_play("snd/2.2/ui_operator_startcall.ogg", 1.0f);
+            audio_music_call_start(0.5f);
+            hud_incomecall_start();
+        }
+        if (c == SDLK_ENDCALL) {
+            audio_play("snd/2.2/ui_operator_endcall.ogg", 1.0f);
+            audio_music_call_end(0.5f);
+            hud_incomecall_end();
+        }
+    }
+
+    /* ====== END WGCL OPERATOR ====== */
+
+    /* CAPSLOCK + F1-F12 + PRINT + SCROLL + PAUSE */
+
+    for (unsigned int i_fn_key = SDLK_CAPSLOCK; i_fn_key <= SDLK_PAUSE; i_fn_key++)
+        if (c == i_fn_key) {
+            if (e->key.repeat) return d;
+            //return st_keybd(c, 1);
+        }
 
     if (KEY_IS_PAUSE(c))
     {
@@ -1621,6 +1649,7 @@ static void step_primary_screen(Uint32 now, Uint32 dt, int allow_clear)
         CHECK_GAMESPEED(20, 100);
         float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
         st_timer(MAX((0.001f * deltaSecond) * speedPercent, 0));
+        hud_incomecall_timer(MAX((0.001f * dt), 0));
 
         hmd_step();
     }
@@ -1644,8 +1673,8 @@ static void step(void *data)
         if (video_get_grab())
         {
             if (curr_state() == &st_play_ready ||
-                curr_state() == &st_play_set ||
-                curr_state() == &st_play_loop ||
+                curr_state() == &st_play_set   ||
+                curr_state() == &st_play_loop  ||
                 curr_state() == &st_look)
                 running = play_pause_goto(curr_state());
         }

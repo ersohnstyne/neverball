@@ -621,11 +621,26 @@ static int loop(void)
                 }
 #endif
 
+                /* CAPSLOCK + F1-F12 + PRINT + SCROLL + PAUSE */
+
+                for (unsigned int i_fn_key = SDLK_CAPSLOCK; i_fn_key <= SDLK_PAUSE; i_fn_key++)
+                    if (c == i_fn_key) {
+                        if (e->key.repeat) return d;
+                        //return st_keybd(c, 1);
+                    }
+
                 if (KEY_IS_PAUSE(c))
                 {
                     if (e->key.repeat)
                         return d;
                     return st_keybd(c, 1);
+                }
+
+                if (KEY_IS_ENTER(c))
+                {
+                    if (e->key.repeat)
+                        return d;
+                    return st_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1);
                 }
 
                 switch (c)

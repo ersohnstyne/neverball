@@ -292,6 +292,23 @@ static int start_action(int tok, int val)
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LEVEL_STEP);
 
     int have_online_session_data = 0;
+    
+#if NB_HAVE_PB_BOTH==1
+    const int challenge_playable = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+                                && !config_cheat()
+#endif
+                                   ;
+    const int hardcore_playable = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100 &&
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+                                  !config_cheat() &&
+#endif
+                                  (!config_get_d(CONFIG_SMOOTH_FIX) || video_perf() >= NB_FRAMERATE_MIN) &&
+                                  server_policy_get_d(SERVER_POLICY_EDITION) > 0;
+#else
+    const int challenge_playable = 1;
+    const int hardcore_playable  = 0;
+#endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
 #ifdef __EMSCRIPTEN__
@@ -349,7 +366,7 @@ static int start_action(int tok, int val)
             {
                 if (check_handsoff())
                     return goto_handsoff(curr_state());
-                else if (CHECK_ACCOUNT_ENABLED)
+                else if (CHECK_ACCOUNT_ENABLED && hardcore_playable)
                 {
                     if (set_level_play(0))
                     {
@@ -395,7 +412,7 @@ static int start_action(int tok, int val)
 #endif
             {
 #if NB_HAVE_PB_BOTH==1
-                if (CHECK_ACCOUNT_ENABLED)
+                if (CHECK_ACCOUNT_ENABLED && challenge_playable)
                 {
                     if (set_balls_needed(curr_set()) > curr_balls + 2);
 #ifdef __EMSCRIPTEN__

@@ -376,7 +376,7 @@ int game_sha256_compare_date(void)
         return (sha256_state = 0);
     }
 
-    if (strcmp(sha256_client_digest_date, sha256_digest_date) != 0) {
+    if (strncmp(sha256_client_digest_date, sha256_digest_date, SHA256_DIGEST_SIZE) != 0) {
         log_errorf("No match (Datetime Checksum)!\n");
         game_sha256_free();
         return (sha256_state = 0);

@@ -47,6 +47,10 @@
 #include "game_client.h"
 #include "game_proxy.h"
 
+#if NB_HAVE_PB_BOTH==1
+#include "progress.h"
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 struct set
@@ -1045,12 +1049,14 @@ const struct score *set_score(int i, int s)
 
 static void set_load_levels(void)
 {
-    int default_set_maxtimelimit_hard    = 0;
-    int default_set_maxtimelimit_medm    = 0;
-    int default_set_maxtimelimit_easy    = 0;
-    int default_set_mincoinrequired_hard = 0;
-    int default_set_mincoinrequired_medm = 0;
-    int default_set_mincoinrequired_easy = 0;
+    int default_set_maxtimelimit_hard        = 0,
+        default_set_maxtimelimit_medm        = 0,
+        default_set_maxtimelimit_easy        = 0,
+        default_set_maxtimelimit_limit       = 0,
+        default_set_mincoinrequired_hard     = 0,
+        default_set_mincoinrequired_medm     = 0,
+        default_set_mincoinrequired_easy     = 0,
+        default_set_mincoinrequired_required = 0;
 
     /*
      * Legacy roman numbers doesn't: I V X C D M
@@ -1233,6 +1239,12 @@ static void set_load_levels(void)
             }
 
             if (!l->is_bonus || l->is_master) {
+                if (l->goal)
+                    default_set_mincoinrequired_required += l->goal;
+
+                if (l->time > 0 && default_set_maxtimelimit_limit <= 359999)
+                    default_set_maxtimelimit_limit = MIN(default_set_maxtimelimit_limit + l->time, 359999);
+
                 /* === BEST TIME MERGER === */
 
                 default_set_maxtimelimit_hard += l->scores[SCORE_GOAL].timer[RANK_HARD];
@@ -1272,10 +1284,10 @@ static void set_load_levels(void)
 
         if (s->coin_score.coins[r] < fixed_coinhs[r])
             s->coin_score.coins[r] = fixed_coinhs[r];
-        if (s->coin_score.timer[r] > fixed_timehs[r] && fixed_timehs[r] > 0)
-            s->coin_score.timer[r] = fixed_timehs[r];
-        if (s->time_score.coins[r] < fixed_coinhs[r])
-            s->time_score.coins[r] = fixed_coinhs[r];
+        if (s->coin_score.timer[r] > default_set_maxtimelimit_limit && default_set_maxtimelimit_limit > 0)
+            s->coin_score.timer[r] = default_set_maxtimelimit_limit;
+        if (s->time_score.coins[r] < default_set_mincoinrequired_required)
+            s->time_score.coins[r] = default_set_mincoinrequired_required;
         if (s->time_score.timer[r] > fixed_timehs[r] && fixed_timehs[r] > 0)
             s->time_score.timer[r] = fixed_timehs[r];
     }
@@ -1370,7 +1382,11 @@ int set_score_update(int timer, int coins, int *score_rank, int *times_rank)
     const char *player = config_get_s(CONFIG_PLAYER);
 
     score_coin_insert(&s->coin_score, score_rank, player, timer, coins);
-    score_time_insert(&s->time_score, times_rank, player, timer, coins);
+
+#if NB_HAVE_PB_BOTH==1
+    if (curr_flawless_runs())
+#endif
+        score_time_insert(&s->time_score, times_rank, player, timer, coins);
 
     return (score_rank && *score_rank < RANK_LAST) ||
            (times_rank && *times_rank < RANK_LAST) ? 1 : 0;

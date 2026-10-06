@@ -145,9 +145,11 @@ static int goal_action(int tok, int val)
             return goto_exit();
 
         case GOAL_SAVE:
-            gui_scoreboard_free();
-            progress_stop();
-            return goto_save(&st_goal, &st_goal);
+            if (!config_cheat()) {
+                gui_scoreboard_free();
+                progress_stop();
+                return goto_save(&st_goal, &st_goal);
+            } break;
 
         case GUI_NAME:
             gui_scoreboard_free();
@@ -212,7 +214,7 @@ static void goal_btns_horizontal_gui(int jd, const int enabled, const int demo_s
     if (!challenge_has_active_chkp && progress_same_avail())
         btn_ids[1] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, enabled ? gui_yel : gui_gry, _("Retry Level"), GUI_SML, enabled ? GOAL_SAME : GUI_NONE, 0, enabled, 0);
 
-    if (demo_saved() && demo_saveable)
+    if (demo_saveable && !config_cheat())
         btn_ids[0] = gui_state_icon_full(jd, GUI_SAVETODISK, enabled ? gui_grn : gui_gry, _("Save Replay"), GUI_SML, enabled ? GOAL_SAVE : GUI_NONE, 0, enabled, 0);
 }
 
@@ -226,7 +228,7 @@ static void goal_btns_vertical_gui(int jd, const int enabled, const int demo_sav
     const int   next_btn_tok  =  progress_done() ? GOAL_DONE :
                                 (progress_next_avail() ? GOAL_NEXT : GOAL_LAST);
 
-    if (demo_saved() && demo_saveable)
+    if (demo_saveable && !config_cheat())
         btn_ids[0] = gui_state_icon_full(jd, GUI_SAVETODISK, enabled ? gui_grn : gui_gry, _("Save Replay"), GUI_SML, enabled ? GOAL_SAVE : GUI_NONE, 0, enabled, 0);
 
     if (!challenge_has_active_chkp && progress_same_avail())
@@ -357,7 +359,7 @@ static int goal_gui(void)
                     gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 0, 0.8f, 0);
             }
 
-            if (save == 0) demo_play_stop(1);
+            if (save == 0 || config_cheat()) demo_play_stop(1);
 
             gui_space(id);
 
@@ -739,6 +741,16 @@ static int goal_leave(struct state *st, struct state *next, int id, int intent)
 {
     if (!resume_locked)
         resume_locked = next != &st_goal;
+
+    if (next == &st_null) {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        const int demo_savemode = config_get_d(CONFIG_ACCOUNT_SAVE);
+#else
+        const int demo_savemode = 1;
+#endif
+        if (config_cheat() || (demo_saved() && !demo_savemode))
+            demo_play_stop(1);
+    }
 
     if (next == &st_null ||
         (next == &st_goal && resume_locked))

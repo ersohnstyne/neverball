@@ -33,6 +33,7 @@
 #include "vec3.h"
 #include "package.h"
 #include "lang.h"
+#include "progress.h"
 
 #include "game_client.h"
 
@@ -373,14 +374,13 @@ int campaign_score_update(int timer, int coins, int *score_rank, int *times_rank
 
     score_coin_insert(&coin_trials, score_rank, player,
                       career_hs_unlocked ? timer : 360000, career_hs_unlocked ? coins : 0);
-    score_time_insert(&time_trials, times_rank, player,
-                      timer, coins);
 
-    if ((score_rank && *score_rank < RANK_LAST) ||
-        (times_rank && *times_rank < RANK_LAST))
-        return 1;
-    else
-        return 0;
+    if (curr_flawless_runs())
+        score_time_insert(&time_trials, times_rank, player,
+                          timer, coins);
+    
+    return (score_rank && *score_rank < RANK_LAST) ||
+           (times_rank && *times_rank < RANK_LAST) ? 1 : 0;
 }
 
 void campaign_rename_player(int times_rank, const char *player)

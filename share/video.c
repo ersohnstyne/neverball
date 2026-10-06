@@ -45,10 +45,13 @@
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 #define SDL_ENABLE_OLD_NAMES
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_syswm.h>
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
+#include <SDL_syswm.h>
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else
@@ -1520,6 +1523,28 @@ void video_swap(void)
     if (!video_can_swap_window) return;
 
     video_can_swap_window = 0;
+
+    /* Windows Exclusive */
+
+#if _WIN32 && !defined(__EMSCRIPTEN__)
+    SDL_SysWMinfo wm_info;
+    SDL_VERSION(&wm_info.version);
+
+    if (SDL_GetWindowWMInfo(window, &wm_info)) {
+        HWND hWnd = wm_info.info.win.window;
+
+        if (!video.disable_screencapture && config_cheat())
+        {
+            SetWindowDisplayAffinity(hWnd, WDA_EXCLUDEFROMCAPTURE);
+            video.disable_screencapture = 1;
+        }
+        else if (video.disable_screencapture && !config_cheat())
+        {
+            SetWindowDisplayAffinity(hWnd, WDA_NONE);
+            video.disable_screencapture = 0;
+        }
+    }
+#endif
 
     int dt;
 

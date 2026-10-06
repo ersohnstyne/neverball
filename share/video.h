@@ -43,6 +43,8 @@ struct video
 
     float device_scale;
     float aspect_ratio;
+
+    int disable_screencapture;
 };
 
 extern struct video video;

@@ -282,12 +282,14 @@ static int fail_action(int tok, int val)
 
         /* We're just reverted back for you! */
         case FAIL_SAVE:
-            resume_locked = 1;
-            WGCL_fail_call_incident();
-            fail_intro_lock_now = 0;
+            if (!config_cheat()) {
+                resume_locked = 1;
+                WGCL_fail_call_incident();
+                fail_intro_lock_now = 0;
 
-            progress_stop();
-            return goto_save(&st_fail, &st_fail);
+                progress_stop();
+                return goto_save(&st_fail, &st_fail);
+            } break;
 
 #ifdef MAPC_INCLUDES_CHKP
         /* New: Checkpoints */
@@ -501,7 +503,7 @@ static void fail_btns_horizontal_gui_mojang(int jd, const int sync_done,
         /* ^^^ END RESTART BUTTON ^^^ */
     }
 
-    if (demo_saved() && demo_saveable)
+    if (demo_saveable && !config_cheat())
         gui_state_icon(jd, GUI_SAVETODISK, gui_yel, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
@@ -543,7 +545,7 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
         gui_state(jd, _("Switch to Zen"), GUI_SML, FAIL_ZEN_SWITCH, 0);
 #endif
 
-    if (demo_saved() && demo_saveable)
+    if (demo_saveable && !config_cheat())
         gui_state_icon(jd, GUI_SAVETODISK, gui_yel, _("Save Replay"), GUI_SML, FAIL_SAVE, 0);
 
 #ifdef MAPC_INCLUDES_CHKP
@@ -906,9 +908,9 @@ static int fail_gui(void)
                  */
 
                 if ((float) ((float) video.device_w / (float) video.device_h < (4.0f / 3.0f)))
-                    fail_btns_vertical_gui_mojang(jd, wgcl_account_sync_done, respawnable, ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME)));
+                    fail_btns_vertical_gui_mojang(jd, wgcl_account_sync_done, respawnable, demo_saved() && ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME)));
                 else
-                    fail_btns_horizontal_gui_mojang(jd, wgcl_account_sync_done, respawnable, ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME)));
+                    fail_btns_horizontal_gui_mojang(jd, wgcl_account_sync_done, respawnable, demo_saved() && ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME)));
 
                 if (!resume_locked && fail_intro_animation_phase == 2)
                     gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 0.6, 0.8f, 0.05f);
@@ -1020,6 +1022,23 @@ static int fail_leave(struct state *st, struct state *next, int id, int intent)
         resume_locked = next != &st_fail;
 
     WGCL_fail_call_incident();
+
+    if (next == &st_null) {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        const int demo_savemode = config_get_d(CONFIG_ACCOUNT_SAVE);
+#else
+        const int demo_savemode = 2;
+#endif
+        if (config_cheat() ||
+            (demo_saved() && ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME))))
+            demo_play_stop(1);
+    }
+
+    if (next == &st_null ||
+        (next == &st_fail && resume_locked)) {
+        gui_delete(id);
+        return 0;
+    }
 
     if (next == &st_null ||
         (next == &st_fail && resume_locked))

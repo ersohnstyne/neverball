@@ -1650,6 +1650,7 @@ static void step_primary_screen(Uint32 now, Uint32 dt, int allow_clear)
         float speedPercent = (float) accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100;
         st_timer(MAX((0.001f * deltaSecond) * speedPercent, 0));
         hud_incomecall_timer(MAX((0.001f * dt), 0));
+        audio_music_call_step(dt);
 
         hmd_step();
     }

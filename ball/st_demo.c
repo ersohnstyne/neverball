@@ -1321,6 +1321,19 @@ static int demo_keybd(int c, int d)
     return 1;
 }
 
+static int demo_click(int b, int d)
+{
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return demo_action(GUI_BACK, 0);
+
+    int active = gui_active();
+
+    if (gui_click(b, d))
+        return demo_action(gui_token(active), gui_value(active));
+
+    return 1;
+}
+
 static int demo_buttn(int b, int d)
 {
 #if ENABLE_MOON_TASKLOADER!=0
@@ -2370,7 +2383,7 @@ struct state st_demo = {
     shared_point,
     demo_stick,
     shared_angle,
-    shared_click,
+    demo_click,
     demo_keybd,
     demo_buttn,
     NULL,

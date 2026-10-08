@@ -182,9 +182,11 @@ struct widget
 
     float offset_init_x;
     float offset_init_y;
+    float offset_init_rx;
 
     float offset_x;
     float offset_y;
+    float offset_rx;
 
     int   slide_flags;
     float slide_delay;
@@ -891,11 +893,13 @@ static int gui_widget(int pd, int type)
 
             widget[id].layout_xd   = 0;
             widget[id].layout_yd   = 0;
-
-            widget[id].offset_init_x = 0.0f;
-            widget[id].offset_init_y = 0.0f;
-            widget[id].offset_x      = 0.0f;
-            widget[id].offset_y      = 0.0f;
+            
+            widget[id].offset_init_x  = 0.0f;
+            widget[id].offset_init_y  = 0.0f;
+            widget[id].offset_init_rx = 0.0f;
+            widget[id].offset_x       = 0.0f;
+            widget[id].offset_y       = 0.0f;
+            widget[id].offset_rx      = 0.0f;
 
             widget[id].slide_flags = 0;
             widget[id].slide_delay = 0.0f;
@@ -1309,7 +1313,7 @@ void gui_set_clip(int id)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
-    if (id == cursor_id) return;
+    if (id == cursor_id || widget[id].flags & GUI_CLIP) return;
 
     widget[id].flags |= GUI_CLIP;
 }
@@ -1318,7 +1322,7 @@ void gui_clr_clip(int id)
 {
     FUNC_VOID_CHECK_LIMITS(id);
 
-    if (id == cursor_id) return;
+    if (id == cursor_id || !(widget[id].flags & GUI_CLIP)) return;
 
     int jd;
 
@@ -2037,9 +2041,20 @@ static void gui_widget_offset(int id, int pd)
 
         /* HACK: restart animations in case we got here via resize event. */
         widget[id].slide_time = 0.0f;
+        
+        widget[id].offset_init_x  = widget[id].offset_x  = 0.0f;
+        widget[id].offset_init_y  = widget[id].offset_y  = 0.0f;
+        widget[id].offset_init_rx = widget[id].offset_rx = 0.0f;
 
-        widget[id].offset_init_x = widget[id].offset_x = 0.0f;
-        widget[id].offset_init_y = widget[id].offset_y = 0.0f;
+        if (widget[id].slide_flags & GUI_ROTATE && animations_enabled)
+        {
+            // Offset rotate
+
+            if (widget[id].slide_flags & GUI_W)
+                widget[id].offset_rx = +180;
+            if (widget[id].slide_flags & GUI_E)
+                widget[id].offset_rx = -180;
+        }
 
         if (widget[id].slide_flags & GUI_FLING && animations_enabled)
         {
@@ -2462,7 +2477,7 @@ static void gui_paint_array(int id)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-        if (widget[id].flags & GUI_CLIP)
+        if ((widget[id].flags & GUI_CLIP) && !GUI_CONFIG_HWACCEL_DECISION)
             glPushScissor_(
                 widget[id].x + widget[id].offset_x,
                 widget[id].y + widget[id].offset_y,
@@ -2477,7 +2492,7 @@ static void gui_paint_array(int id)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-        if (widget[id].flags & GUI_CLIP)
+        if ((widget[id].flags & GUI_CLIP) && !GUI_CONFIG_HWACCEL_DECISION)
             glPopScissor_();
 #endif
     }
@@ -2512,7 +2527,7 @@ static void gui_paint_image(int id)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-        if (widget[id].flags & GUI_CLIP)
+        if ((widget[id].flags & GUI_CLIP) && !GUI_CONFIG_HWACCEL_DECISION)
             glPushScissor_(
                 widget[id].x + widget[id].offset_x,
                 widget[id].y + widget[id].offset_y,
@@ -2526,7 +2541,7 @@ static void gui_paint_image(int id)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-        if (widget[id].flags & GUI_CLIP)
+        if ((widget[id].flags & GUI_CLIP) && !GUI_CONFIG_HWACCEL_DECISION)
             glPopScissor_();
 #endif
 
@@ -2808,7 +2823,7 @@ static void gui_paint_label(int id)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-        if (widget[id].flags & GUI_CLIP)
+        if ((widget[id].flags & GUI_CLIP) && !GUI_CONFIG_HWACCEL_DECISION)
             glPushScissor_(
                 widget[id].x + widget[id].offset_x,
                 widget[id].y + widget[id].offset_y,
@@ -2822,7 +2837,7 @@ static void gui_paint_label(int id)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-        if (widget[id].flags & GUI_CLIP)
+        if ((widget[id].flags & GUI_CLIP) && !GUI_CONFIG_HWACCEL_DECISION)
             glPopScissor_();
 #endif
 
@@ -3131,8 +3146,9 @@ void gui_timer(int id, float dt)
 
         if (!config_get_d(CONFIG_SCREEN_ANIMATIONS))
         {
-            widget[id].offset_x = 0.0f;
-            widget[id].offset_y = 0.0f;
+            widget[id].offset_x  = 0.0f;
+            widget[id].offset_y  = 0.0f;
+            widget[id].offset_rx = 0.0f;
 
             widget[id].alpha_slide = 1.0f;
             widget[id].alpha       = 1.0f;
@@ -3204,9 +3220,10 @@ void gui_timer(int id, float dt)
                 else if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
                     alpha = 1.0f - alpha;
             }
-
-            widget[id].offset_x = widget[id].offset_init_x * (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? alpha : 0.0f);
-            widget[id].offset_y = widget[id].offset_init_y * (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? alpha : 0.0f);
+            
+            widget[id].offset_x  = widget[id].offset_init_x  * (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? alpha : 0.0f);
+            widget[id].offset_y  = widget[id].offset_init_y  * (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? alpha : 0.0f);
+            widget[id].offset_rx = widget[id].offset_init_rx * (config_get_d(CONFIG_SCREEN_ANIMATIONS) ? alpha : 0.0f);
 
             if (at_end && (widget[id].slide_flags & GUI_REMOVE))
             {

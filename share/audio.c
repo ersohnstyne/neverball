@@ -691,6 +691,8 @@ void audio_init(void)
                  CLAMP(0, config_get_d(CONFIG_SOUND_VOLUME),    10),
                  CLAMP(0, config_get_d(CONFIG_MUSIC_VOLUME),    10),
                  CLAMP(0, config_get_d(CONFIG_NARRATOR_VOLUME), 10));
+
+    audio_music_call_end(1.0f);
 }
 
 void audio_free(void)

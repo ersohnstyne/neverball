@@ -1423,6 +1423,8 @@ void game_server_free(const char *next)
 
 /*---------------------------------------------------------------------------*/
 
+static float smooth_cam_rotation_rate_m = 0.0f;
+
 int game_server_state(void)
 {
     return server_state;
@@ -1584,6 +1586,12 @@ void game_update_view(float dt)
         float M[16], Y[3] = { 0.0f, 1.0f, 0.0f };
         float view_v[3]   = { 0.0f, 0.0f, 0.0f };
 
+        /* ====== SMOOTH CAMERA ROTATION ====== */
+
+        smooth_cam_rotation_rate_m = flerp(smooth_cam_rotation_rate_m, da, dt * 8);
+
+        /* ====== END SMOOTH CAMERA ROTATION ====== */
+
         /* Track manual rotation time. */
 
         if (da == 0.0f)
@@ -1702,9 +1710,9 @@ void game_update_view(float dt)
          * Camera rotation must be freeze: jump_b == 0
          */
 
-        if (da != 0.0f && jump_b == 0)
+        if (smooth_cam_rotation_rate_m != 0.0f && jump_b == 0)
         {
-            m_rot(M, Y, V_RAD(da));
+            m_rot(M, Y, V_RAD(smooth_cam_rotation_rate_m));
             m_vxfm(v, M, multiview1.e[2]);
             v_cpy(multiview1.e[2], v);
         }

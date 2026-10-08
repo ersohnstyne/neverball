@@ -31,11 +31,16 @@
 #include "mediation.h"
 #endif
 
+#include "audio.h"
 #include "demo.h"
 #include "demo_dir.h"
 #include "progress.h"
 
+#include "game_common.h"
 #include "game_server.h"
+#include "game_client.h"
+
+#include "state.h"
 
 #include "st_fail.h"
 #include "st_level.h"
@@ -50,6 +55,12 @@
 int WGCL_ST_FAIL_CheckOverlayElement(void)
 {
 #ifdef __EMSCRIPTEN__
+    /* Only applicable, if the WGCL will be used. */
+
+    if (!game_server_state() || (curr_state() != &st_fail &&
+        curr_status() != GAME_TIME && curr_status() != GAME_FALL))
+        return 0;
+
 #if NB_HAVE_PB_BOTH==1
     return EM_ASM_INT({
         const elem_overlay = document.getElementById("wgcl_ui_newmenu_st_fail_overlay");
@@ -71,7 +82,11 @@ int WGCL_ST_FAIL_CheckOverlayElement(void)
 
 void WGCL_ST_FAIL_StartRespawn(void)
 {
-    if (WGCL_ST_FAIL_CheckOverlayElement() && game_server_state() &&
+    if (!game_server_state() || (curr_state() != &st_fail &&
+        curr_status() != GAME_TIME && curr_status() != GAME_FALL))
+        return;
+
+    if (WGCL_ST_FAIL_CheckOverlayElement() &&
         progress_same_avail() && !progress_dead()) {
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
@@ -79,12 +94,16 @@ void WGCL_ST_FAIL_StartRespawn(void)
 #endif
         if (progress_same())
             goto_play_level();
-    }
+    } else audio_play(AUD_DISABLED, 1.0f);
 }
 
 void WGCL_ST_FAIL_StartSaveReplay(const char *fileName)
 {
-    if (WGCL_ST_FAIL_CheckOverlayElement() && game_server_state()) {
+    if (!game_server_state() || (curr_state() != &st_fail &&
+        curr_status() != GAME_TIME && curr_status() != GAME_FALL))
+        return;
+
+    if (WGCL_ST_FAIL_CheckOverlayElement()) {
 #ifdef __EMSCRIPTEN__
         if (demo_exists(fileName))
             EM_ASM({
@@ -98,12 +117,16 @@ void WGCL_ST_FAIL_StartSaveReplay(const char *fileName)
 #endif
         }
 #endif
-    }
+    } else audio_play(AUD_DISABLED, 1.0f);
 }
 
 void WGCL_ST_FAIL_StartOverwriteReplay(const char *fileName)
 {
-    if (WGCL_ST_FAIL_CheckOverlayElement() && game_server_state() &&
+    if (!game_server_state() || (curr_state() != &st_fail &&
+        curr_status() != GAME_TIME && curr_status() != GAME_FALL))
+        return;
+
+    if (WGCL_ST_FAIL_CheckOverlayElement() &&
         demo_saved()) {
         demo_rename(fileName);
 
@@ -115,7 +138,11 @@ void WGCL_ST_FAIL_StartOverwriteReplay(const char *fileName)
 
 void WGCL_ST_FAIL_StartRestart(void)
 {
-    if (WGCL_ST_FAIL_CheckOverlayElement() && game_server_state() &&
+    if (!game_server_state() || (curr_state() != &st_fail &&
+        curr_status() != GAME_TIME && curr_status() != GAME_FALL))
+        return;
+
+    if (WGCL_ST_FAIL_CheckOverlayElement() &&
         progress_same_avail() && !progress_dead()) {
 #ifdef MAPC_INCLUDES_CHKP
         checkpoints_stop();
@@ -126,11 +153,15 @@ void WGCL_ST_FAIL_StartRestart(void)
 #endif
         if (progress_same())
             goto_play_level();
-    }
+    } else audio_play(AUD_DISABLED, 1.0f);
 }
 
 void WGCL_ST_FAIL_CloseLevel(void)
 {
+    if (!game_server_state() || (curr_state() != &st_fail &&
+        curr_status() != GAME_TIME && curr_status() != GAME_FALL))
+        return;
+
     if (!WGCL_ST_FAIL_CheckOverlayElement()) return;
 
 #ifdef MAPC_INCLUDES_CHKP

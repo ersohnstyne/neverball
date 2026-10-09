@@ -504,92 +504,139 @@ static void grow_step(int ui, float dt)
 static struct game_base server_base;
 static struct lockstep  server_step;
 
-void game_update_view(float dt);
-
 static int game_check_map_border(int ui, float offset)
 {
-    float temp_offset = MAX(offset, 0);
+    const float temp_offset = MAX(offset, 0);
+    int         border_ok = 1;
 
     /*
-     * Those are pushing altitude limits that can't proceed above
-     * the max altitude limit: Y Player pos < Max Y Border
+     * Pushing altitude limits can't proceed:
+     * Y Player pos < Max Y Border = OK!
      */
 
-    /*
-    int border_ok = vary.uv[ui].p[0] > (player_min_area[0] - (temp_offset * 8.0f)) &&
-                    vary.uv[ui].p[1] > (player_min_area[1] - temp_offset) &&
-                    vary.uv[ui].p[2] > (player_min_area[2] - (temp_offset * 8.0f)) &&
-                    vary.uv[ui].p[0] < (player_max_area[0] + (temp_offset * 8.0f)) &&
-                    vary.uv[ui].p[2] < (player_max_area[2] + (temp_offset * 8.0f));
-    */
+    /*for (int i = 0; i < 3; i++)
+        if (!((vary.uv[ui].p[i] < (player_max_area[i] + (temp_offset * (i != 1 ? 10.0f : 0.0f))) || i == 1) &&
+              (vary.uv[ui].p[i] > (player_min_area[i] - (temp_offset * (i != 1 ? 10.0f : 0.0f)))          )))
+            border_ok = 0;*/
 
-    int border_ok = vary.uv[ui].p[1] > (player_min_area[1] - temp_offset);
+    border_ok = vary.uv[ui].p[1] > (player_min_area[1] - temp_offset);
 
     return border_ok;
 }
 
-static void game_init_map_border(int ui)
+static void game_update_map_border(void);
+static void game_init_map_border(void)
 {
-    player_min_area[0] = 65535;
-    player_min_area[1] = 65535;
-    player_min_area[2] = 65535;
-
-    player_max_area[0] = -65535;
-    player_max_area[1] = -65535;
-    player_max_area[2] = -65535;
-
-    int i;
-
-    for (i = 0; i < vary.base->vc; i++)
-    {
-        if (vary.base->vv[i].p[0] < player_min_area[0])
-            player_min_area[0] = vary.base->vv[i].p[0];
-        if (vary.base->vv[i].p[1] < player_min_area[1])
-            player_min_area[1] = vary.base->vv[i].p[1];
-        if (vary.base->vv[i].p[2] < player_min_area[2])
-            player_min_area[2] = vary.base->vv[i].p[2];
-
-        if (vary.base->vv[i].p[0] > player_max_area[0])
-            player_max_area[0] = vary.base->vv[i].p[0];
-        if (vary.base->vv[i].p[1] > player_max_area[1])
-            player_max_area[1] = vary.base->vv[i].p[1];
-        if (vary.base->vv[i].p[2] > player_max_area[2])
-            player_max_area[2] = vary.base->vv[i].p[2];
+    for (int i = 0; i < 3; i++) {
+        player_min_area[i] = +65535;
+        player_max_area[i] = -65535;
     }
 
-    for (i = 0; i < vary.base->hc; i++)
-    {
-        if (vary.base->hv[i].p[0] < player_min_area[0])
-            player_min_area[0] = vary.base->hv[i].p[0];
-        if (vary.base->hv[i].p[1] < player_min_area[1])
-            player_min_area[1] = vary.base->hv[i].p[1];
-        if (vary.base->hv[i].p[2] < player_min_area[2])
-            player_min_area[2] = vary.base->hv[i].p[2];
+    game_update_map_border();
+}
 
-        if (vary.base->hv[i].p[0] > player_max_area[0])
-            player_max_area[0] = vary.base->hv[i].p[0];
-        if (vary.base->hv[i].p[1] > player_max_area[1])
-            player_max_area[1] = vary.base->hv[i].p[1];
-        if (vary.base->hv[i].p[2] > player_max_area[2])
-            player_max_area[2] = vary.base->hv[i].p[2];
+static void game_update_map_border(void)
+{
+    int i, j;
+
+    for (i = 0; i < vary.base->vc; i++) for (j = 0; j < 3; j++) {
+        player_min_area[j] = MIN(vary.base->vv[i].p[j], player_min_area[j]);
+        player_max_area[j] = MAX(vary.base->vv[i].p[j], player_max_area[j]);
     }
 
-    for (i = 0; i < vary.base->uc; i++)
-    {
-        if (vary.uv[i].p[0] < player_min_area[0])
-            vary.uv[i].p[0] = player_min_area[0];
-        if (vary.uv[i].p[0] > player_max_area[0])
-            vary.uv[i].p[0] = player_max_area[0];
-        if (vary.uv[i].p[1] < player_min_area[1])
-            vary.uv[i].p[1] = player_min_area[1];
-        if (vary.uv[i].p[2] < player_min_area[2])
-            vary.uv[i].p[2] = player_min_area[2];
-        if (vary.uv[i].p[2] > player_max_area[2])
-            vary.uv[i].p[2] = player_max_area[2];
+    for (i = 0; i < vary.base->pc; i++) for (j = 0; j < 3; j++) {
+        float path_p[3]; v_cpy(path_p, vary.base->pv[i].p);
+        player_min_area[j] = MIN(path_p[j], player_min_area[j]);
+        player_max_area[j] = MAX(path_p[j], player_max_area[j]);
     }
+
+    for (i = 0; i < vary.pc; i++) for (j = 0; j < 3; j++) {
+        float path_p[3]; sol_entity_p(path_p, &vary, vary.pv[i].mi, vary.pv[i].mj);
+        player_min_area[j] = MIN(path_p[j], player_min_area[j]);
+        player_max_area[j] = MAX(path_p[j], player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.bc; i++) for (j = 0; j < 3; j++) {
+        float body_p[3]; sol_entity_p(body_p, &vary, vary.bv[i].mi, vary.bv[i].mj);
+        player_min_area[j] = MIN(body_p[j], player_min_area[j]);
+        player_max_area[j] = MAX(body_p[j], player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.base->hc; i++) for (j = 0; j < 3; j++) {
+        float item_p[3]; v_cpy(item_p, vary.base->hv[i].p);
+        player_min_area[j] = MIN(item_p[j], player_min_area[j]);
+        player_max_area[j] = MAX(item_p[j], player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.hc; i++) for (j = 0; j < 3; j++) {
+        float item_p[3]; sol_entity_p(item_p, &vary, vary.hv[i].mi, vary.hv[i].mj);
+        player_min_area[j] = MIN(item_p[j], player_min_area[j]);
+        player_max_area[j] = MAX(item_p[j], player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.base->zc; i++) for (j = 0; j < 3; j++) {
+        float goal_p[3]; v_cpy(goal_p, vary.base->zv[i].p);
+        player_min_area[j] = MIN(goal_p[j] - GOAL_HEIGHT, player_min_area[j]);
+        player_max_area[j] = MAX(goal_p[j] + GOAL_HEIGHT, player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.zc; i++) for (j = 0; j < 3; j++) {
+        float goal_p[3]; sol_entity_p(goal_p, &vary, vary.zv[i].mi, vary.zv[i].mj);
+        player_min_area[j] = MIN(goal_p[j] - GOAL_HEIGHT, player_min_area[j]);
+        player_max_area[j] = MAX(goal_p[j] + GOAL_HEIGHT, player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.base->xc; i++) for (j = 0; j < 3; j++) {
+        float swch_p[3]; v_cpy(swch_p, vary.base->xv[i].p);
+        player_min_area[j] = MIN(swch_p[j] - SWCH_HEIGHT, player_min_area[j]);
+        player_max_area[j] = MAX(swch_p[j] + SWCH_HEIGHT, player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.xc; i++) for (j = 0; j < 3; j++) {
+        float swch_p[3]; sol_entity_p(swch_p, &vary, vary.xv[i].mi, vary.xv[i].mj);
+        player_min_area[j] = MIN(swch_p[j] - SWCH_HEIGHT, player_min_area[j]);
+        player_max_area[j] = MAX(swch_p[j] + SWCH_HEIGHT, player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.base->jc; i++) for (j = 0; j < 3; j++) {
+        float jump_p[3]; v_cpy(jump_p, vary.base->jv[i].p);
+        player_min_area[j] = MIN(jump_p[j] - JUMP_HEIGHT, player_min_area[j]);
+        player_max_area[j] = MAX(jump_p[j] + JUMP_HEIGHT, player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.jc; i++) for (j = 0; j < 3; j++) {
+        float jump_p[3]; sol_entity_p(jump_p, &vary, vary.jv[i].mi, vary.jv[i].mj);
+        player_min_area[j] = MIN(jump_p[j] - JUMP_HEIGHT, player_min_area[j]);
+        player_max_area[j] = MAX(jump_p[j] + JUMP_HEIGHT, player_max_area[j]);
+    }
+
+#ifdef MAPC_INCLUDES_CHKP
+    for (i = 0; i < vary.base->cc; i++) for (j = 0; j < 3; j++) {
+        float chkp_p[3]; v_cpy(chkp_p, vary.base->cv[i].p);
+        player_min_area[j] = MIN(chkp_p[j] - CHKP_HEIGHT, player_min_area[j]);
+        player_max_area[j] = MAX(chkp_p[j] + CHKP_HEIGHT, player_max_area[j]);
+    }
+
+    for (i = 0; i < vary.cc; i++) for (j = 0; j < 3; j++) {
+        float chkp_p[3]; sol_entity_p(chkp_p, &vary, vary.cv[i].mi, vary.cv[i].mj);
+        player_min_area[j] = MIN(chkp_p[j] - CHKP_HEIGHT, player_min_area[j]);
+        player_max_area[j] = MAX(chkp_p[j] + CHKP_HEIGHT, player_max_area[j]);
+    }
+#endif
+
+#ifndef NDEBUG
+    for (i = 0; i < vary.base->uc; i++) {
+        if (vary.uv[i].p[j] < player_min_area[j])
+            vary.uv[i].p[j] = MIN(vary.uv[i].p[j], player_min_area[j]);
+        if (vary.uv[i].p[j] > player_max_area[j])
+            vary.uv[i].p[j] = MAX(vary.uv[i].p[j], player_max_area[j]);
+    }
+#endif
 }
 
 /*---------------------------------------------------------------------------*/
+
+void game_update_view(float dt);
 
 #if ENABLE_MOON_TASKLOADER!=0 && !defined(SKIP_MOON_TASKLOADER)
 int game_server_load_moon_taskloader(void *data, void *execute_data)
@@ -610,11 +657,11 @@ int game_server_load_moon_taskloader(void *data, void *execute_data)
 
     if (!sol_load_vary(&vary, &server_base.base))
     {
-        game_base_free(&server_base, NULL);
+        game_base_free(NULL);
         return (server_state = 0);
     }
 
-    game_init_map_border(CURR_PLAYER);
+    game_init_map_border();
 
     server_state = 1;
 
@@ -1092,7 +1139,7 @@ int game_server_init(const char *file_name, int t, int e)
         return (server_state = 0);
     }
 
-    game_init_map_border(CURR_PLAYER);
+    game_init_map_border();
 
     server_state = 1;
 
@@ -1400,7 +1447,7 @@ int game_server_init(const char *file_name, int t, int e)
     lockstep_clr(&server_step);
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    EM_ASM({ Neverball._current_map_name = UTF8ToString($0); }, file_name);
+    EM_ASM({ Pennyball._current_map_name = UTF8ToString($0); }, file_name);
 #endif
 
     return server_state;
@@ -1839,7 +1886,7 @@ static int game_update_state(int bt)
     if (curr_mode() == MODE_NONE) return GAME_NONE;
 
     /* New: Hold timer mode */
-    
+
     if ((vary.uv[CURR_PLAYER].p[0] < server_base.base.uv[CURR_PLAYER].p[0] - .01f ||
          vary.uv[CURR_PLAYER].p[0] > server_base.base.uv[CURR_PLAYER].p[0] + .01f ||
          vary.uv[CURR_PLAYER].p[1] < server_base.base.uv[CURR_PLAYER].p[1] - .25f ||
@@ -2008,7 +2055,7 @@ static int game_update_state(int bt)
 #endif
     {
         int new_chkp_id = -1;
-        
+
         if (bt && chkp_e &&
             sol_chkp_test(&vary, game_proxy_enq, CURR_PLAYER,
                           &new_chkp_id) == CHKP_INSIDE && new_chkp_id != chkp_id)
@@ -2312,6 +2359,7 @@ static int game_step(const float g[3], float dt, int bt)
             }
         }
 
+        game_update_map_border();
         game_cmd_updball();
         game_cmd_speedometer();
 
@@ -2326,6 +2374,10 @@ static int game_step(const float g[3], float dt, int bt)
 
 static void game_server_iter(float dt)
 {
+    /* Fixed default gravity */
+
+    float g[3] = { 0.0f, -9.8f, 0.0f };
+
     /*
      * HACK: Do not allow these functions as it causes
      * incoherence problems after timer expires.
@@ -2345,8 +2397,6 @@ static void game_server_iter(float dt)
         else time_extra += dt;
     }
 #endif
-
-    float g[3] = { 0.0f, -9.8f, 0.0f };
 
 #ifdef MAPC_INCLUDES_CHKP
     if (checkpoints_busy) v_cpy(g, GRAVITY_BUSY);

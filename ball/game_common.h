@@ -226,10 +226,27 @@ extern float view_zoom_diff_curr;
 extern float view_zoom_diff_rate;
 extern float view_zoom_diff_end;
 
+/*
+ * This variable name will be redirected to GRAVITY_NY for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `GRAVITY_NY` to `GRAVITY_DN`.
+ */
 #define GRAVITY_DN GRAVITY_NY
 
-extern const float GRAVITY_NY[];
-extern const float GRAVITY_BUSY[];
+/*
+ * This variable name will be redirected to GRAVITY_PY for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `GRAVITY_PY` to `GRAVITY_UP`.
+ */
+#define GRAVITY_UP GRAVITY_PY
+
+extern const float GRAVITY_BUSY[];     /* 6-axis-gravity-direction: offline  */
+extern const float GRAVITY_NX[];       /* 6-axis-gravity-direction: left     */
+extern const float GRAVITY_NY[];       /* 6-axis-gravity-direction: down     */
+extern const float GRAVITY_NZ[];       /* 6-axis-gravity-direction: backward */
+extern const float GRAVITY_PX[];       /* 6-axis-gravity-direction: right    */
+extern const float GRAVITY_PY[];       /* 6-axis-gravity-direction: up       */
+extern const float GRAVITY_PZ[];       /* 6-axis-gravity-direction: forward  */
 
 struct game_tilt
 {

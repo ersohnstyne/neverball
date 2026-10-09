@@ -248,12 +248,12 @@ void cam_preset_set(int c, int preset)
         config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  100);
         break;
 
-    case CAM_PRESET_1_6:
+    case CAM_PRESET_1_5:
         config_set_d(CONFIG_CAMERA_1_SPEED,       250);
         config_set_d(CONFIG_CAMERA_1_TORQUE,      0);
         config_set_d(CONFIG_CAMERA_1_FREE_ROTATE, 1);
         config_set_d(CONFIG_CAMERA_1_VELOCITY_XZ, 1);
-        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  100);
+        config_set_d(CONFIG_CAMERA_1_ROTATE_MAX,  150);
         break;
 
     case CAM_PRESET_1_6:
@@ -276,8 +276,13 @@ void cam_preset_set(int c, int preset)
 
 /*---------------------------------------------------------------------------*/
 
-const float GRAVITY_NY[]   = { 0.0f, -9.8f, 0.0f };
-const float GRAVITY_BUSY[] = { 0.0f,  0.0f, 0.0f };
+const float GRAVITY_BUSY[] = {  0.0f,  0.0f,  0.0f };
+const float GRAVITY_NX[]   = { -9.8f,  0.0f,  0.0f };
+const float GRAVITY_NY[]   = {  0.0f, -9.8f,  0.0f };
+const float GRAVITY_NZ[]   = {  0.0f,  0.0f, -9.8f };
+const float GRAVITY_PX[]   = { +9.8f,  0.0f,  0.0f };
+const float GRAVITY_PY[]   = {  0.0f, +9.8f,  0.0f };
+const float GRAVITY_PZ[]   = {  0.0f,  0.0f, +9.8f };
 
 void game_tilt_init(struct game_tilt *tilt)
 {

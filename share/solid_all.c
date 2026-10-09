@@ -588,7 +588,7 @@ static void sol_swch_hightech_toggle_sync(struct s_vary *vary, cmd_fn cmd_func, 
         struct v_swch *xp = vary->xv + xi;
         struct v_swch *xq = vary->xv + xj;
 
-        /* Skip, if index matched. */
+        /* Skip, if switch index matched or path inxed not matched. */
 
         if (xi != xj &&
             xp->base->pi == pi &&

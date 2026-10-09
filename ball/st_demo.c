@@ -1076,7 +1076,10 @@ static int demo_gui(void)
             gui_demo_update_thumbs();
             gui_demo_update_status(last_viewed);
 
-            demo_select(first);
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (current_platform != PLATFORM_PC || console_gui_shown())
+#endif
+                demo_select(first);
         }
     }
     else if (total && !availibility)
@@ -1321,17 +1324,14 @@ static int demo_keybd(int c, int d)
     return 1;
 }
 
+static int demo_buttn(int b, int d);
 static int demo_click(int b, int d)
 {
     if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
         return demo_action(GUI_BACK, 0);
 
-    int active = gui_active();
-
-    if (gui_click(b, d))
-        return demo_action(gui_token(active), gui_value(active));
-
-    return 1;
+    return gui_click(b, d) ?
+           demo_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 
 static int demo_buttn(int b, int d)

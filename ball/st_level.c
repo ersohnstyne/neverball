@@ -611,6 +611,7 @@ static int level_gui(void)
                         sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln, mode_to_str(MODE_CHALLENGE, 1));
 #endif
+#ifdef LEVELGROUPS_INCLUDES_ZEN
                     else if (curr_mode() == MODE_ZEN)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                         sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
@@ -618,6 +619,7 @@ static int level_gui(void)
 #else
                         sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln, mode_to_str(MODE_ZEN, 1));
+#endif
 #endif
                     else if (curr_mode() != MODE_STANDALONE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
@@ -680,6 +682,7 @@ static int level_gui(void)
                         sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln, mode_to_str(MODE_CHALLENGE, 1));
 #endif
+#ifdef LEVELGROUPS_INCLUDES_ZEN
                     else if (curr_mode() == MODE_ZEN)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                         sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
@@ -687,6 +690,7 @@ static int level_gui(void)
 #else
                         sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
                                          hp, ln, mode_to_str(MODE_ZEN, 1));
+#endif
 #endif
                     else if (curr_mode() != MODE_STANDALONE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS

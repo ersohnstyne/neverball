@@ -918,7 +918,11 @@ static void goal_timer(int id, float dt)
                     server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                     server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)) {
 #else
-                if ((curr_mode() == MODE_NORMAL || curr_mode() == MODE_ZEN) &&
+                if ((curr_mode() == MODE_NORMAL
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                  || curr_mode() == MODE_ZEN
+#endif
+                    ) &&
                     server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
                     server_policy_get_d(SERVER_POLICY_SHOP_ENABLED)) {
 #endif
@@ -1129,16 +1133,8 @@ static int goal_shop_gui(void)
         if (!account_get_d(ACCOUNT_PRODUCT_MEDIATION) &&
             (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 120)
             prodname = _("Mediation");
-        else if (!account_get_d(ACCOUNT_PRODUCT_BONUS) &&
-            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
-            prodname = _("Bonus Pack");
-        else if (!account_get_d(ACCOUNT_PRODUCT_BALLS) &&
-            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 250)
-            prodname = _("Online Balls");
-        else if(!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
-            (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
-            prodname = _("Extra Levels");
-#else
+        else
+#endif
         if (!account_get_d(ACCOUNT_PRODUCT_BONUS) &&
             (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 180)
             prodname = _("Bonus Pack");
@@ -1148,7 +1144,6 @@ static int goal_shop_gui(void)
         else if (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
             (account_get_d(ACCOUNT_DATA_WALLET_COINS) + curr_score()) >= 310)
             prodname = _("Extra Levels");
-#endif
 #endif
 
         char productmsg[MAXSTR];

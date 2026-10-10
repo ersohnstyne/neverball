@@ -192,7 +192,7 @@ int text_input_del(void)
 int text_input_paste(void)
 {
     char *clip_text = SDL_GetClipboardText();
-
+    
     if (clip_text && *clip_text && text_length(clip_text) > 0)
     {
         SAFECAT(text_input, clip_text);
@@ -212,7 +212,7 @@ int text_input_paste(void)
 
         if (clip_handle_windows)
         {
-            LPTSTR tmp_text = (LPTSTR) GlobalLock(clip_handle_windows);
+            LPWSTR tmp_text = (LPWSTR) GlobalLock(clip_handle_windows);
 
             if (tmp_text && *tmp_text)
                 done = wcstombs_s(&clip_text_windows_amt, clip_text_windows, MAXSTR, tmp_text, MAXSTR) == 0;
@@ -220,20 +220,23 @@ int text_input_paste(void)
             GlobalUnlock(clip_handle_windows);
         }
 
-        if (clip_text_windows && *clip_text_windows)
+        if (done && clip_text_windows && *clip_text_windows)
             SAFECAT(text_input, clip_text_windows);
 
         if (clip_text && *clip_text) free(clip_text);
-        free(clip_text_windows);
+        if (clip_text_windows && *clip_text_windows) free(clip_text_windows);
 
 #ifndef NDEBUG
         assert(CloseClipboard());
+#else
+        CloseClipboard();
 #endif
 
         CALLBACK(0);
         return 1;
     }
 #endif
+    else if (clip_text && *clip_text) free(clip_text);
 
     return 0;
 }

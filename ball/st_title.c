@@ -272,11 +272,14 @@ static const char *pick_demo(Array items)
 #if NB_HAVE_PB_BOTH==1
     /* Challenge only? */
 
-    if (demo_data->mode != MODE_NORMAL &&
+    if (demo_data->mode != MODE_NORMAL
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        demo_data->mode != MODE_CAMPAIGN &&
+     && demo_data->mode != MODE_CAMPAIGN
 #endif
-        demo_data->mode != MODE_ZEN) {
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+     && demo_data->mode != MODE_ZEN
+#endif
+        ) {
         if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 ||
             !server_policy_get_d(SERVER_POLICY_PLAYMODES_ENABLED_MODE_CHALLENGE))
             return NULL;

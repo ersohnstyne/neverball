@@ -121,8 +121,8 @@ static int GetWindowsVersion(unsigned long *major, unsigned long *minor, unsigne
 
     HMODULE hMod = GetModuleHandleA("ntdll.dll");
     if (!hMod) return 0;
-
-    RtlGetVersionPtr fxPtr = GetProcAddress(hMod, "RtlGetVersion");
+    
+    RtlGetVersionPtr fxPtr = (RtlGetVersionPtr) GetProcAddress(hMod, "RtlGetVersion");
     if (!fxPtr) return 0;
 
     RTL_OSVERSIONINFOW rovi = {0};
@@ -138,7 +138,7 @@ static int GetWindowsVersion(unsigned long *major, unsigned long *minor, unsigne
 
 static int Win32_EnsureMainInit(void)
 {
-    /*
+    /**
      * HACK: The minimum Windows 11 OS is 10.0.22621.X - Ersohn Styne
      *
      * Windows 11 minimum requirement version number:

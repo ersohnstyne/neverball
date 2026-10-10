@@ -728,7 +728,7 @@ static int shop_rename_gui(void)
         if ((jd = gui_harray(id)))
         {
             if (current_platform == PLATFORM_PC && !console_gui_shown()) {
-                gui_state(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+                gui_back_button(jd);
                 gui_start(jd, _("Rename"), GUI_SML, SHOP_RENAME_YES, 0);
             } else {
                 if ((kd = gui_hstack(jd))) {
@@ -752,7 +752,7 @@ static int shop_rename_gui(void)
 #else
         if ((jd = gui_harray(id)))
         {
-            gui_start(jd, _("Back"), GUI_SML, GUI_BACK, 0);
+            gui_back_button(jd);
             if (EM_ASM_INT({
                 try {
                     return window.location.href.toLowerCase().includes("pennyball.stynegame.de") ? 0 : 1;

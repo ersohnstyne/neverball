@@ -736,14 +736,18 @@ static void wgcl_login_paint(int id, float t)
 
 static int wgcl_login_keybd(int c, int d)
 {
+#ifdef WGCL_ENABLE_CLIPBOARD
+    if (c == SDLK_LCTRL) login_write_hold_lctrl = d;
+    if (c == SDLK_RCTRL) login_write_hold_rctrl = d;
+#endif
+
     if (d)
     {
         if (c == KEY_EXIT
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             && current_platform == PLATFORM_PC
 #endif
-            )
-            return wgcl_login_action(GUI_BACK, 0);
+            ) return wgcl_login_action(GUI_BACK, 0);
 
         else if (login_entertext_mode != 0)
         {
@@ -757,10 +761,6 @@ static int wgcl_login_keybd(int c, int d)
                 gui_focus(login_enter_id);
                 return 1;
             }
-#ifdef WGCL_ENABLE_CLIPBOARD
-            if (c == SDLK_LCTRL) login_write_hold_lctrl = d;
-            if (c == SDLK_RCTRL) login_write_hold_rctrl = d;
-#endif
         }
     }
     return 1;
@@ -771,8 +771,9 @@ static int wgcl_login_buttn(int b, int d)
     if (d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)) {
-            int tok = gui_token(gui_active());
-            int val = gui_value(gui_active());
+            const int active = gui_active();
+            const int tok    = gui_token(active);
+            const int val    = gui_value(active);
 
             if (login_entertext_mode != 0)
                 return wgcl_login_action(tok, (tok == GUI_CHAR ?
@@ -900,9 +901,7 @@ static int wgcl_logout_confirm_gui(void)
             if (current_platform == PLATFORM_PC)
 #endif
 #endif
-            {
                 gui_state(jd, _("Cancel"), GUI_SML, GUI_BACK, 0);
-            }
         }
 
         gui_layout(id, 0, 0);
@@ -914,7 +913,6 @@ static int wgcl_logout_confirm_gui(void)
 static int wgcl_logout_confirm_enter(struct state *st, struct state *prev, int intent)
 {
     audio_play("snd/warning.ogg", 1.0f);
-
     conf_common_init(wgcl_logout_action, 1);
 
     return transition_slide(wgcl_logout_confirm_gui(), 1, intent);
@@ -1044,11 +1042,9 @@ static int wgcl_addons_login_gui(void)
         gui_title_header(id, _("Logged in"), GUI_MED, GUI_COLOR_DEFAULT);
 
         gui_space(id);
-
         gui_multi(id, _("You've already logged in,\n"
                         "so you don't need it again."),
                       GUI_SML, GUI_COLOR_WHT);
-
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -1065,13 +1061,11 @@ static int wgcl_addons_login_gui(void)
         gui_title_header(id, _("Login to download Add-ons"), GUI_MED, GUI_COLOR_DEFAULT);
 
         gui_space(id);
-
         gui_multi(id, _("Login with your WGCL account,\n"
                         "buy Extra Levels and sync across devices\n"
                         "to explore and download Add-ons such\n"
                         "Level Sets, Ball Models, GUI, and more!"),
                       GUI_SML, GUI_COLOR_WHT);
-
         gui_space(id);
 
         if ((jd = gui_harray(id)))
@@ -1081,7 +1075,6 @@ static int wgcl_addons_login_gui(void)
         }
 
         gui_space(id);
-
         gui_state(id, _("Continue without Login"), GUI_SML, WGCL_ADDONS_LOGIN_SKIP, 0);
 
         gui_layout(id, 0, 0);
@@ -1093,7 +1086,6 @@ static int wgcl_addons_login_gui(void)
 static int wgcl_addons_login_enter(struct state *st, struct state *prev, int intent)
 {
     common_init(wgcl_addons_login_action);
-
     back_init("back/gui.png");
 
     return transition_slide(wgcl_addons_login_gui(), 1, intent);
@@ -1109,7 +1101,6 @@ static int wgcl_addons_login_leave(struct state *st, struct state *next, int id,
 static void wgcl_addons_login_paint(int id, float t)
 {
     video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
-
     back_draw_easy();
 
     gui_paint(id);

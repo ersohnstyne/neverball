@@ -27,6 +27,7 @@
 #include "set.h"
 #include "demo.h"
 #include "progress.h"
+#include "mediation.h"
 #include "audio.h"
 #include "config.h"
 #include "video.h"

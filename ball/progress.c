@@ -829,15 +829,18 @@ int  progress_play(struct level *l)
         if (!campaign_used())
         {
             /* When they using level set, it will be added in the required coins. */
-
+            
             goal_e = (((mode != MODE_CHALLENGE  &&
                         mode != MODE_HARDCORE   &&
                         mode != MODE_BOOST_RUSH &&
                         mode != MODE_DAILY) &&
                        level_completed(level) &&
                        config_get_d(CONFIG_LOCK_GOALS) == 0) ||
-                      goal == 0) ||
-                     mode == MODE_ZEN;
+                      goal == 0)
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                  || mode == MODE_ZEN
+#endif
+                ;
         }
         else if (campaign_used() &&
                  (server_policy_get_d(SERVER_POLICY_PLAYMODES_UNLOCKED_MODE_CAREER) ||
@@ -905,11 +908,16 @@ int  progress_play(struct level *l)
 #endif
 
         activity_services_level_update(curr.balls + account_curr_balls);
-
+        
 #if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
-        if (mode != MODE_NORMAL && mode != MODE_STANDALONE &&
-            mode != MODE_ZEN    && mode != MODE_CAMPAIGN)
-            if (!game_sha256_compare_date()) return 0;
+        if (mode != MODE_NORMAL && mode != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+         && mode != MODE_ZEN
+#endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         && mode != MODE_CAMPAIGN
+#endif
+            ) if (!game_sha256_compare_date()) return 0;
 
         if (game_sha256_play())
 #endif

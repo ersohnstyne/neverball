@@ -342,17 +342,17 @@ static int demo_action(int tok, int val)
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
                 if (config_cheat()) {
                     const int demo_curr_balls = df->balls <= 0;
-
+                    
                     const int demo_curr_challenge =
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-                    (df->status == GAME_TIME || df->status == GAME_FALL) &&
-                    (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE &&
-                     df->mode != MODE_ZEN    && df->mode != MODE_CAMPAIGN);
-#else
-                    (df->status == GAME_TIME || df->status == GAME_FALL) &&
-                    (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE &&
-                     df->mode != MODE_ZEN);
+                        (df->status == GAME_TIME || df->status == GAME_FALL) &&
+                        (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                      && df->mode != MODE_ZEN
 #endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                      && df->mode != MODE_CAMPAIGN
+#endif
+                         );
 
                     demo_operator_init(demo_curr_challenge, demo_curr_balls);
 
@@ -555,8 +555,10 @@ static void gui_demo_update_thumbs(void)
                 gui_set_color(thumbs[i].icon_id, GUI_COLOR_GRN);
             }
 
-            if (demo->mode != MODE_NORMAL && demo->mode != MODE_STANDALONE &&
-                demo->mode != MODE_ZEN
+            if (demo->mode != MODE_NORMAL && demo->mode != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+             && demo->mode != MODE_ZEN
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              && demo->mode != MODE_CAMPAIGN
 #endif
@@ -756,8 +758,10 @@ static void gui_demo_update_status(int i)
         gui_set_color(time_id, GUI_COLOR_DEFAULT);
     }
 
-    if (d->mode != MODE_NORMAL && d->mode != MODE_STANDALONE &&
-        d->mode != MODE_ZEN
+    if (d->mode != MODE_NORMAL && d->mode != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+     && d->mode != MODE_ZEN
+#endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      && d->mode != MODE_CAMPAIGN
 #endif
@@ -848,7 +852,7 @@ static int demo_restricted_gui(void)
                 kd = gui_label(jd, _("Too long!"),
                                       GUI_MED, gui_red, gui_blk);
             else
-                kd = gui_label(jd, _("Filters restricted!"),
+                kd = gui_label(jd, _("Replay restricted!"),
                                       GUI_MED, gui_red, gui_blk);
             gui_pulse(kd, 1.2f);
 
@@ -1041,10 +1045,10 @@ static int demo_gui(void)
 #else
                     sprintf(availibility_header_monitor,
 #endif
-                            _("Replays unlocked: %d/%d"), availibility, total);
+                            _("Unlocked: %d/%d"), availibility, total);
 
                     int header_id = gui_label(jd, availibility_header_monitor,
-                        GUI_SML, 0, 0);
+                                                  GUI_SML, 0, 0);
 
                     float availibility_percent = ((float) availibility / (float) total);
 

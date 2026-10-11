@@ -1080,7 +1080,6 @@ static int title_gui(void)
 #elif NB_HAVE_PB_BOTH==1
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 10002)
             {
-<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 sprintf_s(dev_env, MAXSTR, _("Server Datacenter / %s"),
                           _("Developer Mode"));
@@ -1155,36 +1154,6 @@ static int title_gui(void)
                 sprintf(dev_env, _("Home Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Home Edition"));
 #endif
-=======
-                gui_filler(jd);
-
-                if ((kd = gui_varray(jd)))
-                {
-                    if (config_cheat())
-                        play_id = gui_start(kd, gt_prefix("menu^Cheat"),
-                                            GUI_MED, TITLE_PLAY, 0);
-                    else
-                        play_id = gui_start(kd, gt_prefix("menu^Play"),
-                                            GUI_MED, TITLE_PLAY, 0);
-
-                    gui_state(kd, gt_prefix("menu^Replay"),  GUI_MED, TITLE_DEMO, 0);
-
-                    if (config_online())
-                        gui_state(kd, _("Addons"), GUI_MED, TITLE_PACKAGES, 0);
-                    else
-                        gui_state(kd, gt_prefix("menu^Help"), GUI_MED, TITLE_HELP, 0);
-
-                    gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
-                    gui_state(kd, gt_prefix("menu^Exit"),    GUI_MED, GUI_BACK, 0);
-
-                    /* Hilight the start button. */
-
-                    gui_set_hilite(play_id, 1);
-                    gui_set_slide(kd, GUI_N | GUI_EASE_ELASTIC, 0.8f, 1.0f, 0.05f);
-                }
-
-                gui_filler(jd);
->>>>>>> 0c217048a92b5b353c5e35858ea98522c4e368a9
             }
 
 #if ENABLE_RFD==1
@@ -1198,7 +1167,6 @@ static int title_gui(void)
 #endif
 #endif
 
-<<<<<<< HEAD
             if ((title_lockscreen_gamename_id = gui_vstack(id)))
             {
                 gui_set_font(title_lockscreen_gamename_id, "ttf/DejaVuSans-Bold.ttf");
@@ -1542,26 +1510,6 @@ static int title_gui(void)
                 gui_layout(title_lockscreen_press_id, 0, -1);
             }
         }
-=======
-    if (config_online())
-    {
-        // Original spot for Help is now occupied by Addons, so put Help here.
-
-        if ((id = gui_vstack(root_id)))
-        {
-            if ((jd = gui_hstack(id)))
-            {
-                gui_space(jd);
-                gui_state(jd, gt_prefix("menu^Help"), GUI_SML, TITLE_HELP, 0);
-            }
-            gui_space(id);
-
-            gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
-
-            gui_layout(id, +1, -1);
-        }
-    }
->>>>>>> 0c217048a92b5b353c5e35858ea98522c4e368a9
     }
 
     return root_id;

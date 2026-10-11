@@ -17,7 +17,6 @@
 
 #include "fetch.h"
 #include "array.h"
-<<<<<<< HEAD
 
 #define NB_PACKAGES_PREMIUM
 
@@ -30,8 +29,6 @@ enum package_category
     PACKAGE_CATEGORY_LEVELSET,
     PACKAGE_CATEGORY_COURSE
 };
-=======
->>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
 
 enum package_status
 {
@@ -53,7 +50,6 @@ struct package
 {
     unsigned int size;
 
-<<<<<<< HEAD
     char id      [64];
     char type    [64];
     char filename[256];
@@ -65,24 +61,12 @@ struct package
 #if NB_HAVE_PB_BOTH==1
     char category[64];
 #endif
-=======
-    char id[64];
-    char type[64];
-    char filename[256];
-    char files[1024];
-    char name[64];
-    char desc[256];
-    char shot[64];
->>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
 
     enum package_status status;
     enum package_image_status image_status;
 };
 
-<<<<<<< HEAD
 void package_change_category(const enum package_category);
-=======
->>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
 void package_init(void);
 void package_quit(void);
 

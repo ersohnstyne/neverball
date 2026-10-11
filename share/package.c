@@ -24,7 +24,6 @@
 
 #include "log.h"
 
-<<<<<<< HEAD
 #if _DEBUG && _MSC_VER
 #ifndef _CRTDBG_MAP_ALLOC
 #pragma message(__FILE__": Missing _CRT_MAP_ALLOC, recreate: _CRTDBG_MAP_ALLOC + crtdbg.h")
@@ -35,8 +34,6 @@
 
 static int package_is_init;
 
-=======
->>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
 static Array available_packages;
 static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 
@@ -849,7 +846,6 @@ void package_init(void)
  */
 unsigned int package_refresh(struct fetch_callback callback, cmp_fn cmp)
 {
-<<<<<<< HEAD
     if (!package_is_init)
     {
         log_errorf("Failure to refresh package! Package must be initialized!\n");
@@ -860,11 +856,6 @@ unsigned int package_refresh(struct fetch_callback callback, cmp_fn cmp)
         cmp_available_packages_fn = cmp;
 
     return fetch_available_packages(callback, package_curr_category);
-=======
-    cmp_available_packages_fn = cmp;
-
-    return fetch_available_packages(callback);
->>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
 }
 
 void package_quit(void)

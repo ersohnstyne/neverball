@@ -73,11 +73,6 @@
 #include <emscripten/html5.h>
 #endif
 
-<<<<<<< HEAD
-=======
-#include <SDL.h>
-#include <SDL_stdinc.h>
->>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
 #include <stdio.h>
 #include <string.h>
 
@@ -978,24 +973,7 @@ static int cmp_available_packages(const void *A, const void *B)
  */
 static void main_preload(struct state *start_state, int (*start_fn)(struct state *))
 {
-<<<<<<< HEAD
     if (config_online())
-=======
-    struct fetch_callback callback = { 0 };
-
-    callback.data = start_state;
-    callback.done = refresh_packages_done;
-
-    goto_state(&st_loading);
-
-    /* To sort packages by sets.txt order, sets must be loaded first. */
-
-    set_init();
-
-    /* Link processing works best with a package list. */
-
-    if (package_refresh(callback, cmp_available_packages))
->>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
     {
         struct fetch_callback callback = {0};
 

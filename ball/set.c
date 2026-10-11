@@ -85,11 +85,7 @@ struct set
     /* Level info                                                            */
 
     int   count;                        /* Number of levels                  */
-<<<<<<< HEAD
     char *level_name_v[MAXLVL_SET];     /* List of level file names          */
-=======
-    char *level_name_v[MAXLVL];         /* List of level file names          */
->>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
 
     unsigned int is_bundled:1;          /* comes from sets.txt               */
 };

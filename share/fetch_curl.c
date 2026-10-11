@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-#if ENABLE_FETCH!=0 && !defined(__EMSCRIPTEN__)
+#if ENABLE_FETCH && !defined(__EMSCRIPTEN__)
 
 //#define FETCH_WITH_CAST 1
 

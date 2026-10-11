@@ -140,7 +140,7 @@ void WGCL_InitGameOptions(struct state *returnable)
     EM_ASM({
         gameoptions_packages_available = navigator.onLine && $0;
         CoreLauncherOptions_GameOptions_Init();
-    }, config_get_d(CONFIG_ONLINE));
+    }, config_online());
 
     if (st_returnable == NULL)
         st_returnable = returnable;

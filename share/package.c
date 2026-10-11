@@ -51,11 +51,7 @@ struct package
     char shot    [64];
 
 #if NB_HAVE_PB_BOTH==1
-    char category     [64];
-#if ENABLE_FETCH>=2
-    char fileid_gdrive[64];
-    char shotid_gdrive[64];
-#endif
+    char category[64];
 #endif
 
     enum package_status status;
@@ -784,7 +780,6 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
     unsigned int fetch_id = 0;
     const char *filename = get_package_path("available-packages.txt");
 
-#if ENABLE_FETCH<3
     const char *url = get_package_url("available-packages.txt", category);
 
     if (url && filename)
@@ -803,7 +798,6 @@ static unsigned int fetch_available_packages(struct fetch_callback nested_callba
             callback.data = NULL;
         }
     }
-#endif
 
     return fetch_id;
 }
@@ -1169,7 +1163,6 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
 
         if (pkg)
         {
-#if ENABLE_FETCH<3
             const char *url = get_package_url(pkg->filename, category);
 
             if (url)
@@ -1200,7 +1193,6 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
                     }
                 }
             }
-#endif
         }
     }
 

@@ -236,7 +236,7 @@ static int set_action(int tok, int val)
             break;
 
         case SET_GET_MORE:
-#if ENABLE_FETCH!=0 && \
+#if ENABLE_FETCH && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -430,7 +430,7 @@ static int set_gui(void)
                 if (boost_on)
                     gui_state(id, _("Revert to standard"), GUI_SML,
                                   SET_TOGGLE_BOOST, 0);
-                else if (config_get_d(CONFIG_ONLINE))
+                else if (config_online())
                 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -470,7 +470,7 @@ static int set_gui(void)
 #if NB_STEAM_API==1
                 if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
                     server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                    config_get_d(CONFIG_ONLINE)) {
+                    config_online()) {
                     /*if (!CHECK_ACCOUNT_BANKRUPT)
                     {
                         boost_id = gui_state(jd, _("Boost Rush"),
@@ -502,7 +502,7 @@ static int set_gui(void)
 #if NB_STEAM_API==1
                 if (account_get_d(ACCOUNT_PRODUCT_LEVELS) == 1 &&
                     server_policy_get_d(SERVER_POLICY_EDITION) > -1 &&
-                    config_get_d(CONFIG_ONLINE)) {
+                    config_online()) {
                     gui_filler(jd);
 
                     /*if (!CHECK_ACCOUNT_BANKRUPT) {

@@ -417,13 +417,13 @@ static struct state *ball_back;
      !console_gui_shown() &&                             \
      !game_setup_process() &&                            \
      account_wgcl_name_read_only() &&                    \
-     config_get_d(CONFIG_ONLINE))
+     config_online())
 #else
 #define ST_BALL_GETMORE_AVAILABLE \
     (!game_server_state() &&      \
      !console_gui_shown() &&      \
      !game_setup_process() &&     \
-     config_get_d(CONFIG_ONLINE))
+     config_online())
 #endif
 
 static int ball_action(int tok, int val)
@@ -456,7 +456,7 @@ static int ball_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
         case MODEL_ONLINE:
-#if ENABLE_FETCH!=0 && \
+#if ENABLE_FETCH && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)

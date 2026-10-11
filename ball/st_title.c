@@ -74,7 +74,7 @@
 #include "st_set.h"
 #include "st_name.h"
 #include "st_shared.h"
-#if ENABLE_FETCH!=0
+#if ENABLE_FETCH
 #include "st_package.h"
 #endif
 #include "st_play.h"
@@ -553,11 +553,10 @@ static int title_action(int tok, int val)
             return goto_conf(&st_title, 0, 0);
 #endif
             break;
-#if NB_HAVE_PB_BOTH!=1
-#if ENABLE_FETCH!=0
+#if ENABLE_FETCH
         case TITLE_PACKAGES: return title_refresh_packages(); break;
 #endif
-
+#if NB_HAVE_PB_BOTH!=1
         case TITLE_UNLOCK_FULL_GAME:
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -1269,8 +1268,12 @@ static int title_gui(void)
                             gui_state(kd, gt_prefix("menu^Replay"),
                                           btn_size, TITLE_DEMO, 0);
 
-                        gui_state(kd, gt_prefix("menu^Help"),
-                                      btn_size, TITLE_HELP, 0);
+#if ENABLE_FETCH
+                        if (config_online())
+                            gui_state(id, _("Addons"), btn_size, TITLE_PACKAGES, 0);
+                        else
+#endif
+                            gui_state(id, gt_prefix("menu^Help"), btn_size, TITLE_HELP, 0);
 
                         gui_state(kd, gt_prefix("menu^Options"),
                                       btn_size, TITLE_CONF, 0);
@@ -1369,8 +1372,12 @@ static int title_gui(void)
                     gui_state(id, gt_prefix("menu^Replay"),
                                   btn_size, TITLE_DEMO, 0);
 
-                gui_state(id, gt_prefix("menu^Help"),
-                              btn_size, TITLE_HELP, 0);
+#if ENABLE_FETCH
+                if (config_online())
+                    gui_state(id, _("Addons"), btn_size, TITLE_PACKAGES, 0);
+                else
+#endif
+                    gui_state(id, gt_prefix("menu^Help"), btn_size, TITLE_HELP, 0);
 
                 gui_state(id, gt_prefix("menu^Options"),
                               btn_size, TITLE_CONF, 0);
@@ -1402,6 +1409,27 @@ static int title_gui(void)
                 gui_layout(id, -1, -1);
             }
 #endif
+
+#if ENABLE_FETCH && \
+    !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
+            if ((id = gui_vstack(root_id)))
+            {
+                if (config_online())
+                {
+                    if ((jd = gui_hstack(id)))
+                    {
+                        gui_space(jd);
+                        gui_state(jd, gt_prefix("menu^Help"), GUI_SML, TITLE_HELP, 0);
+                    }
+
+                    gui_space(id);
+                    gui_set_slide(id, GUI_N | GUI_S | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
+
+                    gui_layout(id, +1, -1);
+                }
+            }
+#endif
 #else
 #if ENABLE_VERSION
             if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
@@ -1414,16 +1442,15 @@ static int title_gui(void)
 
             if ((id = gui_vstack(root_id)))
             {
-#if ENABLE_FETCH!=0 && \
+#if ENABLE_FETCH && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-                if (config_get_d(CONFIG_ONLINE))
+                if (config_online())
                 {
                     if ((jd = gui_hstack(id)))
                     {
                         gui_space(jd);
-                        gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
-                        gui_filler(jd);
+                        gui_state(jd, gt_prefix("menu^Help"), GUI_SML, TITLE_HELP, 0);
                     }
                 }
 #endif
@@ -1436,7 +1463,6 @@ static int title_gui(void)
                     gui_space(jd);
                     gui_state(jd, _("Unlock full game"),
                                   GUI_SML, TITLE_UNLOCK_FULL_GAME, 0);
-                    gui_filler(jd);
                 }
 #endif
                 gui_space(id);

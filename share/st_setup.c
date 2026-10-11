@@ -169,7 +169,7 @@ int goto_game_setup(struct state *start_state, int (*start_fn)(struct state *),
 
 int goto_game_setup_finish(struct state *start_state)
 {
-#if _WIN32 && ENABLE_FETCH!=0 && ENABLE_SOFTWARE_UPDATE!=0
+#if _WIN32 && !ENABLE_FETCH && ENABLE_SOFTWARE_UPDATE!=0
     setup_page++;
 #else
     setup_page = 7;
@@ -873,7 +873,7 @@ static int game_setup_action(int tok, int val)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
-#if _WIN32 && ENABLE_FETCH==1 && ENABLE_SOFTWARE_UPDATE!=0
+#if _WIN32 && ENABLE_FETCH && ENABLE_SOFTWARE_UPDATE!=0
                             setup_page++;
 #else
                             setup_page = 7;

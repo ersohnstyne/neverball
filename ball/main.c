@@ -873,7 +873,7 @@ static void refresh_packages_done(void *data, void *extra_data)
  */
 static void main_preload(struct state *start_state, int (*start_fn)(struct state *))
 {
-    if (config_get_d(CONFIG_ONLINE))
+    if (config_online())
     {
         struct fetch_callback callback = {0};
 
@@ -1476,7 +1476,7 @@ static int loop(void)
                 if (e.type == MOON_TASKLOADER_EVENT)
                     moon_taskloader_handle_event(e.user.data1);
 #endif
-#if ENABLE_FETCH!=0 && !defined(__EMSCRIPTEN__)
+#if ENABLE_FETCH && !defined(__EMSCRIPTEN__)
                 if (e.type == FETCH_EVENT)
                     fetch_handle_event(e.user.data1);
 #endif
@@ -2012,7 +2012,7 @@ static int main_init(int argc, char *argv[])
 
     if (!fetch_enable(config_get_d(CONFIG_ONLINE)))
     {
-        if (config_get_d(CONFIG_ONLINE))
+        if (config_online())
             fetch_packages_offline = 1;
 
         config_set_d(CONFIG_ONLINE, 0);

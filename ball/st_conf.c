@@ -80,7 +80,7 @@
 #include "st_ball.h"
 #include "st_shared.h"
 #include "st_shop.h"
-#if ENABLE_FETCH!=0
+#if ENABLE_FETCH
 #include "st_package.h"
 #endif
 
@@ -460,7 +460,7 @@ static int conf_account_action(int tok, int val)
             break;
 #endif
 
-#if ENABLE_FETCH==1
+#if ENABLE_FETCH
         case CONF_ACCOUNT_AUTOUPDATE:
             break;
 
@@ -799,10 +799,10 @@ static int conf_account_gui(void)
 
         if (mainmenu_conf && !game_server_state() && !demo_state())
         {
-#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH==1 && \
+#if NB_HAVE_PB_BOTH==1 && ENABLE_FETCH && \
     !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-            if (CHECK_ACCOUNT_ENABLED && config_get_d(CONFIG_ONLINE))
+            if (CHECK_ACCOUNT_ENABLED && config_online())
             {
                 conf_state_icon(id, _("Addons"), GUI_TRIANGLE_RIGHT, _("Manage"), CONF_ACCOUNT_PACKAGES);
                 gui_space(id);

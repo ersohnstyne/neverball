@@ -101,7 +101,6 @@ static void WGCL_CallMain_Real(void)
 
 /*---------------------------------------------------------------------------*/
 
-
 static int curl_is_init;
 static int read_only;
 
@@ -142,15 +141,13 @@ static size_t write_callback(void *buffer, size_t size, size_t nmemb, void *user
     !defined(__EMSCRIPTEN__)
 static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
 {
-#if ENABLE_FETCH!=1
-    if (curl_is_init)
+    if (curl_is_init && !config_online())
     {
         /* Used with ENABLE_FETCH=1 */
 
         curl_global_cleanup();
         curl_is_init = 0;
     }
-#endif
 
     unsigned long long init_flags = CURL_GLOBAL_NOTHING;
 
@@ -163,22 +160,25 @@ static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
 
     init_flags |= CURL_GLOBAL_WIN32;
 
-#if ENABLE_FETCH!=1
     /* Used with ENABLE_FETCH=1 */
 
-    curl_global_init(init_flags);
-    curl_is_init = 1;
-#endif
+    if (!config_online())
+    {
+        curl_global_init(init_flags);
+        curl_is_init = 1;
+    }
 
     CURL *handle = curl_easy_init();
     if (!handle)
     {
-#if ENABLE_FETCH!=1
         /* Used with ENABLE_FETCH=1 */
 
-        curl_global_cleanup();
-        curl_is_init = 0;
-#endif
+        if (!config_online())
+        {
+            curl_global_cleanup();
+            curl_is_init = 0;
+        }
+
         return 0;
     }
 
@@ -186,7 +186,11 @@ static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA,     out_data);
 
+#if NB_HAVE_PB_BOTH==1
+    curl_easy_setopt(handle, CURLOPT_USERAGENT, "pennyball/" VERSION);
+#else
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
+#endif
 
     curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
 
@@ -199,15 +203,13 @@ static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
 
 static CURL *account_wgcl_curl_prepare_post(const char *url, const char *in_json_data, void *out_data)
 {
-#if ENABLE_FETCH!=1
-    if (curl_is_init)
+    if (curl_is_init && !config_online())
     {
         /* Used with ENABLE_FETCH=1 */
 
         curl_global_cleanup();
         curl_is_init = 0;
     }
-#endif
 
     unsigned long long init_flags = CURL_GLOBAL_NOTHING;
 
@@ -220,21 +222,25 @@ static CURL *account_wgcl_curl_prepare_post(const char *url, const char *in_json
 
     init_flags |= CURL_GLOBAL_WIN32;
 
-#if ENABLE_FETCH!=1
     /* Used with ENABLE_FETCH=1 */
 
-    curl_global_init(init_flags);
-#endif
+    if (!config_online())
+    {
+        curl_global_init(init_flags);
+        curl_is_init = 1;
+    }
 
     CURL *handle = curl_easy_init();
     if (!handle)
     {
-#if ENABLE_FETCH!=1
         /* Used with ENABLE_FETCH=1 */
 
-        curl_global_cleanup();
-        curl_is_init = 0;
-#endif
+        if (!config_online())
+        {
+            curl_global_cleanup();
+            curl_is_init = 0;
+        }
+
         return 0;
     }
 
@@ -248,7 +254,11 @@ static CURL *account_wgcl_curl_prepare_post(const char *url, const char *in_json
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA,     out_data);
 
+#if NB_HAVE_PB_BOTH==1
+    curl_easy_setopt(handle, CURLOPT_USERAGENT, "pennyball/" VERSION);
+#else
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
+#endif
 
     curl_easy_setopt(handle, CURLOPT_ACCEPT_ENCODING, "");
 
@@ -272,12 +282,14 @@ static CURLcode account_wgcl_curl_execute_alt(CURL *handle)
 static void account_wgcl_curl_quit(CURL *handle)
 {
     curl_easy_cleanup(handle);
-#if ENABLE_FETCH!=1
+
     /* Used with ENABLE_FETCH=1 */
 
-    curl_global_cleanup();
-    curl_is_init = 0;
-#endif
+    if (!config_online())
+    {
+        curl_global_cleanup();
+        curl_is_init = 0;
+    }
 }
 #endif
 

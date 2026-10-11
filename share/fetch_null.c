@@ -12,7 +12,7 @@
  * General Public License for more details.
  */
 
-#if ENABLE_FETCH!=1
+#if !ENABLE_FETCH
 
 #include "fetch.h"
 

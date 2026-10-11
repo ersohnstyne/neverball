@@ -332,6 +332,8 @@ static int   title_load_lockscreen = 1;
 static int   title_lockscreen = 1;
 static int   title_can_unlock = 1;
 
+static int   title_swap_help_and_addons = 0;
+
 static int   title_lockscreen_gamename_id;
 static int   title_lockscreen_press_id;
 
@@ -1269,7 +1271,7 @@ static int title_gui(void)
                                           btn_size, TITLE_DEMO, 0);
 
 #if ENABLE_FETCH
-                        if (config_online())
+                        if (config_online() && title_swap_help_and_addons)
                             gui_state(id, _("Addons"), btn_size, TITLE_PACKAGES, 0);
                         else
 #endif
@@ -1373,7 +1375,7 @@ static int title_gui(void)
                                   btn_size, TITLE_DEMO, 0);
 
 #if ENABLE_FETCH
-                if (config_online())
+                if (config_online() && title_swap_help_and_addons)
                     gui_state(id, _("Addons"), btn_size, TITLE_PACKAGES, 0);
                 else
 #endif
@@ -1420,7 +1422,10 @@ static int title_gui(void)
                     if ((jd = gui_hstack(id)))
                     {
                         gui_space(jd);
-                        gui_state(jd, gt_prefix("menu^Help"), GUI_SML, TITLE_HELP, 0);
+                        if (title_swap_help_and_addons)
+                            gui_state(jd, gt_prefix("menu^Help"), GUI_SML, TITLE_HELP, 0);
+                        else
+                            gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
                     }
 
                     gui_space(id);
@@ -1450,7 +1455,10 @@ static int title_gui(void)
                     if ((jd = gui_hstack(id)))
                     {
                         gui_space(jd);
-                        gui_state(jd, gt_prefix("menu^Help"), GUI_SML, TITLE_HELP, 0);
+                        if (title_swap_help_and_addons)
+                            gui_state(jd, gt_prefix("menu^Help"), GUI_SML, TITLE_HELP, 0);
+                        else
+                            gui_state(jd, _("Addons"), GUI_SML, TITLE_PACKAGES, 0);
                     }
                 }
 #endif
@@ -1673,7 +1681,7 @@ static void title_paint(int id, float t)
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (!title_lockscreen && console_gui_shown())
-        console_gui_death_paint();
+        console_gui_title_paint();
 #endif
 }
 
@@ -1870,7 +1878,7 @@ static void title_stick(int id, int a, float v, int bump)
 
 static int title_click(int b, int d)
 {
-    if (time_state() < 0.1f ||
+    if (time_state() < 0.05f ||
         (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
     if (title_lockscreen && title_can_unlock &&
@@ -1892,13 +1900,18 @@ static int title_click(int b, int d)
 
 static int title_keybd(int c, int d)
 {
-    if (time_state() < 0.1f ||
+    if (time_state() < 0.05f ||
         (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
     if (title_lockscreen || title_gui_wgcl_version_enabled) return 1;
 
     if (d)
     {
+        if (c == SDLK_TAB && config_online()) {
+            title_swap_help_and_addons = !title_swap_help_and_addons;
+            audio_play(title_swap_help_and_addons ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
+            return goto_state(&st_title);
+        }
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -1928,7 +1941,7 @@ static int title_keybd(int c, int d)
 
 static int title_buttn(int b, int d)
 {
-    if (time_state() < 0.1f ||
+    if (time_state() < 0.05f ||
         (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
     if (title_gui_wgcl_version_enabled) return 1;
@@ -1952,6 +1965,11 @@ static int title_buttn(int b, int d)
     {
         int active = gui_active();
 
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && config_online()) {
+            title_swap_help_and_addons = !title_swap_help_and_addons;
+            audio_play(title_swap_help_and_addons ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
+            return goto_state(&st_title);
+        }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return title_action(gui_token(active), gui_value(active));
 #if !defined(__NDS__) && !defined(__3DS__) && \

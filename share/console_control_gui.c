@@ -1741,7 +1741,7 @@ static void init_xbox_title(void)
     {
         /* Nintendo Switch has close software features,
          * so we don't need that */
-        if (current_platform != PLATFORM_SWITCH
+        /*if (current_platform != PLATFORM_SWITCH
             && current_platform != PLATFORM_STEAMDECK)
         {
 #if defined(__WII__)
@@ -1754,6 +1754,17 @@ static void init_xbox_title(void)
 
             console_gui_create_b_button(xbox_control_title_id,
                             config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
+
+            create_controller_spacer(xbox_control_title_id);
+        }*/
+
+        if (config_online())
+        {
+            gui_label(xbox_control_title_id, _("Swap Buttons"),
+                      GUI_SML, gui_wht, gui_wht);
+
+            console_gui_create_a_button(xbox_control_title_id,
+                            config_get_d(CONFIG_JOYSTICK_BUTTON_X), 1);
 
             create_controller_spacer(xbox_control_title_id);
         }

@@ -73,6 +73,11 @@
 #include <emscripten/html5.h>
 #endif
 
+<<<<<<< HEAD
+=======
+#include <SDL.h>
+#include <SDL_stdinc.h>
+>>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
 #include <stdio.h>
 #include <string.h>
 
@@ -920,12 +925,77 @@ static int cmp_available_packages(const void *A, const void *B)
     return c;
 }
 
+static int cmp_available_packages(const void *A, const void *B)
+{
+    const struct package *a = (const struct package *) A;
+    const struct package *b = (const struct package *) B;
+
+    const int a_is_set = strcmp(a->type, "set") == 0;
+    const int b_is_set = strcmp(b->type, "set") == 0;
+
+    // Level sets come first.
+
+    if (a_is_set && !b_is_set)
+        return -1;
+
+    if (b_is_set && !a_is_set)
+        return +1;
+
+    if (a_is_set && b_is_set)
+    {
+        // Level sets in sets.txt take precedence.
+
+        STRBUF a_file = joinstr(a->id, ".txt");
+        STRBUF b_file = joinstr(b->id, ".txt");
+
+        int a_index = set_find(CSTR(a_file));
+        int b_index = set_find(CSTR(b_file));
+
+        unsigned int a_is_bundled = set_is_bundled(a_index);
+        unsigned int b_is_bundled = set_is_bundled(b_index);
+
+        if (a_is_bundled && !b_is_bundled)
+            return -1;
+
+        if (b_is_bundled && !a_is_bundled)
+            return +1;
+
+        if (a_is_bundled && b_is_bundled)
+            return a_index - b_index;
+    }
+
+    // Rest are ordered by id (e.g., "set-mym").
+
+    int c = SDL_strcasecmp(a->id, b->id);
+
+    printf("%s cmp %s = %d\n", a->id, b->id, c);
+
+    return c;
+}
+
 /*
  * Start package refresh and go to given state when done.
  */
 static void main_preload(struct state *start_state, int (*start_fn)(struct state *))
 {
+<<<<<<< HEAD
     if (config_online())
+=======
+    struct fetch_callback callback = { 0 };
+
+    callback.data = start_state;
+    callback.done = refresh_packages_done;
+
+    goto_state(&st_loading);
+
+    /* To sort packages by sets.txt order, sets must be loaded first. */
+
+    set_init();
+
+    /* Link processing works best with a package list. */
+
+    if (package_refresh(callback, cmp_available_packages))
+>>>>>>> e091104d057bf4166ceebf69c248ee82501bfb52
     {
         struct fetch_callback callback = {0};
 

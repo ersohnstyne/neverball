@@ -720,7 +720,7 @@ static int wgcl_login_leave(struct state *st, struct state *next, int id, int in
 
 static void wgcl_login_paint(int id, float t)
 {
-    video_set_perspective((float)config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
     back_draw_easy();
 
     gui_paint(id);
@@ -990,7 +990,7 @@ int wgcl_addons_login_refresh_packages(struct state *next)
     callback.data = NULL;
     callback.done = wgcl_addons_login_refresh_packages_done;
 
-    package_refresh(callback);
+    package_refresh(callback, 0);
 
     return 1;
 }
@@ -1172,7 +1172,7 @@ struct state st_wgcl_logout_confirm =
 struct state st_wgcl_addons_login = {
     wgcl_addons_login_enter,
     wgcl_addons_login_leave,
-    conf_common_paint,
+    wgcl_addons_login_paint,
     common_timer,
     common_point,
     common_stick,

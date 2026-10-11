@@ -427,7 +427,7 @@ static unsigned int account_refresh_packages(void)
     callback.data = NULL;
     callback.done = account_refresh_packages_done;
 
-    return package_refresh(callback);
+    return package_refresh(callback, set_cmp_available_packages);
 }
 
 static int conf_account_action(int tok, int val)

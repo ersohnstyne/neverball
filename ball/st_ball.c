@@ -21,6 +21,8 @@
 #include <emscripten.h>
 #endif
 
+#include "strbuf/joinstr.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "account.h"
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -395,6 +397,39 @@ static void ball_refresh_packages_done(void *data1, void *data2)
     else audio_play("snd/uierror.ogg", 1.0f);
 }
 
+static int ball_cmp_available_packages(const void *A, const void *B)
+{
+    const struct package *a = (const struct package *) A;
+    const struct package *b = (const struct package *) B;
+
+    const int a_is_set = strcmp(a->type, "ball") == 0;
+    const int b_is_set = strcmp(b->type, "ball") == 0;
+
+    // Level sets come first.
+
+    if (a_is_set && !b_is_set)
+        return -1;
+
+    if (b_is_set && !a_is_set)
+        return +1;
+
+    if (a_is_set && b_is_set)
+    {
+        // Level sets in sets.txt take precedence.
+
+        STRBUF a_file = joinstr(a->id, ".txt");
+        STRBUF b_file = joinstr(b->id, ".txt");
+    }
+
+    // Rest are ordered by id (e.g., "set-mym").
+
+    int c = SDL_strcasecmp(a->id, b->id);
+
+    printf("%s cmp %s = %d\n", a->id, b->id, c);
+
+    return c;
+}
+
 static unsigned int ball_refresh_packages(void)
 {
     package_change_category(PACKAGE_CATEGORY_PROFILE);
@@ -404,7 +439,7 @@ static unsigned int ball_refresh_packages(void)
     callback.data = NULL;
     callback.done = ball_refresh_packages_done;
 
-    return package_refresh(callback);
+    return package_refresh(callback, ball_cmp_available_packages);
 }
 
 static struct state *ball_back;

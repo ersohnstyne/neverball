@@ -29,17 +29,21 @@
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 #define SDL_ENABLE_OLD_NAMES
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_stdinc.h>
 #define SDL_GET_KEYSYM(_e) _e->key.key
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_stdinc.h>
 #define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
+#include <SDL_stdinc.h>
 #define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
+#include <SDL_stdinc.h>
 #define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
 #endif
 
@@ -868,6 +872,54 @@ static void refresh_packages_done(void *data, void *extra_data)
 #endif
 }
 
+static int cmp_available_packages(const void *A, const void *B)
+{
+    const struct package *a = (const struct package *) A;
+    const struct package *b = (const struct package *) B;
+
+    const int a_is_set = strcmp(a->type, "set") == 0;
+    const int b_is_set = strcmp(b->type, "set") == 0;
+
+    // Level sets come first.
+
+    if (a_is_set && !b_is_set)
+        return -1;
+
+    if (b_is_set && !a_is_set)
+        return +1;
+
+    if (a_is_set && b_is_set)
+    {
+        // Level sets in sets.txt take precedence.
+
+        STRBUF a_file = joinstr(a->id, ".txt");
+        STRBUF b_file = joinstr(b->id, ".txt");
+
+        int a_index = set_find(CSTR(a_file));
+        int b_index = set_find(CSTR(b_file));
+
+        unsigned int a_is_bundled = set_is_bundled(a_index);
+        unsigned int b_is_bundled = set_is_bundled(b_index);
+
+        if (a_is_bundled && !b_is_bundled)
+            return -1;
+
+        if (b_is_bundled && !a_is_bundled)
+            return +1;
+
+        if (a_is_bundled && b_is_bundled)
+            return a_index - b_index;
+    }
+
+    // Rest are ordered by id (e.g., "set-mym").
+
+    int c = SDL_strcasecmp(a->id, b->id);
+
+    printf("%s cmp %s = %d\n", a->id, b->id, c);
+
+    return c;
+}
+
 /*
  * Start package refresh and go to given state when done.
  */
@@ -882,9 +934,13 @@ static void main_preload(struct state *start_state, int (*start_fn)(struct state
 
         goto_state(&st_loading);
 
+        /* To sort packages by sets.txt order, sets must be loaded first. */
+
+        set_init(0);
+
         /* Link processing works best with a package list. */
 
-        if (package_refresh(callback))
+        if (package_refresh(callback, cmp_available_packages))
         {
             /* Callback takes care of link processing and starting screen. */
             return;

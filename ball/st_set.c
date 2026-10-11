@@ -182,7 +182,7 @@ static unsigned int set_refresh_packages(void)
     callback.data = NULL;
     callback.done = set_refresh_packages_done;
 
-    return package_refresh(callback);
+    return package_refresh(callback, set_cmp_available_packages);
 }
 
 static int set_action(int tok, int val)

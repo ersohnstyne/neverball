@@ -48,7 +48,9 @@ void *array_get(Array, int);
 void *array_rnd(Array);
 int   array_len(Array);
 
-void  array_sort(Array, int (*cmp)(const void *, const void *));
+typedef int (*cmp_fn)(const void *, const void *);
+
+void  array_sort(Array, cmp_fn);
 
 /*----------------------------------------------------------------------------*/
 

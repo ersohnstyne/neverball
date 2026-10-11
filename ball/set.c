@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "strbuf/joinstr.h"
+
 #if NB_HAVE_PB_BOTH==1
 #include "account_wgcl.h"
 #include "campaign.h"
@@ -84,6 +86,8 @@ struct set
 
     int   count;                        /* Number of levels                  */
     char *level_name_v[MAXLVL_SET];     /* List of level file names          */
+
+    unsigned int is_bundled:1;          /* comes from sets.txt               */
 };
 
 #define SET_GET(a, i) ((struct set *) array_get((a), (i)))
@@ -560,6 +564,54 @@ static void set_load_hs(void)
 
 /*---------------------------------------------------------------------------*/
 
+int set_cmp_available_packages(const void *A, const void *B)
+{
+    const struct package *a = (const struct package *) A;
+    const struct package *b = (const struct package *) B;
+
+    const int a_is_set = strcmp(a->type, "set") == 0;
+    const int b_is_set = strcmp(b->type, "set") == 0;
+
+    // Level sets come first.
+
+    if (a_is_set && !b_is_set)
+        return -1;
+
+    if (b_is_set && !a_is_set)
+        return +1;
+
+    if (a_is_set && b_is_set)
+    {
+        // Level sets in sets.txt take precedence.
+
+        STRBUF a_file = joinstr(a->id, ".txt");
+        STRBUF b_file = joinstr(b->id, ".txt");
+
+        int a_index = set_find(CSTR(a_file));
+        int b_index = set_find(CSTR(b_file));
+
+        unsigned int a_is_bundled = set_is_bundled(a_index);
+        unsigned int b_is_bundled = set_is_bundled(b_index);
+
+        if (a_is_bundled && !b_is_bundled)
+            return -1;
+
+        if (b_is_bundled && !a_is_bundled)
+            return +1;
+
+        if (a_is_bundled && b_is_bundled)
+            return a_index - b_index;
+    }
+
+    // Rest are ordered by id (e.g., "set-mym").
+
+    int c = SDL_strcasecmp(a->id, b->id);
+
+    printf("%s cmp %s = %d\n", a->id, b->id, c);
+
+    return c;
+}
+
 int set_check_id(const unsigned char *name, const char *needle)
 {
     const unsigned char *haystack, *c;
@@ -907,6 +959,8 @@ int set_init(int boost_active)
             {
                 if (!set_load(s, name))
                     array_del(sets);
+
+                s->is_bundled = 1u;
             }
             else
                 log_errorf("Warning: Failed to allocate set slot for '%s'\n", name);
@@ -1043,6 +1097,11 @@ const struct score *set_score(int i, int s)
         if (s == SCORE_COIN) return &SET_GET(sets, i)->coin_score;
     }
     return NULL;
+}
+
+unsigned int set_is_bundled(int i)
+{
+    return set_exists(i) ? SET_GET(sets, i)->is_bundled : 0u;
 }
 
 /*---------------------------------------------------------------------------*/

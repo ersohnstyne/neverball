@@ -32,36 +32,12 @@
 #endif
 #endif
 
-enum package_image_status
-{
-    PACKAGE_IMAGE_NONE = 0,
-    PACKAGE_IMAGE_DOWNLOADING
-};
-
-struct package
-{
-    unsigned int size;
-
-    char id      [64];
-    char type    [64];
-    char filename[MAXSTR];
-    char files   [1024];
-    char name    [64];
-    char desc    [MAXSTR];
-    char shot    [64];
-
-#if NB_HAVE_PB_BOTH==1
-    char category[64];
-#endif
-
-    enum package_status status;
-    enum package_image_status image_status;
-};
-
 static int package_is_init;
 
 static Array available_packages;
 static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
+
+static cmp_fn cmp_available_packages_fn;
 
 #define PACKAGE_GET(a, i) ((struct package *) array_get((a), (i)))
 
@@ -749,7 +725,7 @@ static void available_packages_done(void *data, void *extra_data)
 {
     struct package_list_info *pli = data;
     struct fetch_done *fd = extra_data;
-
+    
     if (fd && fd->success)
     {
         const char *filename = get_package_path("available-packages.txt");
@@ -759,7 +735,12 @@ static void available_packages_done(void *data, void *extra_data)
             Array packages = load_packages_from_file(filename);
 
             if (packages)
+            {
+                if (cmp_available_packages_fn)
+                    array_sort(packages, cmp_available_packages_fn);
+
                 available_packages = packages;
+            }
         }
     }
 
@@ -861,13 +842,16 @@ void package_init(void)
 /*
  * Download the list of available packages.
  */
-unsigned int package_refresh(struct fetch_callback callback)
+unsigned int package_refresh(struct fetch_callback callback, cmp_fn cmp)
 {
     if (!package_is_init)
     {
         log_errorf("Failure to refresh package! Package must be initialized!\n");
         return 0;
     }
+
+    if (cmp)
+        cmp_available_packages_fn = cmp;
 
     return fetch_available_packages(callback, package_curr_category);
 }

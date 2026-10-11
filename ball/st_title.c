@@ -444,7 +444,7 @@ static unsigned int title_refresh_packages(void)
     callback.data = NULL;
     callback.done = title_refresh_packages_done;
 
-    return package_refresh(callback);
+    return package_refresh(callback, set_cmp_available_packages);
 }
 
 static int title_action(int tok, int val)

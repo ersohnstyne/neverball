@@ -34,6 +34,8 @@
 
 /*---------------------------------------------------------------------------*/
 
+int set_cmp_available_packages(const void *A, const void *B);
+
 int  set_check_id(const unsigned char *name, const char *needle);
 
 int  set_init(int);
@@ -61,6 +63,7 @@ int                 set_star_gained(int);
 int                 set_balls_needed(int);
 #endif
 const struct score *set_score(int, int);
+unsigned int        set_is_bundled(int);
 
 struct level *set_find_level(const char *basename);
 

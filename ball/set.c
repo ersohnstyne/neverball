@@ -86,8 +86,6 @@ struct set
 
     int   count;                        /* Number of levels                  */
     char *level_name_v[MAXLVL_SET];     /* List of level file names          */
-
-    unsigned int is_bundled:1;          /* comes from sets.txt               */
 };
 
 #define SET_GET(a, i) ((struct set *) array_get((a), (i)))
@@ -96,6 +94,9 @@ static Array sets;
 static int   curr;
 
 static struct level level_v[MAXLVL_SET];
+
+static char *bundled_filenames[64];
+static int bundled_count;
 
 /*---------------------------------------------------------------------------*/
 
@@ -571,7 +572,7 @@ int set_cmp_available_packages(const void *A, const void *B)
 
     const int a_is_set = strcmp(a->type, "set") == 0;
     const int b_is_set = strcmp(b->type, "set") == 0;
-
+    
     // Level sets come first.
 
     if (a_is_set && !b_is_set)
@@ -587,19 +588,16 @@ int set_cmp_available_packages(const void *A, const void *B)
         STRBUF a_file = joinstr(a->id, ".txt");
         STRBUF b_file = joinstr(b->id, ".txt");
 
-        int a_index = set_find(CSTR(a_file));
-        int b_index = set_find(CSTR(b_file));
+        int a_index = set_bundle_index(CSTR(a_file));
+        int b_index = set_bundle_index(CSTR(a_file));
 
-        unsigned int a_is_bundled = set_is_bundled(a_index);
-        unsigned int b_is_bundled = set_is_bundled(b_index);
-
-        if (a_is_bundled && !b_is_bundled)
+        if (a_index >= 0 && b_index < 0)
             return -1;
 
-        if (b_is_bundled && !a_is_bundled)
+        if (b_index >= 0 && a_index < 0)
             return +1;
 
-        if (a_is_bundled && b_is_bundled)
+        if (a_index >= 0 && b_index >= 0)
             return a_index - b_index;
     }
 
@@ -607,7 +605,17 @@ int set_cmp_available_packages(const void *A, const void *B)
 
     int c = SDL_strcasecmp(a->id, b->id);
 
+#ifndef _CONSOLE
+#if _WIN32 && _MSC_VER
+    log_printf("%s cmp %s = %d\n", a->id, b->id, c);
+#endif
+#else
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
+    printf_s("%s cmp %s = %d\n", a->id, b->id, c);
+#else
     printf("%s cmp %s = %d\n", a->id, b->id, c);
+#endif
+#endif
 
     return c;
 }
@@ -959,14 +967,22 @@ int set_init(int boost_active)
             {
                 if (!set_load(s, name))
                     array_del(sets);
-
-                s->is_bundled = 1u;
             }
             else
                 log_errorf("Warning: Failed to allocate set slot for '%s'\n", name);
 
-            free(name);
-            name = NULL;
+            // Save the filename even, if set wasn't loaded.
+
+            if (bundled_count < ARRAYSIZE(bundled_filenames))
+            {
+                bundled_filenames[bundled_count++] = name;
+            }
+            else
+            {
+                log_printf("Warning: too many filenames in sets.txt\n");
+                free(name);
+                name = NULL;
+            }
         }
         fs_close(fin);
         fin = NULL;
@@ -1003,16 +1019,27 @@ int set_init(int boost_active)
 
 void set_quit(void)
 {
+    int i;
+
     if (sets)
     {
         int n = array_len(sets);
 
-        for (int i = 0; i < n; i++)
+        for (i = 0; i < n; i++)
             set_free(array_get(sets, i));
 
         array_free(sets);
         sets = NULL;
     }
+
+    for (i = 0; i < ARRAYSIZE(bundled_filenames); ++i)
+        if (bundled_filenames[i])
+        {
+            free(bundled_filenames[i]);
+            bundled_filenames[i] = NULL;
+        }
+
+    bundled_count = 0;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1099,9 +1126,19 @@ const struct score *set_score(int i, int s)
     return NULL;
 }
 
-unsigned int set_is_bundled(int i)
+int set_bundle_index(const char *filename)
 {
-    return set_exists(i) ? SET_GET(sets, i)->is_bundled : 0u;
+    if (!(filename && *filename && filename[0]))
+        return -1;
+
+    for (int i = 0; i < bundled_count; ++i)
+    {
+        if (bundled_filenames[i] && *bundled_filenames[i] && bundled_filenames[i][0] &&
+            strcmp(bundled_filenames[i], filename) == 0)
+            return i;
+    }
+
+    return -1;
 }
 
 /*---------------------------------------------------------------------------*/

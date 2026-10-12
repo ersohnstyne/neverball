@@ -999,6 +999,7 @@ static int wgcl_addons_login_action(int tok, int val)
 {
     KEYBOARD_GAMEMENU_ACTION(WGCL_ADDONS_LOGIN_ENTER);
 
+    int r = 1;
     state_entered = 0;
 
     switch (tok)
@@ -1008,8 +1009,8 @@ static int wgcl_addons_login_action(int tok, int val)
             if (WGCL_GameOptions_Exists)
                 WGCL_BackToGameOptions("gameoptions_st_data");
 #endif
-            wgcl_package_login_back_fn ? wgcl_package_login_back_fn(wgcl_package_login_back_state)
-                                       : exit_state(wgcl_package_login_back_state);
+            r = wgcl_package_login_back_fn ? wgcl_package_login_back_fn(wgcl_package_login_back_state)
+                                           : exit_state(wgcl_package_login_back_state);
 
             wgcl_package_login_back_fn    = 0;
             wgcl_package_login_back_state = 0;
@@ -1020,8 +1021,8 @@ static int wgcl_addons_login_action(int tok, int val)
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
             EM_ASM({ CoreLauncher_ShowLoginModalWindow(); });
 #elif NB_HAVE_PB_BOTH==1
-            goto_wgcl_login(wgcl_package_login_back_state, wgcl_package_login_back_fn,
-                            &st_package, wgcl_addons_login_refresh_packages);
+            r = goto_wgcl_login(wgcl_package_login_back_state, wgcl_package_login_back_fn,
+                                &st_package, wgcl_addons_login_refresh_packages);
 #endif
             break;
 
@@ -1030,7 +1031,7 @@ static int wgcl_addons_login_action(int tok, int val)
             break;
     }
 
-    return 1;
+    return r;
 }
 
 static int wgcl_addons_login_gui(void)

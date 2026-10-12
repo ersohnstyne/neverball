@@ -879,7 +879,7 @@ static int cmp_available_packages(const void *A, const void *B)
 
     const int a_is_set = strcmp(a->type, "set") == 0;
     const int b_is_set = strcmp(b->type, "set") == 0;
-
+    
     // Level sets come first.
 
     if (a_is_set && !b_is_set)
@@ -895,19 +895,16 @@ static int cmp_available_packages(const void *A, const void *B)
         STRBUF a_file = joinstr(a->id, ".txt");
         STRBUF b_file = joinstr(b->id, ".txt");
 
-        int a_index = set_find(CSTR(a_file));
-        int b_index = set_find(CSTR(b_file));
+        int a_index = set_bundle_index(CSTR(a_file));
+        int b_index = set_bundle_index(CSTR(a_file));
 
-        unsigned int a_is_bundled = set_is_bundled(a_index);
-        unsigned int b_is_bundled = set_is_bundled(b_index);
-
-        if (a_is_bundled && !b_is_bundled)
+        if (a_index >= 0 && b_index < 0)
             return -1;
 
-        if (b_is_bundled && !a_is_bundled)
+        if (b_index >= 0 && a_index < 0)
             return +1;
 
-        if (a_is_bundled && b_is_bundled)
+        if (a_index >= 0 && b_index >= 0)
             return a_index - b_index;
     }
 
@@ -915,7 +912,17 @@ static int cmp_available_packages(const void *A, const void *B)
 
     int c = SDL_strcasecmp(a->id, b->id);
 
+#ifndef _CONSOLE
+#if _WIN32 && _MSC_VER
+    log_printf("%s cmp %s = %d\n", a->id, b->id, c);
+#endif
+#else
+#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
+    printf_s("%s cmp %s = %d\n", a->id, b->id, c);
+#else
     printf("%s cmp %s = %d\n", a->id, b->id, c);
+#endif
+#endif
 
     return c;
 }

@@ -63,7 +63,8 @@ int                 set_star_gained(int);
 int                 set_balls_needed(int);
 #endif
 const struct score *set_score(int, int);
-unsigned int        set_is_bundled(int);
+
+int set_bundle_index(const char *filename);
 
 struct level *set_find_level(const char *basename);
 

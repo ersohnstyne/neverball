@@ -701,7 +701,7 @@ static void package_select(int pi)
     
     const GLubyte *btn_color      = status == PACKAGE_INSTALLED || selected >= 0 ?
                                     gui_grn : gui_gry;
-    const GLubyte *btn_color_text = selected > 0 ?
+    const GLubyte *btn_color_text = selected >= 0 ?
                                     gui_wht : gui_gry;
     
     gui_set_state(install_id,        selected >= 0 ? PACKAGE_INSTALL : GUI_NONE, 0);

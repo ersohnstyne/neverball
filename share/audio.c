@@ -13,10 +13,11 @@
  */
 
 #ifndef __EMSCRIPTEN__
-
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 #define SDL_ENABLE_OLD_NAMES
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_oldnames.h>
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #elif _WIN32 && _MSC_VER
@@ -90,8 +91,7 @@ struct voice
  * SDL_UnlockAudioDevice().
  * - Ersohn Styne
  */
-static int   lock_hold;
-static int   speed_freezes;
+static int lock_hold;
 
 /*
  * SDL3 uses only for SDL_PauseAudioDevice() and SDL_ResumeAudioDevice().
@@ -99,7 +99,12 @@ static int   speed_freezes;
  */
 static int   audio_paused    = 0;
 static int   audio_state     = 0;
-static int   audio_device_id = -1;
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+static SDL_AudioStream *audio_device_stream;
+#else
+static int audio_device_id = -1;
+#endif
 
 static float master_vol   = 1.0f;
 static float sound_vol    = 1.0f;
@@ -148,28 +153,48 @@ static ov_callbacks callbacks = {
 #define LOGF_VOLUME(v) ((float) powf((v), 2.0f))
 #define LOG_VOLUME(v)  ((float) pow((double) (v), 2.0))
 
+/*
 #define MIX(d, s) {                           \
         int T = (int) (d) + (int) (s);        \
         if      (T >  32767) (d) =  32767;    \
         else if (T < -32768) (d) = -32768;    \
         else                 (d) = (short) T; \
     }
+*/
 
+#define MIX(d, s) (d) = (short) CLAMP(-32768, (int) (d) + (int) (s), 32767)
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+static int voice_step(struct voice *V, float volume, SDL_AudioStream *stream, int length)
+#else
 static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
+#endif
 {
     if (audio_paused) return 0;
 
     int order = 0;
 
-    short *obuf = (short *) stream;
-    char  *ibuf = (char  *) buffer;
-
     int i, b = 0, n = 1, c = 0, r = 0;
 
     /* Compute the total request size for the current stream. */
 
-    if (V->chan == 1) r = length / 2;
-    if (V->chan == 2) r = length    ;
+    switch (V->chan) {
+        case 1: r = length / 2; break;
+        case 2: r = length;     break;
+
+        default: return 1;
+    }
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define AUDIO_VOICE_STEP_OBUF_SAFE_FREE(_p) \
+    do if (_p) { free(_p); _p = NULL; } while (0)
+
+    short *obuf = (short *) calloc(r, sizeof (short));
+    if (!obuf) return 1;
+#else
+    short *obuf = (short *) stream;
+#endif
+    char  *ibuf = (char  *) buffer;
 
     /* While data is coming in and data is still needed... */
 
@@ -349,9 +374,20 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
                 ov_raw_seek(&V->vf, 0);
                 n = 1;
             }
-            else return 1;
+            else
+            {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                AUDIO_VOICE_STEP_OBUF_SAFE_FREE(obuf);
+#endif
+                return 1;
+            }
         }
     }
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_PutAudioStreamData(stream, obuf, r);
+    AUDIO_VOICE_STEP_OBUF_SAFE_FREE(obuf);
+#endif
 
     return 0;
 }
@@ -359,7 +395,6 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
 #if defined(__WII__)
 void voice_free(struct voice *V);
 #endif
-
 static struct voice *voice_init(const char *filename, float a)
 {
     struct voice *V = NULL;
@@ -483,7 +518,11 @@ static void voice_quit(struct voice *V)
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+static void audio_step(void *data, SDL_AudioStream *stream, int length, int len_total)
+#else
 static void audio_step(void *data, Uint8 *stream, int length)
+#endif
 {
     while (lock_hold) {}
     lock_hold = 1;
@@ -619,10 +658,8 @@ void audio_init(void)
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
     {
         log_printf("Failure to initialize audio (%s)\n", SDL_GetError());
-        return;
+        audio_state = 0; return;
     }
-
-    audio_state = 0;
 
     /* Configure the audio. */
 
@@ -641,8 +678,8 @@ void audio_init(void)
 #else
     device_spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
     device_spec.callback = audio_step;
-    spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
-    spec.callback = audio_step;
+    spec.samples         = config_get_d(CONFIG_AUDIO_BUFF);
+    spec.callback        = audio_step;
 #endif
 
     /* Allocate an input buffer. */
@@ -653,15 +690,14 @@ void audio_init(void)
          * Start the audio thread.
          */
 
-        audio_device_id = -1;
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-        if ((audio_device_id = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec)) != 0)
+        if ((audio_device_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL)))
 #else
+        audio_device_id = -1;
         if ((audio_device_id = SDL_OpenAudioDevice(
             0,
             0,
-            &spec,
-            &device_spec,
+            &spec, &device_spec,
             0
         )) > 0)
 #endif
@@ -669,7 +705,7 @@ void audio_init(void)
             audio_state = 1;
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-            SDL_ResumeAudioDevice(audio_device_id);
+            SDL_ResumeAudioStreamDevice(audio_device_stream);
 #else
             SDL_PauseAudioDevice(audio_device_id, 0);
 #endif
@@ -703,10 +739,17 @@ void audio_free(void)
 
     /* Halt the audio thread. */
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    if (audio_state)
+        SDL_DestroyAudioStream(audio_device_stream);
+
+    audio_device_stream = NULL;
+#else
     if (audio_state)
         SDL_CloseAudioDevice(audio_device_id);
 
     audio_device_id = -1;
+#endif
 
     /* Release the input buffer. */
 
@@ -748,14 +791,14 @@ void audio_free(void)
         voice_quit(voices_narrators);
         voices_narrators = NULL;
     }
-    
+
     for (V = voices_music; V;)
     {
         struct voice *N = V ? V->next : NULL;
         voice_free(V);
         V = N;
     }
-    
+
     voices_music   = NULL;
 
     for (V = voices_ambient; V;)
@@ -796,12 +839,20 @@ void audio_suspend(void)
 {
     if (audio_paused) return;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_PauseAudioStreamDevice(audio_device_stream);
+#endif
+
     audio_paused = 1;
 }
 
 void audio_resume(void)
 {
     if (!audio_paused) return;
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_ResumeAudioStreamDevice(audio_device_stream);
+#endif
 
     audio_paused = 0;
 }
@@ -810,9 +861,10 @@ void audio_resume(void)
 
 void audio_play(const char *filename, float a)
 {
-    /* Can't play game sound, master volume was set to 0. */
+    /* Can't play game sound, master volume or sound volume was set to 0. */
 
-    if (config_get_d(CONFIG_MASTER_VOLUME) == 0) return;
+    if (config_get_d(CONFIG_MASTER_VOLUME) == 0 ||
+        config_get_d(CONFIG_SOUND_VOLUME)  == 0 || a <= 0.0f) return;
 
     if (audio_state && !audio_paused && config_get_d(CONFIG_SOUND_VOLUME))
     {
@@ -828,6 +880,9 @@ void audio_play(const char *filename, float a)
         /* If we're already playing this sound, preempt the running copy. */
 
         lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_LockAudioStream(audio_device_stream);
+#endif
         {
             for (VSFX = voices_sfx; VSFX; VSFX = VSFX->next)
                 if (VSFX->name && strcmp(VSFX->name, filename) == 0)
@@ -839,10 +894,16 @@ void audio_play(const char *filename, float a)
                     if (VSFX->amp > 1.0f) VSFX->amp = 1.0;
                     if (VSFX->amp < 0.0f) VSFX->amp = 0.0;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                    SDL_UnlockAudioStream(audio_device_stream);
+#endif
                     lock_hold = 0;
                     return;
                 }
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_UnlockAudioStream(audio_device_stream);
+#endif
         lock_hold = 0;
 
         /* Create a new voice structure. */
@@ -852,10 +913,16 @@ void audio_play(const char *filename, float a)
             /* Add it to the list of sounding voices. */
 
             lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_LockAudioStream(audio_device_stream);
+#endif
             {
                 VSFX->next = voices_sfx;
                 voices_sfx = VSFX;
             }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_UnlockAudioStream(audio_device_stream);
+#endif
             lock_hold = 0;
         }
     }
@@ -871,9 +938,10 @@ void audio_play(const char *filename, float a)
 
 void audio_narrator_play(const char *filename)
 {
-    /* Can't play narrator sound, master volume was set to 0. */
+    /* Can't play narrator sound, master volume or narrator volume was set to 0. */
 
-    if (config_get_d(CONFIG_MASTER_VOLUME) == 0) return;
+    if (config_get_d(CONFIG_MASTER_VOLUME)   == 0 ||
+        config_get_d(CONFIG_NARRATOR_VOLUME) == 0) return;
 
     if (audio_state && !audio_paused && config_get_d(CONFIG_NARRATOR_VOLUME))
     {
@@ -889,6 +957,9 @@ void audio_narrator_play(const char *filename)
         /* If we're already playing this sound, preempt the running copy. */
 
         lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_LockAudioStream(audio_device_stream);
+#endif
         {
             for (VNFX = voices_narrators; VNFX; VNFX = VNFX->next)
                 if (VNFX->name && strcmp(VNFX->name, filename) == 0)
@@ -900,10 +971,16 @@ void audio_narrator_play(const char *filename)
                     if (VNFX->amp > 1.0f) VNFX->amp = 1.0;
                     if (VNFX->amp < 0.0f) VNFX->amp = 0.0;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                    SDL_UnlockAudioStream(audio_device_stream);
+#endif
                     lock_hold = 0;
                     return;
                 }
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_UnlockAudioStream(audio_device_stream);
+#endif
         lock_hold = 0;
 
         /* Create a new voice structure. */
@@ -913,10 +990,16 @@ void audio_narrator_play(const char *filename)
             /* Add it to the list of sounding voices. */
 
             lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_LockAudioStream(audio_device_stream);
+#endif
             {
                 VNFX->next = voices_narrators;
                 voices_narrators = VNFX;
             }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_UnlockAudioStream(audio_device_stream);
+#endif
             lock_hold = 0;
         }
     }
@@ -946,10 +1029,16 @@ static void audio_music_play(const char *filename, int loop)
         audio_music_stop();
 
         lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_LockAudioStream(audio_device_stream);
+#endif
         {
             if ((voices_music = voice_init(filename, 0.0f)))
                 voices_music->loop = loop;
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_UnlockAudioStream(audio_device_stream);
+#endif
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
@@ -970,6 +1059,9 @@ static void audio_music_queue(const char *filename, float t, int loop)
     {
         while (lock_hold) {}
         lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_LockAudioStream(audio_device_stream);
+#endif
         {
             if ((voices_queue = voice_init(filename, 0.0f)))
             {
@@ -979,6 +1071,9 @@ static void audio_music_queue(const char *filename, float t, int loop)
                     voices_queue->damp = +1.0f / (AUDIO_RATE * clampedTime);
             }
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_UnlockAudioStream(audio_device_stream);
+#endif
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
@@ -1004,11 +1099,17 @@ void audio_music_stop(void)
 #else
         while (lock_hold) {}
         lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_LockAudioStream(audio_device_stream);
+#endif
         if (voices_music)
         {
             voice_free(voices_music);
             voices_music = NULL;
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_UnlockAudioStream(audio_device_stream);
+#endif
         lock_hold = 0;
 #endif
     }
@@ -1022,9 +1123,15 @@ void audio_music_fade_out(float t)
 
     while (lock_hold) {}
     lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_LockAudioStream(audio_device_stream);
+#endif
     {
         if (voices_music) voices_music->damp = -1.0f / (AUDIO_RATE * clamped_time);
     }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_UnlockAudioStream(audio_device_stream);
+#endif
     lock_hold = 0;
 }
 
@@ -1034,9 +1141,15 @@ void audio_music_fade_in(float t)
 
     while (lock_hold) {}
     lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_LockAudioStream(audio_device_stream);
+#endif
     {
         if (voices_music) voices_music->damp = +1.0f / (AUDIO_RATE * clamped_time);
     }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_UnlockAudioStream(audio_device_stream);
+#endif
     lock_hold = 0;
 }
 
@@ -1101,8 +1214,15 @@ void audio_music_call_step(float dt)
     while (lock_hold) {}
     lock_hold = 1;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_LockAudioStream(audio_device_stream);
+#endif
+
     incomecall_amp = CLAMP(0.0f, incomecall_amp + (incomecall_damp * dt), 1.0f);
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_UnlockAudioStream(audio_device_stream);
+#endif
     lock_hold = 0;
 }
 
@@ -1126,6 +1246,9 @@ void audio_ambient_play(const char *filename)
         audio_ambient_stop();
 
         lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_LockAudioStream(audio_device_stream);
+#endif
         {
             if ((voices_ambient = voice_init(filename, 0.0f)))
             {
@@ -1133,6 +1256,9 @@ void audio_ambient_play(const char *filename)
                 voices_ambient->amp  = 0.0f;
             }
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_UnlockAudioStream(audio_device_stream);
+#endif
         lock_hold = 0;
     }
     else if (!audio_state && !audio_paused)
@@ -1158,11 +1284,17 @@ void audio_ambient_stop(void)
 #else
         while (lock_hold) {}
         lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_LockAudioStream(audio_device_stream);
+#endif
         if (voices_ambient)
         {
             voice_free(voices_ambient);
             voices_ambient = NULL;
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_UnlockAudioStream(audio_device_stream);
+#endif
         lock_hold = 0;
 #endif
     }
@@ -1174,9 +1306,15 @@ void audio_ambient_fade_in(float t)
 
     while (lock_hold) {}
     lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_LockAudioStream(audio_device_stream);
+#endif
     {
         if (voices_ambient) voices_ambient->damp = +1.0f / (AUDIO_RATE * clamped_time);
     }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_UnlockAudioStream(audio_device_stream);
+#endif
     lock_hold = 0;
 }
 
@@ -1186,9 +1324,15 @@ void audio_ambient_fade_out(float t)
 
     while (lock_hold) {}
     lock_hold = 1;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_LockAudioStream(audio_device_stream);
+#endif
     {
         if (voices_ambient) voices_ambient->damp = -1.0f / (AUDIO_RATE * clamped_time);
     }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_UnlockAudioStream(audio_device_stream);
+#endif
     lock_hold = 0;
 }
 
@@ -1202,6 +1346,10 @@ void audio_volume(int master, int sound, int music, int narrator)
     while (lock_hold) {}
     lock_hold = 1;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_LockAudioStream(audio_device_stream);
+#endif
+
     float master_logarithmic   = (float)  master   / 10.0f;
     float sound_logarithmic    = (float) (sound    / 10.0f) * master_logarithmic;
     float music_logarithmic    = (float) (music    / 10.0f) * master_logarithmic;
@@ -1211,6 +1359,10 @@ void audio_volume(int master, int sound, int music, int narrator)
     sound_vol    = LOGF_VOLUME(sound_logarithmic);
     music_vol    = LOGF_VOLUME(music_logarithmic);
     narrator_vol = LOGF_VOLUME(narrator_logarithmic);
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_UnlockAudioStream(audio_device_stream);
+#endif
 
     lock_hold = 0;
 }

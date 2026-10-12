@@ -23,10 +23,11 @@
 #include "solid_base.h"
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
 #include <SDL3/SDL_mutex.h>
 #include <SDL3/SDL_thread.h>
-#define SDL_mutex SDL_Mutex
-#define SDL_atomic_t SDL_AtomicInt
+#include <SDL3/SDL_oldnames.h>
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL_mutex.h>
 #include <SDL2/SDL_thread.h>

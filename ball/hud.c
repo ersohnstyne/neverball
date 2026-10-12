@@ -875,10 +875,6 @@ int hud_touch(const SDL_TouchFingerEvent *e)
 
     touch_timer = 5.0f;
 
-#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-#define SDL_FINGERUP SDL_EVENT_FINGER_UP
-#endif
-
     if (e->type == SDL_FINGERUP)
     {
         const int x = (int) ((float) video.device_w * e->x);
@@ -886,10 +882,6 @@ int hud_touch(const SDL_TouchFingerEvent *e)
 
         return gui_point(Touch_id, x, y);
     }
-
-#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-#undef SDL_FINGERUP
-#endif
 
     return 0;
 }

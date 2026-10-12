@@ -45,7 +45,7 @@
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 #define SDL_ENABLE_OLD_NAMES
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_syswm.h>
+#include <SDL3/SDL_oldnames.h>
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
@@ -56,24 +56,6 @@
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
-#endif
-
-#ifndef SDL_QUERY
-#define SDL_QUERY -1
-#endif
-#ifndef SDL_IGNORE
-#define SDL_IGNORE 0
-#endif
-#ifndef SDL_DISABLE
-#define SDL_DISABLE 0
-#endif
-#ifndef SDL_ENABLE
-#define SDL_ENABLE 1
-#endif
-#if NB_PB_SDL3==1
-#ifndef SDL_WINDOW_FULLSCREEN_DESKTOP
-#define SDL_WINDOW_FULLSCREEN_DESKTOP SDL_WINDOW_FULLSCREEN
-#endif
 #endif
 
 #if __cplusplus
@@ -140,7 +122,9 @@ void video_show_cursor(void)
 
 #ifdef SWITCHBALL_GUI
     gui_set_cursor(1);
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3!=1
     cursor_visible = SDL_DISABLE;
+#endif
 #else
     if (hmd_stat())
     {
@@ -225,11 +209,7 @@ void video_snap(const char *path)
 /*---------------------------------------------------------------------------*/
 
 #if !defined(__WII__)
-#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-static struct SDL_Window *window;
-#else
 static SDL_Window    *window;
-#endif
 static SDL_GLContext  context;
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
@@ -1526,7 +1506,25 @@ void video_swap(void)
 
     /* Windows Exclusive */
 
-#if _WIN32 && !defined(__EMSCRIPTEN__)
+#if _WIN32 && NB_PB_SDL3==1
+    HWND curr_hwnd = GetForegroundWindow();
+    char curr_hwnd_name[MAXSTR];
+
+    GetWindowTextA(curr_hwnd, curr_hwnd_name, sizeof(curr_hwnd_name));
+
+    if (strcmp(curr_hwnd_name, TITLE) == 0) {
+        if (!video.disable_screencapture && config_cheat())
+        {
+            SetWindowDisplayAffinity(curr_hwnd, WDA_EXCLUDEFROMCAPTURE);
+            video.disable_screencapture = 1;
+        }
+        else if (video.disable_screencapture && !config_cheat())
+        {
+            SetWindowDisplayAffinity(curr_hwnd, WDA_NONE);
+            video.disable_screencapture = 0;
+        }
+    }
+#elif _WIN32 && !defined(__EMSCRIPTEN__)
     SDL_SysWMinfo wm_info;
     SDL_VERSION(&wm_info.version);
 

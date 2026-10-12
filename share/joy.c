@@ -21,6 +21,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_joystick.h>
+#include <SDL3/SDL_oldnames.h>
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>

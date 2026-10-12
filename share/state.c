@@ -120,14 +120,6 @@ static int bump_stick(int a)
 
 /*---------------------------------------------------------------------------*/
 
-#define LOOP_DURING_SCREENANIMATE   \
-    do { if (!st_global_loop()) {   \
-        SDL_Event e = { SDL_QUIT }; \
-        SDL_PushEvent(&e);          \
-    } } while (0)
-
-/*---------------------------------------------------------------------------*/
-
 static int   anim_queue = 0;
 static int   anim_done  = 0;
 

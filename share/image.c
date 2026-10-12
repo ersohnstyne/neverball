@@ -15,6 +15,7 @@
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 #define SDL_ENABLE_OLD_NAMES
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_oldnames.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>

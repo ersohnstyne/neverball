@@ -17,10 +17,6 @@
 #include <SDL.h>
 #endif
 
-#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-#define SDL_QUIT SDL_EVENT_QUIT
-#endif
-
 #include <stdio.h>
 #include <time.h>
 

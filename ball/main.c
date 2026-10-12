@@ -30,21 +30,34 @@
 #define SDL_ENABLE_OLD_NAMES
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_stdinc.h>
-#define SDL_GET_KEYSYM(_e) _e->key.key
+#include <SDL3/SDL_oldnames.h>
+#define SDL_GET_KEYSYM(_e)          _e->key.key
+#define SDL_GET_GAMEPAD_GAXIS(_e)   _e.gaxis
+#define SDL_GET_GAMEPAD_GBUTTON(_e) _e.gbutton
+#define SDL_GET_GAMEPAD_GDEVICE(_e) _e.gdevice
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_stdinc.h>
-#define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
+#define SDL_GET_KEYSYM(_e)          _e->key.keysym.sym
+#define SDL_GET_GAMEPAD_GAXIS(_e)   _e.caxis
+#define SDL_GET_GAMEPAD_GBUTTON(_e) _e.cbutton
+#define SDL_GET_GAMEPAD_GDEVICE(_e) _e.cdevice
 #elif _WIN32 && _MSC_VER
 #include <SDL.h>
 #include <SDL_stdinc.h>
-#define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
+#define SDL_GET_KEYSYM(_e)          _e->key.keysym.sym
+#define SDL_GET_GAMEPAD_GAXIS(_e)   _e.caxis
+#define SDL_GET_GAMEPAD_GBUTTON(_e) _e.cbutton
+#define SDL_GET_GAMEPAD_GDEVICE(_e) _e.cdevice
 #elif _WIN32
 #error Security compilation error: No target include file in path for Windows specified!
 #else
 #include <SDL.h>
 #include <SDL_stdinc.h>
-#define SDL_GET_KEYSYM(_e) _e->key.keysym.sym
+#define SDL_GET_KEYSYM(_e)          _e->key.keysym.sym
+#define SDL_GET_GAMEPAD_GAXIS(_e)   _e.caxis
+#define SDL_GET_GAMEPAD_GBUTTON(_e) _e.cbutton
+#define SDL_GET_GAMEPAD_GDEVICE(_e) _e.cdevice
 #endif
 
 #if NB_STEAM_API==1
@@ -1535,23 +1548,23 @@ static int loop(void)
 //#if NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API && NB_PB_WITH_XBOX==0
 #if NB_PB_WITH_XBOX==0 && !defined(__EMSCRIPTEN__)
             case SDL_CONTROLLERAXISMOTION:
-                joy_axis_gamectrlr(e.caxis.which, e.caxis.axis, JOY_VALUE(e.caxis.value));
+                joy_axis_gamectrlr(SDL_GET_GAMEPAD_GAXIS(e).which, SDL_GET_GAMEPAD_GAXIS(e).axis, JOY_VALUE(SDL_GET_GAMEPAD_GAXIS(e).value));
                 break;
 
             case SDL_CONTROLLERBUTTONDOWN:
-                d = joy_button_gamectrlr(e.cbutton.which, (SDL_GameControllerButton) e.cbutton.button, 1);
+                d = joy_button_gamectrlr(SDL_GET_GAMEPAD_GBUTTON(e).which, (SDL_GameControllerButton) SDL_GET_GAMEPAD_GBUTTON(e).button, 1);
                 break;
 
             case SDL_CONTROLLERBUTTONUP:
-                d = joy_button_gamectrlr(e.cbutton.which, (SDL_GameControllerButton) e.cbutton.button, 0);
+                d = joy_button_gamectrlr(SDL_GET_GAMEPAD_GBUTTON(e).which, (SDL_GameControllerButton) SDL_GET_GAMEPAD_GBUTTON(e).button, 0);
                 break;
 
             case SDL_CONTROLLERDEVICEADDED:
-                joy_add_gamectrlr(e.cdevice.which);
+                joy_add_gamectrlr(SDL_GET_GAMEPAD_GDEVICE(e).which);
                 break;
 
             case SDL_CONTROLLERDEVICEREMOVED:
-                joy_remove(e.cdevice.which);
+                joy_remove(SDL_GET_GAMEPAD_GDEVICE(e).which);
                 break;
 
             /*case SDL_JOYAXISMOTION:

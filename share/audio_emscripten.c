@@ -70,6 +70,11 @@ void audio_free(void)
 
 void audio_play(const char *filename, float a)
 {
+    /* Can't play game sound, master volume or sound volume was set to 0. */
+
+    if (config_get_d(CONFIG_MASTER_VOLUME) == 0 ||
+        config_get_d(CONFIG_SOUND_VOLUME)  == 0 || a <= 0.0f) return;
+
     if (!filename || !filename[0])
     {
         log_errorf("filename returned 0!\n");
@@ -135,6 +140,11 @@ void audio_play(const char *filename, float a)
 
 void audio_narrator_play(const char *filename)
 {
+    /* Can't play narrator sound, master volume or narrator volume was set to 0. */
+
+    if (config_get_d(CONFIG_MASTER_VOLUME)   == 0 ||
+        config_get_d(CONFIG_NARRATOR_VOLUME) == 0) return;
+
     if (!filename || !filename[0])
     {
         log_errorf("filename returned 0!\n");

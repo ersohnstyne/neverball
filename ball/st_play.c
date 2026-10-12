@@ -1513,11 +1513,8 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     int id;
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-#define SDL_FINGERDOWN SDL_EVENT_FINGER_DOWN
-#define SDL_FINGERMOTION SDL_EVENT_FINGER_MOTION
-#define SDL_FINGERUP SDL_EVENT_FINGER_UP
 #define fingerId fingerID
-#define touchId touchID
+#define touchId  touchID
 #endif
 
     if ((id = hud_touch(e)))
@@ -1541,7 +1538,19 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     {
         if (e->type == SDL_FINGERDOWN)
         {
-            SDL_Finger* finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
+#if NB_PB_SDL3==1
+            int *len_finger;
+            SDL_Finger *finger, **fingers;
+
+            fingers = SDL_GetTouchFingers(e->touchId, len_finger);
+
+            if (fingers)
+                for (int i = 0; i < len_finger; i++)
+                    if (i == 1)
+                        finger = fingers[i];
+#else
+            SDL_Finger *finger = SDL_GetTouchFinger(e->touchId, 1); /* Second finger. */
+#endif
 
             if (finger && e->fingerId == finger->id)
             {
@@ -1623,9 +1632,6 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     }
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-#undef SDL_FINGERDOWN
-#undef SDL_FINGERMOTION
-#undef SDL_FINGERUP
 #undef fingerId
 #undef touchId
 #endif

@@ -18,6 +18,7 @@
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 # define SDL_MAIN_HANDLED
 # include <SDL3/SDL.h>
+# include <SDL3/SDL_main.h>
 # if _MSC_VER >= 1950 && !defined(SDL_MAIN_HANDLED)
 #  pragma comment(lib, "SDL3.lib")
 #  pragma comment(lib, "SDL3_uclibc.lib")
@@ -273,8 +274,12 @@ WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 
     time_to_next_update = 10.0f;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    const int out_return = SDL_RunApp(argc, argv, main_share, 0);
+#else
     SDL_SetMainReady();
     const int out_return = main_share(argc, argv);
+#endif
 
     OutputDebugStringA(WIN32_OUTPUTDEBUGSTRING_FILE_PREFIX_INFO "Quitting Win32 runtime...\n");
 

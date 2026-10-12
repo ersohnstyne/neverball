@@ -85,11 +85,7 @@ struct set
     /* Level info                                                            */
 
     int   count;                        /* Number of levels                  */
-<<<<<<< HEAD
     char *level_name_v[MAXLVL_SET];     /* List of level file names          */
-=======
-    char *level_name_v[MAXLVL];         /* List of level file names          */
->>>>>>> 82883833043725b21a65fe45416524cb77412e39
 };
 
 #define SET_GET(a, i) ((struct set *) array_get((a), (i)))
@@ -976,17 +972,10 @@ int set_init(int boost_active)
                     array_del(sets);
             }
             else
-<<<<<<< HEAD
                 log_errorf("Warning: Failed to allocate set slot for '%s'\n", name);
 
             // Save the filename even, if set wasn't loaded.
 
-=======
-                log_printf("Warning: Failed to allocate set slot for '%s'\n", name);
-            
-            // Save the filename even if set wasn't loaded.
-
->>>>>>> 82883833043725b21a65fe45416524cb77412e39
             if (bundled_count < ARRAYSIZE(bundled_filenames))
             {
                 bundled_filenames[bundled_count++] = name;
@@ -1142,21 +1131,13 @@ const struct score *set_score(int i, int s)
 
 int set_bundle_index(const char *filename)
 {
-<<<<<<< HEAD
     if (!(filename && *filename && filename[0]))
-=======
-    if (!(filename && *filename))
->>>>>>> 82883833043725b21a65fe45416524cb77412e39
         return -1;
 
     for (int i = 0; i < bundled_count; ++i)
     {
-<<<<<<< HEAD
         if (bundled_filenames[i] && *bundled_filenames[i] && bundled_filenames[i][0] &&
             strcmp(bundled_filenames[i], filename) == 0)
-=======
-        if (bundled_filenames[i] && strcmp(bundled_filenames[i], filename) == 0)
->>>>>>> 82883833043725b21a65fe45416524cb77412e39
             return i;
     }
 

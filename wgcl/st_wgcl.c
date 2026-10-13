@@ -301,13 +301,16 @@ static int wgcl_error_offline_enter(struct state *st, struct state *prev, int in
         gui_layout(id, 0, 0);
     }
 
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__)
     EM_ASM({
         if (navigator.userAgent.includes("Windows") || navigator.platform.startsWith("Win")) {
             /* Go to Windows Settings! */
             window.open("ms-settings:network", "_blank");
         }
     });
+#elif _WIN32
+    /* Go to Windows Settings! */
+    system("ms-settings:network");
 #endif
 
     return transition_slide(id, 1, intent);

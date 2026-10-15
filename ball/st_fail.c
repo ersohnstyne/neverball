@@ -620,6 +620,11 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
 static int fail_gui_wgcl(void)
 {
     if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY)) return 0;
+
+#if NB_HAVE_PB_BOTH==1
+    if (server_policy_get_d(SERVER_POLICY_EDITION) <= 0) return 0;
+#endif
+
 #ifdef CONFIG_INCLUDES_ACCOUNT
     const int demo_savemode = config_get_d(CONFIG_ACCOUNT_SAVE);
 #else

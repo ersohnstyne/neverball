@@ -1127,7 +1127,12 @@ static int video_gui(void)
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
         const SDL_DisplayMode *_tmp_dpyMode = SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY));
         assert(_tmp_dpyMode); if (_tmp_dpyMode) dpyMode = *_tmp_dpyMode;
+
+        int num_displays = 0;
+        SDL_DisplayID *display_id = SDL_GetDisplays(&num_displays);
+        if (display_id) SDL_free(display_id);
 #else
+        const int num_displays = SDL_GetNumVideoDisplays();
         SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
 #endif
 
@@ -1178,7 +1183,7 @@ static int video_gui(void)
 
         /* This ignores display configurations, sorry for incoherence problems. */
 #if !defined(__EMSCRIPTEN__) && NB_STEAM_API==0
-        if (SDL_GetNumVideoDisplays() > 1)
+        if (num_displays > 1)
             if ((jd = conf_state(id, _("Display"), "Super Longest Name",
                                      VIDEO_DISPLAY)))
             {
@@ -1945,16 +1950,22 @@ static int display_action(int tok, int val)
 
 static int display_gui(void)
 {
-    int id, jd;
-
-    int i, n = SDL_GetNumVideoDisplays();
+    int id, jd, i;
 
     if ((id = gui_vstack(0)))
     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        int num_displays = 0;
+        SDL_DisplayID *display_id = SDL_GetDisplays(&num_displays);
+        if (display_id) SDL_free(display_id);
+#else
+        int num_displays = SDL_GetNumVideoDisplays();
+#endif
+
         conf_header(id, _("Display"), GUI_BACK);
 
 #if _WIN32
-        if (n > 1)
+        if (num_displays > 1)
         {
             gui_multi(id,
                       _("Go to settings or press WIN+P\n"
@@ -1965,7 +1976,7 @@ static int display_gui(void)
         }
 #endif
 
-        for (i = 0; i < n; i++)
+        for (i = 0; i < num_displays; i++)
         {
             char name[MAXSTR];
             SDL_DisplayMode dpyMode;

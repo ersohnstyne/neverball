@@ -246,6 +246,15 @@ int video_fullscreen(int f)
 {
 #if !defined(__WII__)
     /* HACK: Tell which connected display amount are dependent. */
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    int r = SDL_SetWindowFullscreen(window, !config_get_d(CONFIG_FULLSCREEN));
+
+    if (r) config_set_d(CONFIG_FULLSCREEN, f ? 1 : 0);
+    else log_errorf("Failure to %s fullscreen (%s)\n", f ? "enter" : "exit",
+                    GAMEDBG_GETSTRERROR_CHOICES_SDL);
+
+    return r;
+#else
     int fullscreen_flags = SDL_GetNumVideoDisplays() <= 1 ? SDL_WINDOW_FULLSCREEN :
                                                             SDL_WINDOW_FULLSCREEN_DESKTOP;
 
@@ -257,6 +266,7 @@ int video_fullscreen(int f)
                     GAMEDBG_GETSTRERROR_CHOICES_SDL);
 
     return (code == 0);
+#endif
 #else
     return video_mode(1, config_get_d(CONFIG_WIDTH), config_get_d(CONFIG_HEIGHT));
 #endif
@@ -513,12 +523,24 @@ video_mode_reconf:
     hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
     highdpi  = config_get_d(CONFIG_HIGHDPI)     ? 1 : 0;
 
-    int num_displays = SDL_GetNumVideoDisplays();
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    int num_displays = 0;
+    SDL_DisplayID *display_id = SDL_GetDisplays(&num_displays);
+
+    if (display_id == NULL || num_displays == 0)
+    {
+        if (display_id) SDL_free(display_id);
+        log_errorf("No displays provided!\n");
+        return 0;
+    } else SDL_free(display_id);
+#else
+    const int num_displays = SDL_GetNumVideoDisplays();
     if (num_displays < 1)
     {
         log_errorf("No displays provided!\n");
         return 0;
     }
+#endif
 
 #if defined(__EMSCRIPTEN__)
     int dpy = config_get_d(CONFIG_DISPLAY);
@@ -627,8 +649,12 @@ video_mode_reconf:
 
     /* HACK: Tell which connected display amount are dependent. */
 
-    int fullscreen_flags = SDL_GetNumVideoDisplays() <= 1 ? SDL_WINDOW_FULLSCREEN :
-                                                            SDL_WINDOW_FULLSCREEN_DESKTOP;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    const int fullscreen_flags = SDL_WINDOW_FULLSCREEN;
+#else
+    int fullscreen_flags = num_displays <= 1 ? SDL_WINDOW_FULLSCREEN :
+                                               SDL_WINDOW_FULLSCREEN_DESKTOP;
+#endif
 
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
@@ -831,7 +857,11 @@ video_mode_reconf:
         /* Grab input immediately in HMD mode. */
 
         if (hmd_stat())
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_SetWindowMouseGrab(window, SDL_TRUE);
+#else
             SDL_SetWindowGrab(window, SDL_TRUE);
+#endif
 
         /* Recenter the cursor back in full screen mode. */
 
@@ -1024,19 +1054,31 @@ int video_mode_auto_config(int f, int w, int h)
 video_mode_auto_config_reconf:
     stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
+    
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    int num_displays = 0;
+    SDL_DisplayID *display_id = SDL_GetDisplays(&num_displays);
 
-    int num_displays = SDL_GetNumVideoDisplays();
+    if (display_id == NULL || num_displays == 0)
+    {
+        if (display_id) SDL_free(display_id);
+        log_errorf("No displays provided!\n");
+        return 0;
+    } else SDL_free(display_id);
+#else
+    const int num_displays = SDL_GetNumVideoDisplays();
     if (num_displays < 1)
     {
         log_errorf("No displays provided!\n");
         return 0;
     }
+#endif
 
 #if defined(__EMSCRIPTEN__)
     int dpy = config_get_d(CONFIG_DISPLAY);
 #else
     int dpy =
-        CLAMP(0, config_get_d(CONFIG_DISPLAY), SDL_GetNumVideoDisplays() - 1);
+        CLAMP(0, config_get_d(CONFIG_DISPLAY), num_displays - 1);
 #endif
 
     SDL_DisplayMode ddm;
@@ -1136,8 +1178,12 @@ video_mode_auto_config_reconf:
 
     /* HACK: Tell which connected display amount are dependent. */
 
-    int fullscreen_flags = SDL_GetNumVideoDisplays() <= 1 ? SDL_WINDOW_FULLSCREEN :
-                                                            SDL_WINDOW_FULLSCREEN_DESKTOP;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    const int fullscreen_flags = SDL_WINDOW_FULLSCREEN;
+#else
+    int fullscreen_flags = num_displays <= 1 ? SDL_WINDOW_FULLSCREEN :
+                                               SDL_WINDOW_FULLSCREEN_DESKTOP;
+#endif
 
 #if NB_STEAM_API==1 && !defined(__EMSCRIPTEN__)
     if (!window) {
@@ -1403,7 +1449,11 @@ video_mode_auto_config_reconf:
         /* Grab input immediately in HMD mode. */
 
         if (hmd_stat())
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_SetWindowMouseGrab(window, SDL_TRUE);
+#else
             SDL_SetWindowGrab(window, SDL_TRUE);
+#endif
 
         /* Set it back for recommended configurations. */
 
@@ -1633,9 +1683,13 @@ void video_set_grab(int w)
     if (w)
     {
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-        SDL_PerformWarpMouseInWindow(window,
-                                     video.window_w / 2,
-                                     video.window_h / 2, 1);
+        SDL_SetEventEnabled(SDL_MOUSEMOTION, SDL_FALSE);
+
+        SDL_WarpMouseInWindow(window,
+                              video.window_w / 2,
+                              video.window_h / 2);
+
+        SDL_SetEventEnabled(SDL_MOUSEMOTION, SDL_TRUE);
 #else
         SDL_EventState(SDL_MOUSEMOTION, SDL_IGNORE);
 
@@ -1647,10 +1701,14 @@ void video_set_grab(int w)
 #endif
     }
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_SetWindowRelativeMouseMode(window, SDL_TRUE);
+    SDL_SetWindowMouseGrab(window, SDL_TRUE);
+#else
     SDL_SetRelativeMouseMode(SDL_TRUE);
     SDL_SetWindowGrab(window, SDL_TRUE);
 #endif
-
+#endif
     video_hide_cursor();
 
     grabbed = 1;
@@ -1664,11 +1722,19 @@ void video_clr_grab(void)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_SetWindowRelativeMouseMode(window, SDL_FALSE);
+
+    /* Never release the grab in HMD mode. */
+
+    if (!hmd_stat()) SDL_SetWindowMouseGrab(window, SDL_FALSE);
+#else
     SDL_SetRelativeMouseMode(SDL_FALSE);
 
     /* Never release the grab in HMD mode. */
 
     if (!hmd_stat()) SDL_SetWindowGrab(window, SDL_FALSE);
+#endif
 #endif
 
     video_show_cursor();

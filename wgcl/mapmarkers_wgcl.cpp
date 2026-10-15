@@ -217,8 +217,13 @@ static int mapmarkers_load_csv(void)
             char tmp_real[256];
             sprintf_s(tmp_real, 256, "%s\\%s", "Map Markers", find_data.cFileName);
 
-            log_printf("WGCL Operator: Loading map marker file...: %s\n", tmp_real);
-            mapmarkers_load_file(tmp_real);
+            if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_NORMAL   ||
+                 find_data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE  ||
+                 find_data.dwFileAttributes & FILE_ATTRIBUTE_READONLY ||
+                 find_data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)) {
+                log_printf("WGCL Operator: Loading map marker file...: %s\n", tmp_real);
+                mapmarkers_load_file(tmp_real);
+            }
         } while (FindNextFileA(hFind, &find_data));
 
         FindClose(hFind);

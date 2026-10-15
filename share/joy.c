@@ -50,7 +50,7 @@
 #define JOY_MAX 16
 
 #if _WIN32
-static_assert(JOY_MAX == 4, "JOY_MAX: This must be set to 4");
+static_assert(JOY_MAX == 4, "JOY_MAX: For Xbox, Nintendo Switch or Playstation: This must be set to 4!");
 #endif
 
 static int joy_is_init = 0;
@@ -79,7 +79,11 @@ int joy_init(void)
     unsigned int init_flags = SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER;
     //unsigned int init_flags = SDL_INIT_JOYSTICK;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    if (SDL_InitSubSystem(init_flags))
+#else
     if (SDL_InitSubSystem(init_flags) == 0)
+#endif
     {
         for (i = 0; i < ARRAYSIZE(joysticks); ++i)
         {
@@ -144,12 +148,16 @@ void joy_add(int device)
         }
     }
 
-    log_printf("Joystick added (device %d)\n", device);
-
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_Joystick *joy = SDL_OpenJoystick(device);
+#else
     SDL_Joystick *joy = SDL_JoystickOpen(device);
+#endif
 
     if (joy != NULL)
     {
+        log_printf("Joystick added (device %d)\n", device);
+
         size_t i = 0;
 
         for (i = 0; i < ARRAYSIZE(joysticks); ++i)
@@ -157,7 +165,11 @@ void joy_add(int device)
             if (joysticks[i].joy == NULL)
             {
                 joysticks[i].joy = joy;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                joysticks[i].id = SDL_GetJoystickID(joy);
+#else
                 joysticks[i].id = SDL_JoystickInstanceID(joy);
+#endif
                 log_printf("Joystick opened (instance %d)\n", joysticks[i].id);
 
                 joy_curr = joysticks[i].id;
@@ -173,7 +185,11 @@ void joy_add(int device)
 
         if (i == ARRAYSIZE(joysticks))
         {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_CloseJoystick(joy);
+#else
             SDL_JoystickClose(joy);
+#endif
             log_errorf("Joystick %d not opened, %ud open GameControllers or joysticks reached\n",
                        device, ARRAYSIZE(joysticks));
         }
@@ -199,12 +215,16 @@ void joy_add_gamectrlr(int device)
         }
     }
 
-    log_printf("Joystick added (device %d) (GameController)\n", device);
-
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_Gamepad *gamectrlr = SDL_OpenGamepad(device);
+#else
     SDL_GameController *gamectrlr = SDL_GameControllerOpen(device);
+#endif
 
     if (gamectrlr != NULL)
     {
+        log_printf("Joystick added (device %d) (GameController)\n", device);
+
         size_t i = 0;
 
         for (i = 0; i < ARRAYSIZE(joysticks); ++i)
@@ -212,7 +232,11 @@ void joy_add_gamectrlr(int device)
             if (joysticks[i].gamectrlr == NULL)
             {
                 joysticks[i].gamectrlr = gamectrlr;
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                joysticks[i].id = SDL_GetJoystickID(SDL_GetGamepadJoystick(gamectrlr));
+#else
                 joysticks[i].id = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(gamectrlr));
+#endif
                 log_printf("GameController opened (instance %d)\n", joysticks[i].id);
 
                 joy_curr = joysticks[i].id;
@@ -228,7 +252,11 @@ void joy_add_gamectrlr(int device)
 
         if (i == ARRAYSIZE(joysticks))
         {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_CloseGamepad(gamectrlr);
+#else
             SDL_GameControllerClose(gamectrlr);
+#endif
             log_errorf("GameController %d not opened, %ud open GameControllers or joysticks reached\n",
                        device, ARRAYSIZE(joysticks));
         }
@@ -254,13 +282,21 @@ void joy_remove(int instance)
         if (joysticks[i].id == instance)
         {
             if (joysticks[i].joy) {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                SDL_CloseJoystick(joysticks[i].joy);
+#else
                 SDL_JoystickClose(joysticks[i].joy);
+#endif
                 joysticks[i].joy = NULL;
                 log_printf("Joystick closed (instance %d)\n", instance);
             }
 
             if (joysticks[i].gamectrlr) {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                SDL_CloseGamepad(joysticks[i].gamectrlr);
+#else
                 SDL_GameControllerClose(joysticks[i].gamectrlr);
+#endif
                 joysticks[i].gamectrlr = NULL;
                 log_printf("GameController closed (instance %d)\n", instance);
             }
@@ -434,8 +470,7 @@ int  joy_connected(int instance, int *battery_level, int *wired)
     {
         if (joysticks[instance].id != -1 && joysticks[instance].joy)
         {
-            unsigned char gamepad_led[JOY_MAX][3] =
-            {
+            const unsigned char gamepad_led[JOY_MAX][3] = {
                 { 0xff, 0x00, 0x00 },
                 { 0x00, 0xff, 0x00 },
                 { 0x00, 0x00, 0xff },
@@ -447,18 +482,60 @@ int  joy_connected(int instance, int *battery_level, int *wired)
                 { 0xbf, 0xbf, 0x00 },
                 { 0x80, 0x00, 0xbf }*/
             };
-
-#if !defined (__EMSCRIPTEN__) && \
-    (NEVERBALL_FAMILY_API == NEVERBALL_PC_FAMILY_API || \
-     NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API)
-            if (instance <= 4)
-                SDL_JoystickSetLED(joysticks[instance].joy, 0x00, 0xbf, 0xff);
-            //else
-                //SDL_JoystickSetLED(joysticks[instance].joy, 0x80, 0x00, 0x00);
+            
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#if !defined(__EMSCRIPTEN__)
+#if NEVERBALL_FAMILY_API == NEVERBALL_ENERGIZELAB_FAMILY_API || \
+    NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API || \
+    NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
+            if (instance <= JOY_MAX)
+                SDL_SetJoystickLED(joysticks[instance].joy, 0x00, 0xbf, 0xff);
+#else
+            if (instance <= JOY_MAX)
+                SDL_SetJoystickLED(joysticks[instance].joy, 0x00, 0xff, 0xff);
+#endif
+            else
+                SDL_SetJoystickLED(joysticks[instance].joy, 0x80, 0x00, 0x00);
 #endif
 
+            int out_pct = -1;
+            SDL_PowerState power_state = SDL_GetGamepadPowerInfo(joysticks[instance].gamectrlr, &out_pct);
+
+            if (battery_level) {
+                if (out_pct <    0) (*battery_level) = -1;
+                if (out_pct <=   5) (*battery_level) =  0;
+                if (out_pct <=  20) (*battery_level) =  1;
+                if (out_pct <=  70) (*battery_level) =  2;
+                if (out_pct <= 100) (*battery_level) =  3;
+            }
+
+            if (wired)
+                (*wired) = (power_state == SDL_POWERSTATE_NO_BATTERY ||
+                            power_state == SDL_POWERSTATE_CHARGING   ||
+                            power_state == SDL_POWERSTATE_CHARGED) ? 1 : 0;
+#else
+#if !defined(__EMSCRIPTEN__)
+#if NEVERBALL_FAMILY_API == NEVERBALL_ENERGIZELAB_FAMILY_API || \
+    NEVERBALL_FAMILY_API == NEVERBALL_PS_FAMILY_API || \
+    NEVERBALL_FAMILY_API == NEVERBALL_STEAMDECK_FAMILY_API
+            if (instance <= JOY_MAX)
+                SDL_JoystickSetLED(joysticks[instance].joy, 0x00, 0xbf, 0xff);
+#else
+            if (instance <= JOY_MAX)
+                SDL_JoystickSetLED(joysticks[instance].joy, 0x00, 0xff, 0x00);
+#endif
+            else
+                SDL_JoystickSetLED(joysticks[instance].joy, 0x80, 0x00, 0x00);
+#endif
+
+            SDL_JoystickPowerLevel power_level = SDL_JoystickCurrentPowerLevel(joysticks[instance].joy);
+
             if (battery_level)
-                (*battery_level) = SDL_JoystickCurrentPowerLevel(joysticks[instance].joy);
+                if (power_level <= 3) (*battery_level) = power_level;
+
+            if (wired)
+                (*wired) = power_level == SDL_JOYSTICK_POWER_WIRED;
+#endif
 
             return 1;
         }

@@ -23,12 +23,6 @@
 
 #include "log.h"
 
-#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-#ifndef TTF_OpenFontRW
-#define TTF_OpenFontRW TTF_OpenFontIO
-#endif
-#endif
-
 /*---------------------------------------------------------------------------*/
 
 static int _ft_is_init = 0;
@@ -49,14 +43,23 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
 
                 SAFECPY(ft->path, path);
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                if ((ft->rwops = SDL_IOFromConstMem(ft->data, ft->datalen)))
+#else
                 if ((ft->rwops = SDL_RWFromConstMem(ft->data, ft->datalen)))
+#endif
                 {
                     int opened = 0;
 
                     for (i = 0; i < ARRAYSIZE(ft->ttf); i++)
                     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+                        SDL_IOseek(ft->rwops, 0, SEEK_SET);
+                        if ((ft->ttf[i] = TTF_OpenFontIO(ft->rwops, 0, sizes[i])))
+#else
                         SDL_RWseek(ft->rwops, 0, SEEK_SET);
                         if ((ft->ttf[i] = TTF_OpenFontRW(ft->rwops, 0, sizes[i])))
+#endif
                             opened++;
                     }
 
@@ -89,7 +92,11 @@ void font_free(struct font *ft)
                 TTF_CloseFont(ft->ttf[i]);
 
         if (ft->rwops)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_CloseIO(ft->rwops);
+#else
             SDL_RWclose(ft->rwops);
+#endif
 
         if (ft->data)
         {

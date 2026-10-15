@@ -292,7 +292,7 @@ unsigned long FETCH_EVENT = (unsigned long)-1;
 static void fetch_dispatch_init(void)
 {
     /* Get a custom event code for fetch events. */
-    FETCH_EVENT = (unsigned long)SDL_RegisterEvents(1);
+    FETCH_EVENT = (unsigned long) SDL_RegisterEvents(1);
 }
 
 /*
@@ -630,7 +630,11 @@ static int fetch_thread_main(void *data)
 
     log_printf("Starting fetch thread\n");
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    while (SDL_GetAtomicInt(&fetch_thread_running))
+#else
     while (SDL_AtomicGet(&fetch_thread_running))
+#endif
     {
         CURLMcode code;
 
@@ -639,9 +643,11 @@ static int fetch_thread_main(void *data)
          * waiting to acquire fetch_curl_mutex, then lock fetch_curl_mutex
          * for the duration of polling and stepping.
          */
-
-        while (lock_hold_mutex &&
-               SDL_AtomicGet(&fetch_thread_running)) {}
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        while (lock_hold_mutex && SDL_GetAtomicInt(&fetch_thread_running))
+#else
+        while (lock_hold_mutex && SDL_AtomicGet(&fetch_thread_running))
+#endif
 
         lock_hold_mutex = 1;
         SDL_LockMutex(fetch_sync_mutex);
@@ -651,13 +657,21 @@ static int fetch_thread_main(void *data)
 
         if (code == CURLM_OK)
         {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            if (SDL_GetAtomicInt(&fetch_thread_running))
+#else
             if (SDL_AtomicGet(&fetch_thread_running))
+#endif
                 fetch_step();
         }
         else
         {
             log_errorf("libcurl poll failure: %s\n", curl_multi_strerror(code));
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+            SDL_SetAtomicInt(&fetch_thread_running, 0);
+#else
             SDL_AtomicSet(&fetch_thread_running, 0);
+#endif
         }
         SDL_UnlockMutex(fetch_curl_mutex);
         lock_hold_mutex = 0;
@@ -695,14 +709,23 @@ static int fetch_thread_init(void)
         return 0;
     }
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_SetAtomicInt(&fetch_thread_running, 1);
+#else
     SDL_AtomicSet(&fetch_thread_running, 1);
+#endif
+
     fetch_thread = SDL_CreateThread(fetch_thread_main, "fetch", NULL);
 
     if (!fetch_thread)
     {
         log_errorf("Failure to create fetch thread\n");
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_SetAtomicInt(&fetch_thread_running, 0);
+#else
         SDL_AtomicSet(&fetch_thread_running, 0);
+#endif
 
         if (fetch_curl_mutex)
         {
@@ -727,7 +750,11 @@ static int fetch_thread_init(void)
  */
 static void fetch_thread_quit(void)
 {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_SetAtomicInt(&fetch_thread_running, 0);
+#else
     SDL_AtomicSet(&fetch_thread_running, 0);
+#endif
 
     if (multi_handle)
         curl_multi_wakeup(multi_handle);

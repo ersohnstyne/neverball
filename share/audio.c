@@ -655,7 +655,11 @@ void audio_init(void)
     if (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) < 40)
         return;
 
-    if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    if (!SDL_InitSubSystem(SDL_INIT_AUDIO))
+#else
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+#endif
     {
         log_printf("Failure to initialize audio (%s)\n", SDL_GetError());
         audio_state = 0; return;
@@ -666,18 +670,20 @@ void audio_init(void)
     memset(&device_spec, 0, sizeof (device_spec));
     memset(&spec,        0, sizeof (spec));
 
-    device_spec.format   = AUDIO_S16;
     device_spec.channels = AUDIO_CHAN;
     device_spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.0f);
 
-    spec.format   = AUDIO_S16;
     spec.channels = AUDIO_CHAN;
     spec.freq     = AUDIO_RATE * (float) (accessibility_get_d(ACCESSIBILITY_SLOWDOWN) / 100.0f);
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    device_spec.format = SDL_AUDIO_S16LE;
+    spec.format        = SDL_AUDIO_S16LE;
 #else
+    device_spec.format   = AUDIO_S16;
     device_spec.samples  = config_get_d(CONFIG_AUDIO_BUFF);
     device_spec.callback = audio_step;
+    spec.format          = AUDIO_S16;
     spec.samples         = config_get_d(CONFIG_AUDIO_BUFF);
     spec.callback        = audio_step;
 #endif
@@ -691,7 +697,7 @@ void audio_init(void)
          */
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-        if ((audio_device_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, NULL, NULL)))
+        if ((audio_device_stream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, audio_step, NULL)))
 #else
         audio_device_id = -1;
         if ((audio_device_id = SDL_OpenAudioDevice(
@@ -840,7 +846,13 @@ void audio_suspend(void)
     if (audio_paused) return;
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    while (lock_hold) {}
+
+    lock_hold = 1;
+    SDL_LockAudioStream(audio_device_stream);
     SDL_PauseAudioStreamDevice(audio_device_stream);
+    SDL_UnlockAudioStream(audio_device_stream);
+    lock_hold = 0;
 #endif
 
     audio_paused = 1;
@@ -851,7 +863,13 @@ void audio_resume(void)
     if (!audio_paused) return;
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    while (lock_hold) {}
+
+    lock_hold = 1;
+    SDL_LockAudioStream(audio_device_stream);
     SDL_ResumeAudioStreamDevice(audio_device_stream);
+    SDL_UnlockAudioStream(audio_device_stream);
+    lock_hold = 0;
 #endif
 
     audio_paused = 0;

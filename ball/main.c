@@ -778,13 +778,15 @@ static void dispatch_moon_taskloader_event(void *data)
  *
  * SDL must be initialized at this point for moon taskloader event dispatch to work.
  */
-static void initialize_moon_taskloader(void)
+static int initialize_moon_taskloader(void)
 {
     /* Get a custom event code for fetch events. */
     MOON_TASKLOADER_EVENT = SDL_RegisterEvents(1);
 
+    if (MOON_TASKLOADER_EVENT == 0) return 0;
+
     /* Start the thread. */
-    moon_taskloader_init(dispatch_moon_taskloader_event);
+    return moon_taskloader_init(dispatch_moon_taskloader_event);
 }
 #endif
 
@@ -2043,6 +2045,8 @@ static int main_init(int argc, char *argv[])
         main_init_checksteam("/etc/machine-info", "steamdeck"))
         sdlinit_steamui = 1;
 
+    /* HACK: SDL_SetHint must be first called prior to SDL_Init. - Ersohn Styne */
+
 #ifdef SDL_HINT_ENABLE_SCREEN_KEYBOARD
     SDL_SetHint(SDL_HINT_ENABLE_SCREEN_KEYBOARD, "0");
 #endif
@@ -2084,8 +2088,23 @@ static int main_init(int argc, char *argv[])
 #endif
 #endif
 #if NEVERBALL_FAMILY_API == NEVERBALL_SWITCH_FAMILY_API
+#if defined(SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS)
+    SDL_SetHint(SDL_HINT_GAMECONTROLLER_USE_BUTTON_LABELS, "1");
+#endif
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_SWITCH)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH, "1");
+#endif
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_SWITCH_HOME_LED)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH_HOME_LED, "1");
+#endif
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_SWITCH_PLAYER_LED)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH_PLAYER_LED, "1");
+#endif
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
+#endif
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_JOYCON_HOME_LED)
+    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOYCON_HOME_LED, "1");
 #endif
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS)
     SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_VERTICAL_JOY_CONS, "1");
@@ -2097,6 +2116,9 @@ static int main_init(int argc, char *argv[])
 #endif
 
     if (sdlinit_steamui) {
+#if defined(SDL_HINT_JOYSTICK_HIDAPI_STEAM)
+        SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_STEAM, "1");
+#endif
 #if defined(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK)
         SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_STEAMDECK, "1");
 #endif
@@ -2106,7 +2128,11 @@ static int main_init(int argc, char *argv[])
 #if _cplusplus
     try {
 #endif
-    if (SDL_Init(SDL_INIT_VIDEO) == -1)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    if (!SDL_Init(SDL_INIT_VIDEO))
+#else
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+#endif
     {
         log_errorf("Failure to initialize SDL (%s)\n", GAMEDBG_GETSTRERROR_CHOICES_SDL);
         return 0;
@@ -2122,7 +2148,11 @@ static int main_init(int argc, char *argv[])
 #endif
 
 #ifndef NDEBUG
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_SetLogPriority(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_DEBUG);
+#else
     SDL_LogSetPriority(SDL_LOG_CATEGORY_ERROR, SDL_LOG_PRIORITY_DEBUG);
+#endif
 #endif
 #endif
 
@@ -2176,7 +2206,7 @@ static int main_init(int argc, char *argv[])
         networking_init(1);
 #endif
 #if ENABLE_MOON_TASKLOADER!=0
-        initialize_moon_taskloader();
+        if (!initialize_moon_taskloader()) return 0;
 #endif
 
         package_set_installed_action(handle_installed_action);
@@ -2188,8 +2218,7 @@ static int main_init(int argc, char *argv[])
 
 #if !defined(__GAMECUBE__) && !defined(__WII__)
 #ifndef __EMSCRIPTEN__
-    if (!joy_init())
-        return 0;
+    if (!joy_init()) return 0;
 #endif
 
 #if NB_HAVE_PB_BOTH==1

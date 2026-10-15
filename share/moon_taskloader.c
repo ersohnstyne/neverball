@@ -405,12 +405,25 @@ static int moon_taskloader_thread_main(void *data)
 {
     log_printf("Starting moon taskloader thread\n");
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    while (SDL_GetAtomicInt(&moon_taskloader_thread_running))
+#else
     while (SDL_AtomicGet(&moon_taskloader_thread_running))
+#endif
     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
         while (lock_hold_mutex &&
-               SDL_AtomicGet(&moon_taskloader_thread_running)) {}
+               SDL_GetAtomicInt(&moon_taskloader_thread_running));
+#else
+        while (lock_hold_mutex &&
+               SDL_AtomicGet(&moon_taskloader_thread_running));
+#endif
 
-        if (SDL_AtomicGet(&moon_taskloader_thread_running))
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        while (SDL_GetAtomicInt(&moon_taskloader_thread_running))
+#else
+        while (SDL_AtomicGet(&moon_taskloader_thread_running))
+#endif
         {
             lock_hold_mutex = 1;
             SDL_LockMutex(moon_taskloader_mutex);
@@ -428,11 +441,32 @@ static int moon_taskloader_thread_main(void *data)
 /*
  * Start the thread.
  */
-static void moon_taskloader_thread_init(void)
+static int moon_taskloader_thread_init(void)
 {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_SetAtomicInt(&moon_taskloader_thread_running, 1);
+#else
     SDL_AtomicSet(&moon_taskloader_thread_running, 1);
+#endif
     moon_taskloader_mutex = SDL_CreateMutex();
+
+    if (!moon_taskloader_mutex)
+    {
+        log_errorf("Failure to create moon taskloader mutex\n");
+        return 0;
+    }
+
     moon_taskloader_thread = SDL_CreateThread(moon_taskloader_thread_main, "MoonTaskloader", NULL);
+
+    if (!moon_taskloader_thread)
+    {
+        log_errorf("Failure to create moon taskloader thread\n");
+
+        SDL_DestroyMutex(moon_taskloader_mutex);
+        moon_taskloader_mutex = NULL;
+    }
+
+    return 1;
 }
 
 /*
@@ -440,7 +474,11 @@ static void moon_taskloader_thread_init(void)
  */
 static void moon_taskloader_thread_quit(void)
 {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_SetAtomicInt(&moon_taskloader_thread_running, 0);
+#else
     SDL_AtomicSet(&moon_taskloader_thread_running, 0);
+#endif
 
     if (moon_taskloader_thread)
     {
@@ -496,7 +534,7 @@ static int moon_taskloader_was_init = 0;
 /*
  * Initialize moon task loader.
  */
-void moon_taskloader_init(void (*dispatch_event) (void *))
+int moon_taskloader_init(void (*dispatch_event) (void *))
 {
     if (moon_taskloader_was_init)
         moon_taskloader_quit();
@@ -505,9 +543,11 @@ void moon_taskloader_init(void (*dispatch_event) (void *))
 
     moon_taskloader_dispatch_event = dispatch_event;
 
-    moon_taskloader_thread_init();
+    if (!moon_taskloader_thread_init()) return 0;
 
     moon_taskloader_was_init = 1;
+
+    return 1;
 }
 
 /*

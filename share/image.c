@@ -270,10 +270,10 @@ GLuint make_image_from_font(int *W, int *H,
     {
         SDL_Color    col = { 0xFF, 0xFF, 0xFF, 0xFF };
         SDL_Surface *orig;
-
-        if ((orig = TTF_RenderUTF8_Blended(font, text, col)))
-        {
+        
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if ((orig = TTF_RenderText_Blended(font, text, strlen(text), col)))
+        {
             SDL_PixelFormatDetails *fmt = SDL_GetPixelFormatDetails(orig->format);
 
             int b = fmt->bits_per_pixel / 8;
@@ -284,6 +284,8 @@ GLuint make_image_from_font(int *W, int *H,
             fmt->Amask = AMASK;
 
 #else
+        if ((orig = TTF_RenderUTF8_Blended(font, text, col)))
+        {
             int b = orig->format->BitsPerPixel / 8;
 
             SDL_PixelFormat fmt = *orig->format;

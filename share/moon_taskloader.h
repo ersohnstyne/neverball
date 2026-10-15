@@ -47,7 +47,7 @@ struct game_moon_taskloader_info
     char                           *filename;
 };
 
-void moon_taskloader_init(void (*dispatch_event) (void *));
+int  moon_taskloader_init(void (*dispatch_event) (void *));
 void moon_taskloader_handle_event(void *);
 void moon_taskloader_quit(void);
 

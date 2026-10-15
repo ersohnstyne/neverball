@@ -187,12 +187,17 @@ static int save_gui(void)
         file_id = gui_label(id, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
                                 GUI_SML, GUI_COLOR_YEL);
 
-        gui_space(id);
-        if ((jd = gui_hstack(id)))
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if (!SDL_HasKeyboard())
+#endif
         {
-            gui_filler(jd);
-            gui_keyboard_en(jd);
-            gui_filler(jd);
+            gui_space(id);
+            if ((jd = gui_hstack(id)))
+            {
+                gui_filler(jd);
+                gui_keyboard_en(jd);
+                gui_filler(jd);
+            }
         }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)

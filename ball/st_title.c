@@ -322,7 +322,7 @@ static int   title_load_lockscreen = 1;
 static int   title_lockscreen = 1;
 static int   title_can_unlock = 1;
 
-static int   title_swap_help_and_addons = 0;
+static int   title_swap_help_and_addons = 1;
 
 static int   title_lockscreen_gamename_id;
 static int   title_lockscreen_press_id;

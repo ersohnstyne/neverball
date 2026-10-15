@@ -561,12 +561,17 @@ static int wgcl_login_gui_keyboard(void)
         login_field_id = gui_label(id, "XXXXXXXXXXXXXXXX",
                                        GUI_MED, GUI_COLOR_YEL);
 
-        gui_space(id);
-        if ((jd = gui_hstack(id)))
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if (!SDL_HasKeyboard())
+#endif
         {
-            gui_filler(jd);
-            wgcl_gui_keyboard_en(jd);
-            gui_filler(jd);
+            gui_space(id);
+            if ((jd = gui_hstack(id)))
+            {
+                gui_filler(jd);
+                wgcl_gui_keyboard_en(jd);
+                gui_filler(jd);
+            }
         }
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)

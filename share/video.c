@@ -360,7 +360,7 @@ void video_set_display(int dpy)
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
     const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
     assert(_tmp_ddm); ddm = *_tmp_ddm;
-    if (_tmp_ddm != 0)
+    if (_tmp_ddm == 0)
 #else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
 #endif
@@ -553,7 +553,7 @@ video_mode_reconf:
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
     const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
     assert(_tmp_ddm); ddm = *_tmp_ddm;
-    if (_tmp_ddm != 0)
+    if (_tmp_ddm == 0)
 #else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
 #endif
@@ -1085,7 +1085,7 @@ video_mode_auto_config_reconf:
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
     const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
     assert(_tmp_ddm); ddm = *_tmp_ddm;
-    if (_tmp_ddm != 0)
+    if (_tmp_ddm == 0)
 #else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
 #endif

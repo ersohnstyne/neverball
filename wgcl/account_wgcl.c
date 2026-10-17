@@ -100,7 +100,8 @@ static void WGCL_CallMain_Real(void)
 static int curl_is_init;
 static int read_only;
 
-static char *session_uuid4;
+static char *session_uuid4              = NULL;
+static char *totp_pending_session_uuid4 = NULL;
 
 struct wgcl_res_data
 {
@@ -742,6 +743,12 @@ int account_wgcl_login(const char *name, const char *password)
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__EMSCRIPTEN__)
+    if (totp_pending_session_uuid4)
+    {
+        free(totp_pending_session_uuid4);
+        totp_pending_session_uuid4 = NULL;
+    }
+
 #if _WIN32 && _MSC_VER
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
@@ -805,6 +812,8 @@ int account_wgcl_login(const char *name, const char *password)
         goto account_wgcl_login_fail;
     }
 
+    int login_redirect_twofactor = 0;
+
     root_obj = json_value_get_object(root);
     if (!json_object_has_value(root_obj, "web_return_code") ||
         !json_object_has_value(root_obj, "message_text") ||
@@ -827,17 +836,132 @@ int account_wgcl_login(const char *name, const char *password)
     {
         read_only = 0;
 
-        account_wgcl_set_session_uuid4(json_object_get_string(root_obj, "session_player_uuid4"));
+        if (json_object_get_number(root_obj, "web_return_code") == 302)
+        {
+            totp_pending_session_uuid4 = strdup(json_object_get_string(root_obj, "session_player_uuid4"));
+            login_redirect_twofactor = 1;
+
+            if (!totp_pending_session_uuid4)
+                goto account_wgcl_login_fail;
+        }
+        else account_wgcl_set_session_uuid4(json_object_get_string(root_obj, "session_player_uuid4"));
     }
 
     free(res_data.data);
+
+    if (login_redirect_twofactor)
+        return 2;
+
+    Sleep(1000);
     return account_wgcl_reload();
 
 account_wgcl_login_fail:
+    if (totp_pending_session_uuid4)
+    {
+        free(totp_pending_session_uuid4);
+        totp_pending_session_uuid4 = NULL;
+    }
+
     free(res_data.data);
     return 0;
 #else
     return 1;
+#endif
+#else
+    return 0;
+#endif
+}
+
+int account_wgcl_login_twofactor(const char *token)
+{
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__EMSCRIPTEN__)
+#if _WIN32 && _MSC_VER
+    
+    char in_url[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf(in_url, 512,
+#else
+    sprintf(in_url,
+#endif
+            "https://%s/api/internal/login_twofactor", WGCL_URL);
+
+    struct wgcl_res_data res_data = {0};
+
+    time_t     wgcl_time_now;
+    struct tm *wgcl_utc_time;
+    char       wgcl_utc_strfmt[40];
+
+    time(&wgcl_time_now);
+    wgcl_utc_time = gmtime(&wgcl_time_now);
+    sprintf(wgcl_utc_strfmt, "%04d-%02d-%02dT%02d:%02d:%02d.000Z",
+            wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
+            wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
+
+    char json_data[512];
+#if !_CRT_SECURE_NO_WARNINGS
+    sprintf_s(json_data, 512
+#else
+    sprintf(json_data,
+#endif
+            "{"
+            "    \"fetch_post_date_iso\":\"%s\","
+            "    \"session_uuid4\":\"%s\","
+            "    \"otp_token_code\":\"%s\""
+            "}",
+            wgcl_utc_strfmt, totp_pending_session_uuid4, token);
+
+    CURL *handle = account_wgcl_curl_prepare_post(in_url, json_data, &res_data);
+    CURLcode res = account_wgcl_curl_execute(handle);
+
+    account_wgcl_curl_quit(handle);
+    if (res != CURLE_OK)
+    {
+        log_errorf("WGCL + CURL error: 2FA Login is not possible, either offline or needs to log in again.\n");
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_login_twofactor_fail;
+    }
+
+    /* Now, parse JSON! */
+
+    JSON_Value  *root;
+    JSON_Object *root_obj;
+
+    root = json_parse_string(res_data.data);
+
+    if (!root || json_value_get_type(root) != JSONObject)
+    {
+        log_errorf("WGCL + CURL error: Not an JSON object!\n");
+
+        account_wgcl_visit_browser_login();
+
+        goto account_wgcl_login_twofactor_fail;
+    }
+
+    root_obj = json_value_get_object(root);
+    if (json_object_get_number(root_obj, "web_return_code") != 200)
+        goto account_wgcl_login_twofactor_fail;
+
+    account_wgcl_set_session_uuid4(totp_pending_session_uuid4);
+
+    if (totp_pending_session_uuid4)
+    {
+        free(totp_pending_session_uuid4);
+        totp_pending_session_uuid4 = NULL;
+    }
+
+    free(res_data.data);
+    Sleep(1000);
+    return account_wgcl_reload();
+
+account_wgcl_login_twofactor_fail:
+    free(res_data.data);
+    return 0;
+#else
+    return 0;
 #endif
 #else
     return 0;
@@ -1351,6 +1475,11 @@ int account_wgcl_restart_attempt(void)
             return 0;
     }
 
+#if _WIN32
+    Sleep(1000);
+#else
+    //sleep(1);
+#endif
     return account_wgcl_reload();
 }
 

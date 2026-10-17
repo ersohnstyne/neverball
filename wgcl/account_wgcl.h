@@ -60,6 +60,7 @@ void account_wgcl_set_readonly_playername(const char *f);
 int  account_wgcl_name_read_only(void);
 
 int  account_wgcl_login(const char *name, const char *password);
+int  account_wgcl_login_twofactor(const char *token);
 int  account_wgcl_logout(void);
 
 int account_wgcl_try_add(int w_coins, int w_gems,

@@ -277,6 +277,7 @@ char wgcl_gui_keyboard_char(char c)
 /*###########################################################################*/
 
 struct state st_wgcl_login;
+struct state st_wgcl_login_totp;
 struct state st_wgcl_login_result;
 struct state st_wgcl_logout_confirm;
 
@@ -353,6 +354,9 @@ static int login_write_protected;
 static int login_write_hold_lctrl;
 static int login_write_hold_rctrl;
 #endif
+
+static int  login_totp_field_id;
+static char login_totp_field[MAXSTR];
 
 int goto_wgcl_login(struct state *back_state, int (*back_fn)(struct state *),
                     struct state *next_state, int (*next_fn)(struct state *))
@@ -479,7 +483,7 @@ static int wgcl_login_action(int tok, int val)
 #ifndef __EMSCRIPTEN__
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
-                    if (text_length(login_field_name) < 3 ||
+                    if (text_length(login_field_name)     < 3 ||
                         text_length(login_field_password) < 14)
                     {
                         audio_play("snd/uierror.ogg", 1.0f);
@@ -488,13 +492,17 @@ static int wgcl_login_action(int tok, int val)
 
                     login_result = account_wgcl_login(login_field_name, login_field_password);
 
-                    if (login_result)
-                    {
-                        login_introduction = 1;
-                        login_write_protected = 0;
-                        return goto_state(&st_wgcl_login_result);
-                    }
-                    else audio_play("snd/uierror.ogg", 1.0f);
+                    if (login_result != 0) {
+                        switch (login_result) {
+                            case 1:
+                                login_introduction    = 1;
+                                login_write_protected = 0;
+                                return goto_state(&st_wgcl_login_result);
+                            case 2:
+                                login_write_protected = 1;
+                                return goto_state(&st_wgcl_login_totp);
+                        }
+                    } else audio_play("snd/uierror.ogg", 1.0f);
 #endif
 #endif
             }
@@ -695,10 +703,38 @@ static void on_text_input(int typing)
         if (typing)
             audio_play(AUD_2_2_0_KEYBD_CHAR, 1.0f);
     }
+
+    if (login_totp_field_id)
+    {
+        gui_set_label(login_totp_field_id, text_input);
+
+        if (typing)
+            audio_play(AUD_2_2_0_KEYBD_CHAR, 1.0f);
+
+        if (text_length(text_input) == 6) {
+            text_input_stop();
+            if (!account_wgcl_login_twofactor(login_totp_field)) {
+                audio_play("snd/2.2/uierror.ogg", 1.0f);
+                gui_set_label(login_totp_field_id, "");
+                memset(text_input, 0, sizeof (text_input));
+                text_input_start(on_text_input);
+            } else {
+                login_introduction    = 1;
+                login_write_protected = 0;
+                audio_play(AUD_2_2_0_KEYBD_ENTER, 1.0f);
+                goto_state(&st_wgcl_login_result);
+            }
+        }
+    }
 }
 
 static int wgcl_login_enter(struct state *st, struct state *prev, int intent)
 {
+    login_field_name_id     = 0;
+    login_field_password_id = 0;
+
+    login_write_protected = 0;
+
     conf_common_init(wgcl_login_action, 1);
 
     if (login_entertext_mode != 0)
@@ -714,12 +750,18 @@ static int wgcl_login_enter(struct state *st, struct state *prev, int intent)
 
 static int wgcl_login_leave(struct state *st, struct state *next, int id, int intent)
 {
+    if (next == &st_wgcl_login)
+        login_write_protected = 1;
+
     if (login_entertext_mode == 0 &&
         !login_write_protected)
     {
         SAFECPY(login_field_name,     "");
         SAFECPY(login_field_password, "");
     }
+
+    login_field_name_id     = 0;
+    login_field_password_id = 0;
 
     login_write_protected = 0;
 
@@ -806,6 +848,181 @@ static int wgcl_login_buttn(int b, int d)
     } else if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) &&
                login_entertext_mode != 0)
         wgcl_login_action(GUI_CL, 0);
+
+    return 1;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/* TOTP Login */
+
+static int wgcl_login_totp_action(int tok, int val)
+{
+    KEYBOARD_GAMEMENU_ACTION(WGCL_LOGIN_SUBMIT);
+
+    switch (tok)
+    {
+        case GUI_BACK:
+            return exit_state(&st_wgcl_login);
+
+        case GUI_BS:
+            text_input_del();
+            SAFECPY(login_totp_field, text_input);
+            gui_set_label(login_totp_field_id, login_totp_field);
+            break;
+
+        case GUI_CHAR:
+            text_input_char(val);
+            break;
+    }
+
+    return 1;
+}
+
+static int wgcl_login_totp_gui(void)
+{
+    int id, jd;
+
+    if ((id = gui_vstack(0)))
+    {
+        gui_title_header(id, _("2FA Login"), GUI_MED, GUI_COLOR_DEFAULT);
+        gui_space(id);
+
+        login_totp_field_id = gui_label(id, "XXXXXXX",
+                                             GUI_MED, GUI_COLOR_YEL);
+        gui_set_trunc(login_totp_field_id, TRUNC_HEAD);
+        gui_set_label(login_totp_field_id, "");
+
+        gui_space(id);
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if (!SDL_HasKeyboard())
+#endif
+        {
+            if ((jd = gui_harray(id)))
+            {
+                gui_filler(jd);
+                gui_state(jd, "3", GUI_SML, GUI_CHAR, '3');
+                gui_state(jd, "2", GUI_SML, GUI_CHAR, '2');
+                gui_start(jd, "1", GUI_SML, GUI_CHAR, '1');
+                gui_filler(jd);
+            }
+
+            if ((jd = gui_harray(id)))
+            {
+                gui_filler(jd);
+                gui_state(jd, "6", GUI_SML, GUI_CHAR, '6');
+                gui_state(jd, "5", GUI_SML, GUI_CHAR, '5');
+                gui_state(jd, "4", GUI_SML, GUI_CHAR, '4');
+                gui_filler(jd);
+            }
+
+            if ((jd = gui_harray(id)))
+            {
+                gui_filler(jd);
+                gui_state(jd, "9", GUI_SML, GUI_CHAR, '9');
+                gui_state(jd, "8", GUI_SML, GUI_CHAR, '8');
+                gui_state(jd, "7", GUI_SML, GUI_CHAR, '7');
+                gui_filler(jd);
+            }
+
+            if ((jd = gui_harray(id)))
+            {
+                gui_filler(jd);
+                gui_state(jd, "0", GUI_SML, GUI_CHAR, '0');
+                const int backsp_id = gui_state(jd, GUI_TRIANGLE_LEFT, GUI_SML, GUI_BS, 0);
+                gui_set_color(backsp_id, GUI_COLOR_YEL);
+                gui_filler(jd);
+            }
+
+            gui_space(id);
+        }
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if (!SDL_HasKeyboard())
+            gui_state_icon(id, GUI_CROSS, gui_red, _("Cancel"), GUI_SML, GUI_BACK, 0);
+        else
+            gui_start_icon(id, GUI_CROSS, gui_red, _("Cancel"), GUI_SML, GUI_BACK, 0);
+#else
+        gui_state_icon(id, GUI_CROSS, gui_red, _("Cancel"), GUI_SML, GUI_BACK, 0);
+#endif
+
+        gui_layout(id, 0, 0);
+
+        gui_set_label(login_totp_field_id, text_input);
+    }
+
+    return id;
+}
+
+static int wgcl_login_totp_enter(struct state *st, struct state *prev, int intent)
+{
+    login_totp_field_id = 0;
+
+    conf_common_init(wgcl_login_totp_action, 1);
+
+    memset(text_input, 0, sizeof (text_input));
+    text_input_start(on_text_input);
+
+    return transition_slide(wgcl_login_totp_gui(), 1, intent);
+}
+
+static int wgcl_login_totp_leave(struct state *st, struct state *next, int id, int intent)
+{
+    text_input_stop();
+    login_totp_field_id = 0;
+
+    return conf_common_leave(st, next, id, intent);
+}
+
+static void wgcl_login_totp_paint(int id, float t)
+{
+    video_set_perspective((float) config_get_d(CONFIG_VIEW_FOV), 0.1f, FAR_DIST);
+    back_draw_easy();
+
+    gui_paint(id);
+}
+
+static int wgcl_login_totp_keybd(int c, int d)
+{
+#ifdef WGCL_ENABLE_CLIPBOARD
+    if (c == SDLK_LCTRL) login_write_hold_lctrl = d;
+    if (c == SDLK_RCTRL) login_write_hold_rctrl = d;
+#endif
+
+    if (d)
+    {
+        if (c == KEY_EXIT
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            && current_platform == PLATFORM_PC
+#endif
+            ) return wgcl_login_totp_action(GUI_BACK, 0);
+
+        if (c == '\b' || c == 0x7F)
+            return wgcl_login_totp_action(GUI_BS, 0);
+        else return 1;
+    }
+    return 1;
+}
+
+static int wgcl_login_totp_buttn(int b, int d)
+{
+    if (d)
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)) {
+            const int active = gui_active();
+            const int tok    = gui_token(active);
+            const int val    = gui_value(active);
+
+            if (active) wgcl_login_action(tok, val);
+        }
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            wgcl_login_action(GUI_BACK, 0);
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
+            wgcl_login_action(GUI_BS, 0);
+    }
 
     return 1;
 }
@@ -1148,6 +1365,20 @@ struct state st_wgcl_login =
     common_click,
     wgcl_login_keybd,
     wgcl_login_buttn
+};
+
+struct state st_wgcl_login_totp =
+{
+    wgcl_login_totp_enter,
+    wgcl_login_totp_leave,
+    wgcl_login_totp_paint,
+    common_timer,
+    common_point,
+    common_stick,
+    NULL,
+    common_click,
+    wgcl_login_totp_keybd,
+    wgcl_login_totp_buttn
 };
 
 struct state st_wgcl_login_result =

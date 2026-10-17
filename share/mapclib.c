@@ -2688,6 +2688,8 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
 
         if (c >= MAXKEY)
         {
+            c--;
+
             char buf[MAXSTR];
             sprintf(buf, "error MAPCE: Key value index out of bounds!: %d\n", c);
             MAPC_LOG_ERROR(ctx, buf);
@@ -2695,8 +2697,8 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         }
     }
 
-    if (c >= MAXKEY)
-        return;
+    //if (c >= MAXKEY)
+        //return;
 
     if (i >= MAXKEY)
     {

@@ -2675,6 +2675,25 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         }
         if (t == T_BEG) read_lump(ctx, fin);
         if (t == T_END) break;
+
+        if (c >= MAXKEY)
+        {
+            char buf[MAXSTR];
+            sprintf(buf, "error MAPCE: Key value index out of bounds!: %d\n", c);
+            MAPC_LOG_ERROR(ctx, buf);
+            break;
+        }
+    }
+
+    if (c >= MAXKEY)
+        return;
+
+    if (i >= MAXKEY)
+    {
+        char buf[MAXSTR];
+        sprintf(buf, "error MAPCE: Key index out of bounds!: %d\n", c);
+        MAPC_LOG_ERROR(ctx, buf);
+        return;
     }
 
     /* New design specifications for entity */

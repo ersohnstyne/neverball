@@ -126,7 +126,6 @@ static int over_action(int tok, int val)
             if (campaign_used()) {
                 campaign_hardcore_quit();
                 campaign_theme_quit();
-                campaign_quit();
             }
 #endif
 #ifdef CONFIG_INCLUDES_ACCOUNT

@@ -148,7 +148,6 @@ static int done_action(int tok, int val)
             if (campaign_used()) {
                 campaign_hardcore_quit();
                 campaign_theme_quit();
-                campaign_quit();
             }
             return goto_playmenu(curr_mode());
 #endif

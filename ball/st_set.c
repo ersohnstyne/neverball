@@ -589,13 +589,18 @@ static int set_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev == &st_title ||
         prev == &st_levelgroup)
-        activity_services_group_update(AS_GROUP_CAMPAIGN);
+        activity_services_group_update(AS_GROUP_LEVELSET);
 
 #if NB_HAVE_PB_BOTH==1
     audio_music_fade_to(0.5f, is_boost_on() ? "bgm/boostrush.ogg" :
                                               "bgm/inter_world.ogg", 1);
 #else
     audio_music_fade_to(0.5f, "gui/bgm/inter.ogg", 1);
+#endif
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (campaign_used())
+        return transition_slide(set_gui(), 1, intent);
 #endif
 
     do_init = (prev == &st_set ||

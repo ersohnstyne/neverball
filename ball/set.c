@@ -606,7 +606,7 @@ int set_cmp_available_packages(const void *A, const void *B)
 
     // Rest are ordered by id (e.g., "set-mym").
 
-    int c = SDL_strcasecmp(a->id, b->id);
+    return SDL_strcasecmp(a->id, b->id);
 
 #ifndef _CONSOLE
 #if _WIN32 && _MSC_VER

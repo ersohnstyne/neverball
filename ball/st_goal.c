@@ -142,7 +142,7 @@ static int goal_action(int tok, int val)
         case GUI_BACK:
         case GOAL_LAST:
             gui_scoreboard_free();
-            return goto_exit();
+            return goto_abandon();
 
         case GOAL_SAVE:
             if (!config_cheat()) {
@@ -687,10 +687,10 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
     goal_intro_animation_phase =  stat_allow_intro && prev != &st_goal ? 1 :
                                  !stat_allow_intro && prev == &st_goal ? 2 : 0;
 
-    resume = !stat_allow_intro;
+    resume = !stat_allow_intro || prev == &st_abandon;
 
     if (resume_locked)
-        resume_locked = !stat_allow_intro;
+        resume_locked = !stat_allow_intro || prev == &st_abandon;
 
 #ifndef NDEBUG
     if (stat_allow_intro)

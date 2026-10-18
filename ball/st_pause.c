@@ -69,6 +69,8 @@ enum
     PAUSE_EXIT
 };
 
+static int st_continue_prepared;
+
 static struct state *st_continue;
 
 static int quit_uses_resetpuzzle = 0;
@@ -92,6 +94,7 @@ static int keybd_restart_shift = 0;
                 st_continue == &st_play_loop)                 \
                 video_set_grab(1);                            \
             exit_state(st_continue); st_continue = NULL;      \
+            st_continue_prepared = 0;                         \
         } else {                                              \
             quit_uses_resetpuzzle = 0;                        \
             quit_uses_restart     = 0;                        \
@@ -109,6 +112,7 @@ static int keybd_restart_shift = 0;
                 st_continue == &st_play_loop)                 \
                 video_set_grab(1);                            \
             exit_state(st_continue); st_continue = NULL;      \
+            st_continue_prepared = 0;                         \
         } else {                                              \
             quit_uses_resetpuzzle = 0;                        \
             quit_uses_restart     = 0;                        \
@@ -129,7 +133,7 @@ int goto_pause(struct state *returnable)
     audio_play("snd/2.2/game_pause.ogg", 1.0f);
     keybd_restart_shift = 0;
 
-    if (!st_continue && returnable)
+    if (returnable)
     {
         if (returnable == &st_play_ready || returnable == &st_play_set ||
             returnable == &st_play_loop  || returnable == &st_look)
@@ -138,6 +142,8 @@ int goto_pause(struct state *returnable)
             if (returnable == &st_look)     st_continue = &st_play_loop;
         }
         else st_continue = returnable;
+
+        st_continue_prepared = 1;
     }
 
 #if ENABLE_LIVESPLIT!=0
@@ -157,6 +163,7 @@ static int pause_restart(void)
     if (progress_same_avail())
     {
 #ifdef MAPC_INCLUDES_CHKP
+        // Reset puzzle action button
         if (last_active && !keybd_restart_shift)
         {
             if (quit_uses_resetpuzzle)
@@ -165,7 +172,7 @@ static int pause_restart(void)
                 if (checkpoints_load() && progress_same())
                 {
                     audio_music_fade_in(0.5f);
-                    st_continue = NULL;
+                    st_continue = NULL; st_continue_prepared = 0;
                     return goto_play_level();
                 }
             }
@@ -177,6 +184,8 @@ static int pause_restart(void)
         }
         else
 #endif
+
+        // Restart level action button
         if (quit_uses_restart
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
          || !campaign_used()
@@ -190,7 +199,7 @@ static int pause_restart(void)
             if (progress_same())
             {
                 audio_music_fade_in(0.5f);
-                st_continue = NULL;
+                st_continue = NULL; st_continue_prepared = 0;
                 return goto_play_level();
             }
         }
@@ -217,45 +226,16 @@ static int pause_restart(void)
  */
 static int pause_quit(void)
 {
+    // HACK: In challenge mode, this should be DOUBLE CONFIRM!
+
+    if (curr_mode() == MODE_NONE ||
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    if (curr_mode() == MODE_NONE || campaign_used() ||
-        curr_times() > 0)
-    {
-        if (curr_state() == &st_pause_quit)
-        {
-            if (curr_status() == GAME_NONE)
-                progress_stat(GAME_NONE);
-
-            if (campaign_hardcore())
-            {
-                if (campaign_hardcore_norecordings())
-                    demo_play_stop(1);
-
-                campaign_hardcore_quit();
-            }
-
-            if (curr_mode() != MODE_NONE)
-                audio_music_stop();
-
-            st_continue = NULL;
-            return goto_exit();
-        }
-        else return goto_state(&st_pause_quit);
-    }
-
-    if (curr_status() == GAME_NONE)
-        progress_stat(GAME_NONE);
-
-    audio_music_stop();
-    st_continue = NULL;
-    return goto_exit();
-#else
-    if (curr_status() == GAME_NONE)
-        progress_stat(GAME_NONE);
-
-    st_continue = NULL;
-    return goto_exit();
+        campaign_used() ||
 #endif
+        curr_times() > 0)
+        return curr_state() == &st_pause_quit ? goto_abandon() : goto_state(&st_pause_quit);
+
+    return goto_abandon();
 }
 
 static int pause_action(int tok, int val)
@@ -283,7 +263,7 @@ static int pause_action(int tok, int val)
                     if (checkpoints_load() && progress_same())
                     {
                         audio_music_fade_in(0.5f);
-                        st_continue = NULL;
+                        st_continue = NULL; st_continue_prepared = 0;
                         return goto_play_level();
                     }
                 }
@@ -307,7 +287,7 @@ static int pause_action(int tok, int val)
             if (progress_same())
             {
                 audio_music_fade_in(0.5f);
-                st_continue = NULL;
+                st_continue = NULL; st_continue_prepared = 0;
                 return goto_play_level();
             }
 #endif
@@ -329,7 +309,7 @@ static int pause_action(int tok, int val)
                     if (progress_same())
                     {
                         audio_music_fade_in(0.5f);
-                        st_continue = NULL;
+                        st_continue = NULL; st_continue_prepared = 0;
                         return goto_play_level();
                     }
                 }
@@ -438,8 +418,15 @@ static int pause_gui(void)
 
 static int pause_enter(struct state *st, struct state *prev, int intent)
 {
-    if (prev != &st_conf && !st_continue)
-        st_continue = prev;
+    if (prev != &st_conf && prev != &st_abandon)
+        if (!st_continue_prepared) {
+#if !defined(NDEBUG) && defined(_MSC_VER)
+            MessageBoxA(NULL, _("st_continue is not prepared!"), "Debug Error!", MB_ICONERROR);
+            __debugbreak();
+#endif
+            st_continue          = prev;
+            st_continue_prepared = 1; // HACK: Force set enabled prepared
+        }
 
     video_clr_grab();
 
@@ -450,11 +437,9 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
      && curr_mode() != MODE_HARDCORE
 #endif
-        )
-        audio_music_fade_out(1.0f);
+        ) audio_music_fade_out(1.0f);
 
     hud_update(config_get_d(CONFIG_SCREEN_ANIMATIONS), 0.0f);
-
     return transition_slide(pause_gui(), 1, intent);
 }
 
@@ -615,11 +600,15 @@ static int pause_quit_gui(void)
             if (current_platform == PLATFORM_PC && !console_gui_shown())
 #endif
             {
-                gui_state(jd, _("No"), GUI_SML, GUI_BACK, 0);
-                gui_start(jd, _("Yes"), GUI_SML,
-                          quit_uses_restart ? PAUSE_RESTART :
-                                              (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
-                                                                       PAUSE_EXIT), 0);
+                gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("No"), GUI_SML, GUI_BACK, 0);
+
+                // DESTRUCTIVE BUTTON!
+                gui_state_icon_full(jd, quit_uses_restart || quit_uses_resetpuzzle ? GUI_CIRCLE_ARROW : GUI_CROSS,
+                                    quit_uses_resetpuzzle ? gui_vio : gui_red,
+                                    _("Yes"), GUI_SML,
+                                    quit_uses_restart ? PAUSE_RESTART :
+                                                        (quit_uses_resetpuzzle ? PAUSE_RESPAWN :
+                                                                                 PAUSE_EXIT), 0, 1, curr_times() > 0);
             }
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
             else {

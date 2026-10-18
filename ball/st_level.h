@@ -18,8 +18,10 @@
 #include "state.h"
 
 extern struct state st_level;
+extern struct state st_abandon;
 
 int goto_play_level(void);
 int goto_exit(void);
+int goto_abandon(void);
 
 #endif

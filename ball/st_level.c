@@ -68,7 +68,7 @@
 #include "game_draw.h"
 #include "game_server.h"
 #include "game_client.h"
-#include "game_common.h"
+#include "game_common.h" // HACK: Already there! - Ersohn Styne
 
 #if NB_HAVE_PB_BOTH==1
 #include "game_sha256.h"
@@ -311,7 +311,12 @@ static int level_action(int tok, int val)
                 return goto_state(&st_play_ready);
             break;
 
-        case GUI_BACK: return goto_pause(curr_state());
+        case GUI_BACK:
+#if NB_HAVE_PB_BOTH==1
+            return goto_pause(curr_state());
+#else
+            return goto_abandon();
+#endif
     }
 
     return 1;
@@ -1606,6 +1611,271 @@ int goto_exit(void)
     return 1;
 }
 
+int goto_abandon(void)
+{
+#if NB_HAVE_PB_BOTH==1
+    if ((curr_mode() == MODE_CHALLENGE ||
+         curr_mode() == MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+      || curr_mode() == MODE_HARDCORE
+#endif
+        )
+/*#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     && !campaign_used()
+#endif*/
+        )
+#else
+    if (curr_mode() == MODE_CHALLENGE)
+#endif
+        return goto_state(&st_abandon);
+
+    if (curr_status() == GAME_NONE)
+        progress_stat(GAME_NONE);
+
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (campaign_hardcore())
+    {
+        if (campaign_hardcore_norecordings())
+            demo_play_stop(1);
+
+        campaign_hardcore_quit();
+    }
+#endif
+
+    audio_music_stop();
+
+    progress_stop();
+    return goto_exit();
+}
+
+/*---------------------------------------------------------------------------*/
+
+/*
+ * HACK: Redirections can be done with st_conf.c
+ */
+
+static struct state *abandon_back;
+
+#if NB_HAVE_PB_BOTH==1
+static float abandon_time_state = 0.0f;
+#endif
+
+static int abandon_confirm_btn_text_id  = 0;
+static int abandon_confirm_btn_icon_id  = 0;
+static int abandon_confirm_btn_state_id = 0;
+
+enum
+{
+    ABANDON_YES = GUI_LAST,
+};
+
+static int abandon_action(int tok, int val)
+{
+#if NB_HAVE_PB_BOTH==1
+    if (abandon_time_state < 3.0f && tok == ABANDON_YES)
+    {
+        audio_play(AUD_DISABLED, 1.0f);
+        return 1;
+    }
+#endif
+
+    GENERIC_GAMEMENU_ACTION;
+
+    if (tok == GUI_NONE) return 1;
+
+    switch (tok)
+    {
+    case GUI_BACK:
+        // Back = no
+        return exit_state(abandon_back);
+
+    case ABANDON_YES:
+        progress_stat(GAME_NONE);
+        progress_stop();
+        audio_music_stop();
+        return goto_exit();
+    }
+
+    return 1;
+}
+
+static int abandon_gui(void)
+{
+    int id, jd, kd;
+
+    if ((id = gui_vstack(0)))
+    {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+        // Copied from pause_gui()
+        const char *quit_btn_text = campaign_used() ? N_("Quit") : (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
+#else
+        const char *quit_btn_text = (curr_mode() == MODE_STANDALONE ? N_("Exit") : N_("Give Up"));
+#endif
+
+        gui_label(id, _(quit_btn_text), GUI_MED, GUI_COLOR_RED);
+
+        gui_space(id);
+
+        gui_multi(id, _("You are playing in challenge mode.\n"
+                        "Do you want to abandon this run?"),
+                  GUI_SML, GUI_COLOR_WHT);
+
+        gui_space(id);
+
+        
+        if ((jd = gui_harray(id)))
+        {
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            if (current_platform == PLATFORM_PC && !console_gui_shown())
+#endif
+            {
+                // DESTRUCTIVE BUTTON!
+
+#if NB_HAVE_PB_BOTH==1
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    const int destructive_lbl_id = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_GRY);
+                    gui_space(kd);
+                    const int destructive_lbl_icon_id = gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_GRY);
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                    gui_set_state(kd, GUI_NONE, 0);
+
+                    // Delayed to be activate
+
+                    abandon_confirm_btn_text_id  = destructive_lbl_id;
+                    abandon_confirm_btn_icon_id  = destructive_lbl_icon_id;
+                    abandon_confirm_btn_state_id = kd;
+                }
+#else
+                gui_state_icon_full(jd, GUI_CROSS, gui_red, _(quit_btn_text), GUI_SML, ABANDON_YES, 0, 1, 1);
+#endif
+
+                gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Never!"), GUI_SML, GUI_BACK, 0);
+            }
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+            else {
+                // DESTRUCTIVE BUTTON!
+#if NB_HAVE_PB_BOTH==1
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    const int destructive_lbl_id = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_GRY);
+                    gui_space(kd);
+                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+
+                    abandon_confirm_btn_text_id = destructive_lbl_id;
+                }
+#else
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    const int destructive_lbl_id = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_RED);
+                    gui_space(kd);
+                    console_gui_create_a_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_A), 0);
+                    gui_filler(kd);
+                    gui_set_color(destructive_lbl_id, GUI_COLOR_RED);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+#endif
+                if ((kd = gui_hstack(jd))) {
+                    gui_filler(kd);
+                    gui_label(kd, _("Never!"), GUI_SML, GUI_COLOR_WHT);
+                    gui_space(kd);
+                    console_gui_create_b_button(kd, config_get_d(CONFIG_JOYSTICK_BUTTON_B), 0);
+                    gui_filler(kd);
+                    gui_set_rect(kd, GUI_ALL);
+                }
+            }
+#endif
+        }
+
+        gui_layout(id, 0, 0);
+    }
+
+    return id;
+}
+
+static int abandon_enter(struct state *st, struct state *prev, int intent)
+{
+    audio_play(AUD_WARNING, 1.0f);
+#if NB_HAVE_PB_BOTH==1
+    abandon_time_state           = 0.0f;
+#endif
+    abandon_confirm_btn_text_id  = 0;
+    abandon_confirm_btn_icon_id  = 0;
+    abandon_confirm_btn_state_id = 0;
+
+    abandon_back = prev;
+
+    /* Cannot pause the game in home room. */
+    if (curr_mode() != MODE_NONE &&
+        curr_mode() != MODE_CHALLENGE &&
+        curr_mode() != MODE_BOOST_RUSH
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+     && curr_mode() != MODE_HARDCORE
+#endif
+        ) audio_music_fade_out(1.0f);
+    return transition_slide(abandon_gui(), 1, intent);
+}
+
+static void abandon_timer(int id, float dt)
+{
+    // HACK: Delay before enable confirm button
+
+#if NB_HAVE_PB_BOTH==1
+    abandon_time_state = time_state();
+
+    if (abandon_time_state >= 3.0f)
+    {
+        gui_set_state(abandon_confirm_btn_state_id, ABANDON_YES, 0);
+        gui_set_color(abandon_confirm_btn_icon_id,  GUI_COLOR_RED);
+        gui_set_color(abandon_confirm_btn_text_id,  GUI_COLOR_RED);
+    }
+#endif
+
+    gui_timer(id, dt);
+}
+
+static int abandon_buttn(int b, int d)
+{
+    if (d)
+    {
+        int active = gui_active();
+
+        int token = gui_token(active);
+        int value = gui_value(active);
+
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+        if (current_platform != PLATFORM_PC || console_gui_shown())
+        {
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+                return abandon_action(abandon_time_state >= 3.0f ? ABANDON_YES : GUI_NONE, 0);
+            if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+                return abandon_action(GUI_BACK, 0);
+        }
+#endif
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            return abandon_action(token, value);
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return abandon_action(GUI_BACK, 0);
+    }
+
+    return 1;
+}
+
+static int abandon_keybd(int c, int d)
+{
+    if (d)
+    {
+        if (KEY_IS_PAUSE(c))
+            return abandon_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_B), 1);
+    }
+
+    return 1;
+}
+
 /*---------------------------------------------------------------------------*/
 
 struct state st_level_loading = {
@@ -1652,6 +1922,19 @@ struct state st_nodemo = {
     shared_click_basic,
     nodemo_keybd,
     nodemo_buttn
+};
+
+struct state st_abandon = {
+    abandon_enter,
+    shared_leave,
+    shared_paint,
+    abandon_timer,
+    shared_point,
+    shared_stick,
+    shared_angle,
+    shared_click,
+    abandon_keybd,
+    abandon_buttn
 };
 
 struct state st_level_signin_required = {

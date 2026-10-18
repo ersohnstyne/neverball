@@ -399,6 +399,26 @@ static int set_gui(void)
     desc_id = 0;
 
     int i = 0;
+    
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+    if (campaign_used())
+    {
+        if ((id = gui_vstack(0)))
+        {
+            gui_title_header(id, _("Campaign in use!"), GUI_MED, GUI_COLOR_RED);
+            gui_space(id);
+            gui_multi(id, _("This level set selection is not available,\n"
+                            "because the campaign game mode\n"
+                            "is currently in use."),
+                          GUI_SML, gui_wht, gui_wht);
+            gui_space(id);
+            gui_back_button(id);
+            gui_layout(id, 0, 0);
+        }
+
+        return id;
+    }
+#endif
 
 #if ENABLE_MOON_TASKLOADER!=0
     if (set_is_scanning_with_moon_taskloader)

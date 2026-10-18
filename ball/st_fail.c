@@ -278,7 +278,7 @@ static int fail_action(int tok, int val)
 
             detect_replay_filters((status == GAME_FALL && save < 3) ||
                                   (status == GAME_TIME && save < 2));
-            return goto_exit();
+            return goto_abandon();
 
         /* We're just reverted back for you! */
         case FAIL_SAVE:
@@ -981,10 +981,10 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
     fail_intro_animation_phase =  stat_allow_intro && prev != &st_fail ? 1 :
                                  !stat_allow_intro && prev == &st_fail ? 2 : 0;
 
-    resume = !stat_allow_intro;
+    resume = !stat_allow_intro || prev == &st_abandon;
 
     if (resume_locked)
-        resume_locked = !stat_allow_intro;
+        resume_locked = !stat_allow_intro || prev == &st_abandon;
 
 #ifndef NDEBUG
     if (stat_allow_intro)

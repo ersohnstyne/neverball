@@ -1733,9 +1733,9 @@ static int abandon_gui(void)
 #if NB_HAVE_PB_BOTH==1
                 if ((kd = gui_hstack(jd))) {
                     gui_filler(kd);
-                    const int destructive_lbl_id = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_GRY);
-                    gui_space(kd);
                     const int destructive_lbl_icon_id = gui_label(kd, GUI_CROSS, GUI_SML, GUI_COLOR_GRY);
+                    gui_space(kd);
+                    const int destructive_lbl_id = gui_label(kd, _(quit_btn_text), GUI_SML, GUI_COLOR_GRY);
                     gui_filler(kd);
                     gui_set_rect(kd, GUI_ALL);
                     gui_set_state(kd, GUI_NONE, 0);

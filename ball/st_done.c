@@ -87,11 +87,8 @@ static int done_action(int tok, int val)
                 dailychallenge_exit();
 #endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (campaign_used()) {
-                campaign_hardcore_quit();
+            if (campaign_used())
                 campaign_theme_quit();
-                campaign_quit();
-            }
 #endif
             return goto_playmenu(curr_mode());
 
@@ -112,11 +109,8 @@ static int done_action(int tok, int val)
                 dailychallenge_exit();
 #endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (campaign_used()) {
-                campaign_hardcore_quit();
+            if (campaign_used())
                 campaign_theme_quit();
-                campaign_quit();
-            }
 #endif
 
 #ifdef CONFIG_INCLUDES_ACCOUNT

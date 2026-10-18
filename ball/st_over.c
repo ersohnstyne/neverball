@@ -92,9 +92,10 @@ static int over_action(int tok, int val)
                 dailychallenge_exit();
 #endif
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            campaign_hardcore_quit();
-            campaign_theme_quit();
-            campaign_quit();
+            if (campaign_used()) {
+                campaign_hardcore_quit();
+                campaign_theme_quit();
+            }
 #endif
             return exit_state(&st_start);
 
@@ -112,10 +113,9 @@ static int over_action(int tok, int val)
             if (campaign_used()) {
                 campaign_hardcore_quit();
                 campaign_theme_quit();
-                campaign_quit();
             }
-#endif
             return goto_playmenu(curr_mode());
+#endif
 
 #if NB_HAVE_PB_BOTH==1
         case OVER_SHOP:
@@ -359,44 +359,6 @@ static int over_leave(struct state *st, struct state *next, int id, int intent)
 
     return transition_slide(id, 0, intent);
 }
-
-static void over_paint(int id, float t)
-{
-    game_client_draw(0, t);
-
-#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__) && defined(LEADERBOARD_ALLOWANCE)
-    if (console_gui_shown())
-        console_gui_death_paint();
-#endif
-
-    gui_paint(id);
-}
-
-static void over_timer(int id, float dt)
-{
-#ifndef LEADERBOARD_ALLOWANCE
-    if (time_state() > 3.0f && !st_global_animating())
-    {
-        exit_state(&st_start);
-        return;
-    }
-#endif
-
-    gui_timer(id, dt);
-    game_step_fade(dt);
-}
-
-#ifndef LEADERBOARD_ALLOWANCE
-static int over_click(int b, int d)
-{
-#ifndef __EMSCRIPTEN__
-    if (d && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
-        return exit_state(&st_start);
-#endif
-
-    return (b == SDL_BUTTON_LEFT && d == 1) ? exit_state(&st_start) : 1;
-}
-#endif
 
 static void over_paint(int id, float t)
 {

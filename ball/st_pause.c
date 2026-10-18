@@ -276,6 +276,7 @@ static int pause_action(int tok, int val)
 #endif
         break;
 
+<<<<<<< HEAD
         case PAUSE_ZEN_SWITCH:
 #if defined(LEVELGROUPS_INCLUDES_ZEN) && defined(CONFIG_INCLUDES_ACCOUNT)
             if (progress_same_avail())
@@ -323,6 +324,10 @@ static int pause_action(int tok, int val)
 
         case PAUSE_EXIT:
             return pause_quit();
+=======
+    case PAUSE_EXIT:
+        return goto_abandon();
+>>>>>>> c50286277813b09d60e76cd88a74689580c278f4
     }
 
     return 1;
@@ -419,6 +424,7 @@ static int pause_gui(void)
 static int pause_enter(struct state *st, struct state *prev, int intent)
 {
     if (prev != &st_conf && prev != &st_abandon)
+<<<<<<< HEAD
         if (!st_continue_prepared) {
 #if !defined(NDEBUG) && defined(_MSC_VER)
             MessageBoxA(NULL, _("st_continue is not prepared!"), "Debug Error!", MB_ICONERROR);
@@ -427,6 +433,9 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
             st_continue          = prev;
             st_continue_prepared = 1; // HACK: Force set enabled prepared
         }
+=======
+        st_continue = prev;
+>>>>>>> c50286277813b09d60e76cd88a74689580c278f4
 
     video_clr_grab();
 

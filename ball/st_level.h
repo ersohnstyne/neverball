@@ -18,6 +18,11 @@
 #include "state.h"
 
 extern struct state st_level;
+<<<<<<< HEAD
+=======
+extern struct state st_poser;
+extern struct state st_nodemo;
+>>>>>>> c50286277813b09d60e76cd88a74689580c278f4
 extern struct state st_abandon;
 
 int goto_play_level(void);

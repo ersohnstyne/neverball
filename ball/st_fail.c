@@ -264,18 +264,12 @@ static int fail_action(int tok, int val)
     /* Some tokens were removed by Mojang in this future! */
     switch (tok)
     {
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
         case FAIL_LOGIN_WGCL:
             WGCL_fail_call_incident();
             EM_ASM({ CoreLauncher_ShowLoginModalWindow(); });
             break;
 #endif
-=======
-    case GUI_BACK:
-    case FAIL_OVER:
-        return goto_abandon();
->>>>>>> c50286277813b09d60e76cd88a74689580c278f4
 
         case GUI_BACK:
         case FAIL_OVER:
@@ -982,7 +976,6 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 
     /* Check if we came from a known previous state. */
 
-<<<<<<< HEAD
     const int stat_allow_intro = prev == &st_play_loop;
 
     fail_intro_animation_phase =  stat_allow_intro && prev != &st_fail ? 1 :
@@ -998,9 +991,6 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
         assert(stat_allow_intro && prev != &st_fail &&
                fail_intro_animation_phase == 1 && !resume);
 #endif
-=======
-    resume = (prev == &st_fail || prev == &st_save || prev == &st_abandon);
->>>>>>> c50286277813b09d60e76cd88a74689580c278f4
 
     /* Note the current status if we got here from elsewhere. */
 

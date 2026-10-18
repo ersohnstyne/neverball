@@ -139,16 +139,10 @@ static int goal_action(int tok, int val)
 
     switch (tok)
     {
-<<<<<<< HEAD
         case GUI_BACK:
         case GOAL_LAST:
             gui_scoreboard_free();
             return goto_abandon();
-=======
-    case GUI_BACK:
-    case GOAL_LAST:
-        return goto_abandon();
->>>>>>> c50286277813b09d60e76cd88a74689580c278f4
 
         case GOAL_SAVE:
             if (!config_cheat()) {
@@ -741,9 +735,6 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
     if (goal_intro_animation_phase != 0)
         return goal_gui();
 
-=======
-    resume = (prev == &st_goal || prev == &st_name || prev == &st_save || prev == &st_abandon);
->>>>>>> c50286277813b09d60e76cd88a74689580c278f4
     return transition_slide(goal_gui(), 1, intent);
 }
 

@@ -227,12 +227,16 @@ static int pause_restart(void)
 static int pause_quit(void)
 {
     // HACK: In challenge mode, this should be DOUBLE CONFIRM!
-
-    if (curr_mode() == MODE_NONE ||
+    
+    if ((curr_mode() == MODE_NONE       ||
+         curr_mode() == MODE_CHALLENGE  ||
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        campaign_used() ||
+         curr_mode() == MODE_HARDCORE   ||
+         campaign_used()                ||
 #endif
-        curr_times() > 0)
+         curr_mode() == MODE_BOOST_RUSH ||
+         curr_mode() == MODE_DAILY      ||
+         curr_times() > 0))
         return curr_state() == &st_pause_quit ? goto_abandon() : goto_state(&st_pause_quit);
 
     return goto_abandon();
@@ -585,7 +589,7 @@ static int pause_quit_gui(void)
                             "You will restart at the last checkpoint."),
                           GUI_SML, GUI_COLOR_WHT);
         }
-        else if (curr_times() > 0)
+        else
         {
             const char *quit_warn_set = N_("Are you sure?\n"
                                            "You will lose all progress on this level set.");

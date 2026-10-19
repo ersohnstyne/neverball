@@ -1663,6 +1663,10 @@ static int abandon_confirm_btn_text_id  = 0;
 static int abandon_confirm_btn_icon_id  = 0;
 static int abandon_confirm_btn_state_id = 0;
 
+#ifdef CONFIG_INCLUDES_ACCOUNT
+static int abandon_confirm_powerup = 0;
+#endif
+
 enum
 {
     ABANDON_YES = GUI_LAST,
@@ -1682,20 +1686,41 @@ static int abandon_action(int tok, int val)
 
     if (tok == GUI_NONE) return 1;
 
+    int r = 1;
+
     switch (tok)
     {
     case GUI_BACK:
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        abandon_confirm_powerup = 0;
+#endif
+
         // Back = no
-        return exit_state(abandon_back);
+        r = exit_state(abandon_back);
+        abandon_back = NULL;
+        return r;
 
     case ABANDON_YES:
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        if (!abandon_confirm_powerup &&
+            (powerup_get_coin_multiply() > 1.0f ||
+             powerup_get_grav_multiply() < 1.0f ||
+             powerup_get_tilt_multiply() > 1.0f)) {
+            abandon_confirm_powerup = 1;
+            return goto_state(curr_state());
+        }
+
+        abandon_confirm_powerup = 0;
+#endif
+
+        abandon_back = NULL;
         progress_stat(GAME_NONE);
         progress_stop();
         audio_music_stop();
         return goto_exit();
     }
 
-    return 1;
+    return r;
 }
 
 static int abandon_gui(void)
@@ -1715,9 +1740,18 @@ static int abandon_gui(void)
 
         gui_space(id);
 
-        gui_multi(id, _("You are playing in challenge mode.\n"
-                        "Do you want to abandon this run?"),
-                  GUI_SML, GUI_COLOR_WHT);
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        if (abandon_confirm_powerup)
+            gui_multi(id, _("There are powerups currenly active\n"
+                            "on this level.\n"
+                            "Do you want to abandon for now?\n\n"
+                            "Don't say, we warn you!"),
+                      GUI_SML, GUI_COLOR_WHT);
+        else
+#endif
+            gui_multi(id, _("You are playing in challenge mode.\n"
+                            "Do you want to abandon this run?"),
+                      GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);
 

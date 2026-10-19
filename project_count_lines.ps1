@@ -110,7 +110,7 @@ if (($lineCount_ball_c_total + $lineCount_wgcl_c_total + $lineCount_putt_c_total
 	Write-Host "(!) HOHE CODEZEILEN"
 	Write-Host "    Sie haben die gesamte maximale Grenze von $linecount_limit_normal Zeilen erreicht."
 	Write-Host "    Sie können den Wert auf $linecount_limit_high_g erhöhen, aber Ihre Projekte können auf einigen alten Geräten instabil werden, daher wird empfohlen, unter diesem Grenzwert zu bleiben."
-	Write-Host "    Spielprojekt, deren gesamte Zeilenzahl im Code über diesem Limit liegt, zeigen beim Herunterladen von PB+NB Game Core Launcher eine Warnung an."
+	Write-Host "    Entwickler, deren gesamte Zeilenzahl im Code über diesem Limit liegt, zeigen beim Herunterladen des Spielprojekts von Pennyball + Neverball Game Core Launcher eine Warnung an."
 	Write-Host ""
 }
 

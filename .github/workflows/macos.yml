@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 name: Build as macOS
+=======
+name: macOS Build
+>>>>>>> bc025d7d6509311abd15451b71606cb8dd35331b
 
 on:
   push:
@@ -28,9 +32,17 @@ jobs:
       - name: Install dependencies
         run: |
           brew install sdl2 sdl2_ttf libpng jpeg-turbo libvorbis gettext
+<<<<<<< HEAD
       - name: Package Neverball (.app and .dmg)
         run: |
           ./scripts/package-macos.sh --arch ${{ matrix.arch }}
+=======
+
+      - name: Package Neverball (.app and .dmg)
+        run: |
+          ./scripts/package-macos.sh --arch ${{ matrix.arch }}
+
+>>>>>>> bc025d7d6509311abd15451b71606cb8dd35331b
       - name: Upload DMG Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -42,5 +54,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: neverball-macos-${{ matrix.arch }}-app
+<<<<<<< HEAD
           path: build/macos/neverball.app
           retention-days: 7
+=======
+          path: build/macos/Neverball.app
+          retention-days: 7
+>>>>>>> bc025d7d6509311abd15451b71606cb8dd35331b

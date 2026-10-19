@@ -26,7 +26,13 @@ SKIP_BUILD=0
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [options]
+<<<<<<< HEAD
 Builds and packages Neverball as a self-contained macOS application bundle.
+=======
+
+Builds and packages Neverball as a self-contained macOS application bundle.
+
+>>>>>>> bc025d7d6509311abd15451b71606cb8dd35331b
 Options:
   --arch <arch>         Target architecture: arm64 or x86_64 (default: host arch)
   --build-type <type>   Build configuration: release (default) or devel
@@ -274,4 +280,8 @@ echo "=== Packaging complete! ==="
 echo "Application: ${APP_DIR}"
 if [[ "$CREATE_DMG" -eq 1 ]]; then
     echo "Disk Image:  ${OUT_DIR}/${DMG_NAME}"
+<<<<<<< HEAD
 fi
+=======
+fi
+>>>>>>> bc025d7d6509311abd15451b71606cb8dd35331b

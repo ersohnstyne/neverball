@@ -80,4 +80,8 @@ def main():
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     sys.exit(main())
+=======
+    sys.exit(main())
+>>>>>>> bc025d7d6509311abd15451b71606cb8dd35331b

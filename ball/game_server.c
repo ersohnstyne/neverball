@@ -1514,7 +1514,7 @@ void game_update_view(float dt)
     float spd = (float) input_get_c() == CAM_AUTO ? (automode == CAM_1 ? 0.25f : (automode == CAM_2 ? 0.0f : -0.001)) : cam_speed(cam) / 1000.0f;
     int torque = input_get_c() == CAM_AUTO ? 1 : cam_torque(cam);
     int free_rotate = input_get_c() == CAM_AUTO ? 1 : cam_free_rotate(cam);
-    int velocity_xz = input_get_c() == CAM_AUTO && automode == CAM_1 ? 1 : cam_velocity_xz(cam);
+    int velocity_xz = input_get_c() == CAM_AUTO && automode == CAM_1 ? 0 : cam_velocity_xz(cam);
     float rotate_max = input_get_c() == CAM_AUTO ? 150.0f : cam_rotate_max(cam);
 
     struct game_view multiview1 = view;
@@ -1714,7 +1714,7 @@ void game_update_view(float dt)
             multiview1.e[2][2] = fcosf(V_RAD(multiview1.a));
         }
 
-        if (spd > 0.1f && !(input_get_c() == CAM_AUTO && automode == CAM_1))
+        if (spd > 0.1f && !(input_get_c() == CAM_AUTO && automode == CAM_1) && velocity_xz)
             view_alt_velocity = flerp(view_alt_velocity,
                                       vary.uv[ui].v[1], 0.01f);
         else

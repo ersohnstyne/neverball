@@ -784,7 +784,7 @@ static int conf_account_gui(void)
             }
 
 #endif
-        if (!demo_state()) {
+        if (config_ball() && !demo_state()) {
 #if NB_HAVE_PB_BOTH==1
             if ((ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
                                           CONF_ACCOUNT_BALL)))
@@ -3887,9 +3887,12 @@ static int conf_gui(void)
             name_id = conf_state(id, _("Player Name"), "XXXXXXXXXXXXXX",
                                      CONF_ACCOUNT);
             gui_set_trunc(name_id, TRUNC_TAIL);
-            ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
-                                     CONF_BALL);
-            gui_set_trunc(ball_id, TRUNC_TAIL);
+
+            if (config_ball()) {
+                ball_id = conf_state(id, _("Ball Model"), "XXXXXXXXXXXXXX",
+                                         CONF_BALL);
+                gui_set_trunc(ball_id, TRUNC_TAIL);
+            }
 
             gui_set_label(name_id, player);
             gui_set_label(ball_id, base_name(ball));
@@ -3919,13 +3922,13 @@ static int conf_gui(void)
             }
 #endif
 
-            /*if (mainmenu_conf && !game_server_state() && !demo_state()) {
+            if (config_ball() && mainmenu_conf && !game_server_state() && !demo_state()) {
 #if ENABLE_NLS==1 || _WIN32
                 gui_space(id);
 
                 int lang_id;
                 lang_id = conf_state(id, _("Language"), "                            ",
-                                         CONF_LANGUAGE);
+                    CONF_LANGUAGE);
 
                 gui_set_trunc(lang_id, TRUNC_TAIL);
 
@@ -3934,7 +3937,7 @@ static int conf_gui(void)
                 else
                     gui_set_label(lang_id, _("Default"));
 #endif
-            }*/
+            }
 
             gui_layout(id, 0, root_id ? +1 : 0);
         }

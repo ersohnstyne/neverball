@@ -30,6 +30,7 @@
 
 #include "game_common.h"
 #include "game_client.h"
+#include "game_transitions.h"
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
 
@@ -365,7 +366,7 @@ static int operator_incidents_found_enter(struct state *st, struct state *prev, 
 
     audio_play("snd/2.2/ui_operator_spawn_incident.ogg", 1.0f);
 
-    int id, kd;
+    int id, jd, kd;
 
     if ((id = gui_vstack(0)))
     {
@@ -378,7 +379,7 @@ static int operator_incidents_found_enter(struct state *st, struct state *prev, 
         gui_space(id);
         gui_multi(id, s0, GUI_SML, GUI_COLOR_WHT);
         gui_space(id);
-        
+
         int backbtn_id = 0;
 
         if ((float) ((float) video.device_w / (float) video.device_h > (4.0f / 3.0f)))

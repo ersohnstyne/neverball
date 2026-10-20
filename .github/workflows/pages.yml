@@ -7,9 +7,25 @@ permissions:
   contents: write
 
 jobs:
+  # Check excluded username (ersohnstyne has only WGCL web page, so builds are ignored)
+#  check-user:
+#    runs-on: ubuntu-latest
+#    outputs:
+#      allowed: ${{ steps.check.outputs.allowed }}
+#    steps:
+#      - id: check
+#        run: |
+#          EXCLUDED='["ersohnstyne","adacrop","reshaun"]'
+#          if echo "$EXCLUDED" | grep -q "\"${GITHUB_ACTOR}\""; then
+#            echo "run_build=false" >> $GITHUB_OUTPUT
+#          else
+#            echo "run_build=true" >> $GITHUB_OUTPUT
+#          fi
 
   # Build the web game
   build:
+#    needs: check-user
+#    if: needs.check-user.outputs.allowed == 'true'
     runs-on: ubuntu-latest
     concurrency:
       group: "build-${{ github.ref }}"
@@ -22,10 +38,10 @@ jobs:
         DEBIAN_FRONTEND: "noninteractive"
     steps:
       - name: Checkout Neverball
-        uses: actions/checkout@v6.0.3
+        uses: actions/checkout@v7
       - name: Make script executable
         run: |
-          chmod +x "./emscripten/install-gl4es.sh"
+          chmod +x "./.devcontainer/install-gl4es.sh"
           chmod +x "./scripts/install-devel-linux.sh"
           chmod +x "./scripts/translate-desktop.sh"
           chmod +x "./scripts/version.sh"
@@ -35,7 +51,7 @@ jobs:
           sudo apt-get install -y libpng-dev libjpeg-dev pkg-config
           make -j2 sols
       - name: Build gl4es
-        run: "./emscripten/install-gl4es.sh"
+        run: "./.devcontainer/install-gl4es.sh"
       - name: Build web version
         run: |
           sudo apt-get install -y ffmpeg

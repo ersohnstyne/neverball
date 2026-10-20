@@ -20,9 +20,9 @@ extern struct state st_play_set;
 extern struct state st_play_loop;
 extern struct state st_look;
 
-void play_loop_touch_init(void);
+int goto_ball_pause(struct state *);
 
-int play_pause_goto(struct state *);
+void play_loop_touch_init(void);
 
 void wgcl_play_touch_pause(void);
 void wgcl_play_touch_cammode(void);

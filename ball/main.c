@@ -195,6 +195,9 @@ extern "C" {
 #include "st_start.h"
 #include "st_package.h"
 #include "st_game_link.h"
+#include "../putt/st_all.h"
+#include "../putt/hole.h"
+#include "../putt/course.h"
 
 #include "main_share.h"
 
@@ -202,30 +205,39 @@ extern "C" {
 }
 #endif
 
-#if NB_STEAM_API==1
-const char TITLE[] = "Neverball - Steam";
-#elif NB_EOS_SDK==1
-const char TITLE[] = "Neverball - Epic Games";
-#else
-const char TITLE[] = "Neverball";
+#ifndef GAME_DEFAULT
+#define GAME_DEFAULT GAME_BALL
 #endif
-const char ICON[] = "icon/neverball.png";
 
-/* This fixes some malfunctions instead */
-#define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
+#ifndef GAME_TITLE
+#define GAME_TITLE "Neverball"
+#endif
+
+#ifndef GAME_ICON
+#define GAME_ICON "icon/neverball.png"
+#endif
 
 #ifdef main
 #undef main
 #endif
 #define main main_share
 
+/* This fixes some malfunctions instead */
+#define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
+
+const char TITLE[] = GAME_TITLE;
+const char ICON[] = GAME_ICON;
+
 /*---------------------------------------------------------------------------*/
+
+static_assert(GAME_DEFAULT == 0, "Mismatch game product!: GAME_DEFAULT == GAME_BALL");
 
 static List opt_data_multi = NULL;
 static List opt_level_multi = NULL;
 
 static char *opt_replay;
 static char *opt_link;
+static enum game opt_game = GAME_DEFAULT;
 
 #if ENABLE_DEDICATED_SERVER==1
 static char *opt_ipaddr;
@@ -236,6 +248,8 @@ static char *opt_panorama;
 #define opt_usage \
     "Usage: %s [options ...]\n" \
     "Options:\n" \
+    "      --putt                launch Neverball\n" \
+    "      --ball                launch Neverputt\n" \
     "  -h, --help                show this usage message.\n" \
     "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
     "  -v, --version             show version.\n" \
@@ -252,6 +266,8 @@ static char *opt_panorama;
 #define opt_usage \
     "Usage: %s [options ...]\n" \
     "Options:\n" \
+    "      --putt                launch Neverball\n" \
+    "      --ball                launch Neverputt\n" \
     "  -h, --help                show this usage message.\n" \
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
@@ -271,6 +287,8 @@ static char *opt_panorama;
 #define opt_usage \
     "Usage: %s [options ...]\n" \
     "Options:\n" \
+    "      --putt                launch Neverball\n" \
+    "      --ball                launch Neverputt\n" \
     "  -h, --help                show this usage message.\n" \
     "  -p, --panorama            snap background file as panorama (Only, if Unity is supported).\n" \
     "  -v, --version             show version.\n" \
@@ -285,6 +303,8 @@ static char *opt_panorama;
 #define opt_usage \
     "Usage: %s [options ...]\n" \
     "Options:\n" \
+    "      --putt                launch Neverball\n" \
+    "      --ball                launch Neverputt\n" \
     "  -h, --help                show this usage message.\n" \
     "  -v, --version             show version.\n" \
     "  -s, --screensaver         show screensaver.\n" \
@@ -408,6 +428,18 @@ static void opt_init(int argc, char **argv)
             opt_ipaddr = argv[i++];
         }
 #endif
+
+        if (strcmp(argv[i], "--putt") == 0)
+        {
+            opt_game = GAME_PUTT;
+            continue;
+        }
+
+        if (strcmp(argv[i], "--ball") == 0)
+        {
+            opt_game = GAME_BALL;
+            continue;
+        }
 
         /* Perform magic on a single unrecognized argument. */
 
@@ -806,11 +838,27 @@ static int goto_level(const List level_multi)
         struct level *lvl  = &lvl_v[lvl_count_loaded];
         const char   *path = fs_resolve((const char *) p->data);
 
-        if (path &&
-            (str_ends_with(path, ".csol")  ||
-             str_ends_with(path, ".csolx") ||
-             str_ends_with(path, ".sol")   ||
-             str_ends_with(path, ".solx")))
+        if (config_putt())
+        {
+            if (path)
+            {
+                hole_init(NULL);
+
+                if (hole_load(0, path) &&
+                    hole_load(1, path) &&
+                    hole_goto(1, 1))
+                {
+                    /* Start standalone course! */
+
+                    return 1;
+                }
+            }
+        }
+        else if (config_ball() && path &&
+                 (str_ends_with(path, ".csol")  ||
+                  str_ends_with(path, ".csolx") ||
+                  str_ends_with(path, ".sol")   ||
+                  str_ends_with(path, ".solx")))
         {
             if (level_load(path, lvl))
             {
@@ -846,16 +894,17 @@ static int goto_level(const List level_multi)
 
     /* Check whether standalone set is loaded correctly. */
 
-    if (lvl_count_loaded != 0 && progress_play(&lvl_v[0]))
+    if (config_ball())
     {
         /* Start standalone set! */
 
-        return 1;
+        if (lvl_count_loaded != 0 && progress_play(&lvl_v[0]))
+            return 1;
+
+        /* ...otherwise go to main menu screen. */
+
+        progress_reinit(MODE_NONE);
     }
-
-    /* ...otherwise go to main menu screen. */
-
-    progress_reinit(MODE_NONE);
 
     return 0;
 }
@@ -881,7 +930,7 @@ static void refresh_packages_done(void *data, void *extra_data)
         return;
     }
 #endif
-    goto_state(start_state);
+    goto_ball_intro(start_state);
 #else
     goto_end_support(start_state);
 #endif
@@ -894,7 +943,7 @@ static int cmp_available_packages(const void *A, const void *B)
 
     const int a_is_set = strcmp(a->type, "set") == 0;
     const int b_is_set = strcmp(b->type, "set") == 0;
-    
+
     // Level sets come first.
 
     if (a_is_set && !b_is_set)
@@ -923,45 +972,41 @@ static int cmp_available_packages(const void *A, const void *B)
             return a_index - b_index;
     }
 
-    // Rest are ordered by id (e.g., "set-mym").
+    const int a_is_course = strcmp(a->type, "course") == 0;
+    const int b_is_course = strcmp(b->type, "course") == 0;
 
-    return SDL_strcasecmp(a->id, b->id);
-}
+    // Courses come after level sets.
 
-static int cmp_available_packages(const void *A, const void *B)
-{
-    const struct package *a = (const struct package *) A;
-    const struct package *b = (const struct package *) B;
-
-    const int a_is_set = strcmp(a->type, "set") == 0;
-    const int b_is_set = strcmp(b->type, "set") == 0;
-
-    // Level sets come first.
-
-    if (a_is_set && !b_is_set)
+    if (a_is_course && !b_is_course)
         return -1;
 
-    if (b_is_set && !a_is_set)
+    if (b_is_course && !a_is_course)
         return +1;
 
-    if (a_is_set && b_is_set)
+    if (a_is_course && b_is_course)
     {
-        // Level sets in sets.txt take precedence.
+        const char *a_sub = strchr(a->id, '-');
+        const char *b_sub = strchr(b->id, '-');
 
-        STRBUF a_file = joinstr(a->id, ".txt");
-        STRBUF b_file = joinstr(b->id, ".txt");
+        if (a_sub && b_sub)
+        {
+            STRBUF a_name = joinstr("holes-", a_sub + 1);
+            STRBUF b_name = joinstr("holes-", b_sub + 1);
+            STRBUF a_file = joinstr(CSTR(a_name), ".txt");
+            STRBUF b_file = joinstr(CSTR(b_name), ".txt");
 
-        int a_index = set_bundle_index(CSTR(a_file));
-        int b_index = set_bundle_index(CSTR(b_file));
+            int a_index = course_bundle_index(CSTR(a_file));
+            int b_index = course_bundle_index(CSTR(b_file));
 
-        if (a_index >= 0 && b_index < 0)
-            return -1;
+            if (a_index >= 0 && b_index < 0)
+                return -1;
 
-        if (b_index >= 0 && a_index < 0)
-            return +1;
+            if (b_index >= 0 && a_index < 0)
+                return +1;
 
-        if (a_index >= 0 && b_index >= 0)
-            return a_index - b_index;
+            if (a_index >= 0 && b_index >= 0)
+                return a_index - b_index;
+        }
     }
 
     // Rest are ordered by id (e.g., "set-mym").
@@ -983,9 +1028,10 @@ static void main_preload(struct state *start_state, int (*start_fn)(struct state
 
         goto_state(&st_loading);
 
-        /* To sort packages by sets.txt order, sets must be loaded first. */
+        /* To sort packages by sets.txt / courses.txt order, metadata must be loaded first. */
 
         set_init(0);
+        course_init();
 
         /* Link processing works best with a package list. */
 
@@ -1016,10 +1062,8 @@ static void main_preload(struct state *start_state, int (*start_fn)(struct state
     }
 #endif
 
-    if (start_fn)
-        start_fn(start_state);
-    else
-        goto_state(start_state);
+    if (start_fn) start_fn(start_state);
+    else goto_state(start_state);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1117,6 +1161,19 @@ static int clamp_stick_axis(int val)
 #endif
 
 static int main_loop_nowindowfocused = 0;
+
+static int goto_pause(void)
+{
+    if (config_putt())
+        return goto_putt_pause(&st_putt_over);
+    else if (config_ball() &&
+             (curr_state() == &st_play_ready ||
+              curr_state() == &st_play_set   ||
+              curr_state() == &st_play_loop  ||
+              curr_state() == &st_look))
+        return goto_ball_pause(curr_state());
+    else return 0;
+}
 
 static int loop(void)
 {
@@ -1356,16 +1413,10 @@ static int loop(void)
 
                     case USER_EVENT_PAUSE:
                         if (video_get_grab())
-                        {
-                            if (curr_state() == &st_play_ready ||
-                                curr_state() == &st_play_set   ||
-                                curr_state() == &st_play_loop  ||
-                                curr_state() == &st_look)
-                                play_pause_goto(curr_state());
-                        }
-                        else if (curr_state() == &st_demo_play ||
-                                 curr_state() == &st_demo_look)
-                            demo_pause_goto(1);
+                            d = goto_pause();
+                        else if (config_ball() &&
+                                 (curr_state() == &st_demo_play || curr_state() == &st_demo_look))
+                            d = demo_pause_goto(1);
                         break;
                 }
                 break;
@@ -1448,15 +1499,9 @@ static int loop(void)
                         audio_suspend();
 #endif
                         if (video_get_grab())
-                        {
-                            if (curr_state() == &st_play_ready ||
-                                curr_state() == &st_play_set   ||
-                                curr_state() == &st_play_loop  ||
-                                curr_state() == &st_look)
-                                d = play_pause_goto(curr_state());
-                        }
-                        else if (curr_state() == &st_demo_play ||
-                                 curr_state() == &st_demo_look)
+                            goto_pause();
+                        else if (config_ball() &&
+                                 (curr_state() == &st_demo_play || curr_state() == &st_demo_look))
                             d = demo_pause_goto(1);
                         break;
 
@@ -1723,8 +1768,33 @@ static int handle_installed_action(int pi)
 
         return index >= 0 ? goto_start(index, &st_package) : 1;
     }
+    else if (pi >= 0 && strcmp(package_get_type(pi), "course") == 0)
+    {
+        const char *package_id = package_get_id(pi);
+        const char *name = strchr(package_id, '-');
 
-    log_errorf("%s: That's not the level set!\n", package_get_id(pi));
+        if (name)
+        {
+            STRBUF course_name = joinstr("holes-", name + 1);
+            STRBUF file = joinstr(CSTR(course_name), ".txt");
+            int index;
+
+            config_set_d(CONFIG_GAME, GAME_PUTT);
+            course_init();
+
+            index = course_find(CSTR(file));
+
+            if (index >= 0)
+            {
+                course_goto(index);
+                return goto_state(&st_putt_party);
+            }
+
+            return goto_state(&st_putt_title);
+        }
+    }
+
+    log_errorf("%s: That's not the level set or course!\n", package_get_id(pi));
 
     return 1;
 }
@@ -1782,7 +1852,7 @@ static void step(void *data)
                 curr_state() == &st_play_set   ||
                 curr_state() == &st_play_loop  ||
                 curr_state() == &st_look)
-                running = play_pause_goto(curr_state());
+                running = goto_ball_pause(curr_state());
         }
         else if (curr_state() == &st_demo_play ||
                  curr_state() == &st_demo_look)
@@ -1995,6 +2065,8 @@ static int main_init(int argc, char *argv[])
         return 0;
     }
 
+    srand((unsigned int) time(NULL));
+
     opt_init(argc, argv);
 
     if (opt_data_multi)
@@ -2142,6 +2214,10 @@ static int main_init(int argc, char *argv[])
 
     config_init();
     config_load();
+
+    /* Force game at runtime. */
+
+    config_set_d(CONFIG_GAME, opt_game);
 
     if (!fetch_enable(config_get_d(CONFIG_ONLINE)))
     {
@@ -2428,10 +2504,6 @@ static void main_quit(void)
 
     goto_state(&st_null);
 
-    game_client_free(NULL);
-    game_server_free(NULL);
-    game_proxy_clr();
-
     mtrl_quit ();
 #if ENABLE_DUALDISPLAY==1
     video_dualdisplay_quit();
@@ -2530,7 +2602,7 @@ int main_share(int argc, char *argv[])
     int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
 
     if (val == -1)
-        start_state = &st_title;
+        start_state = config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0);
     else
         start_state = &st_intro_restore;
 #endif
@@ -2545,6 +2617,8 @@ int main_share(int argc, char *argv[])
 #endif
 
     /* Screen states. */
+
+    start_state = config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0);
 
     init_state(&st_null);
 
@@ -2575,6 +2649,7 @@ int main_share(int argc, char *argv[])
     }
     else
 #endif
+
     if (opt_replay &&
         fs_add_path(dir_name(opt_replay)) &&
         progress_replay(base_name(opt_replay)))
@@ -2585,26 +2660,17 @@ int main_share(int argc, char *argv[])
     else if (opt_level_multi)
     {
         if (goto_level(opt_level_multi))
-            start_state = &st_level;
+            start_state = config_putt() ? &st_putt_next : &st_level;
 #ifndef SKIP_END_SUPPORT
         else
             start_state = &st_end_support;
-#endif
-    }
-    else if (opt_screensaver)
-        start_state = &st_screensaver;
-    else
-    {
-#if NB_HAVE_PB_BOTH==1
-        log_printf("Attempt to show intro\n");
-        start_state = &st_intro;
 #endif
     }
 
 #ifndef SKIP_END_SUPPORT
     main_preload(start_state, goto_end_support);
 #else
-    main_preload(start_state, 0);
+    main_preload(start_state, goto_ball_intro);
 #endif
 
     /* Run the main game loop. */

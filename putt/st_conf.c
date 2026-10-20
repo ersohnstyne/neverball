@@ -36,6 +36,7 @@
 #include "st_conf.h"
 #include "st_all.h"
 #include "st_common.h"
+#include "../ball/st_title.h"
 
 /*---------------------------------------------------------------------------*/
 
@@ -73,8 +74,6 @@ static void init_changed_value(void)
     changed = 0;
 }
 
-static struct state *conf_back;
-
 static int conf_action(int i)
 {
     int master   = config_get_d(CONFIG_MASTER_VOLUME);
@@ -88,12 +87,12 @@ static int conf_action(int i)
     switch (i)
     {
         case CONF_BACK:
-            exit_state(conf_back ? conf_back : &st_title);
+            exit_state(conf_back ? conf_back : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
             conf_back = NULL;
             break;
 
         case CONF_VIDEO:
-            goto_video(&st_conf);
+            goto_video(&st_putt_conf);
             break;
 
         case CONF_LANG:
@@ -101,7 +100,7 @@ static int conf_action(int i)
             break;
 
         /*case CONF_PLAYER:
-            goto_name(&st_conf, &st_conf, 1);
+            goto_name(&st_putt_conf, &st_putt_conf, 1);
             break;*/
 
         default:
@@ -161,7 +160,7 @@ static int conf_action(int i)
 
 static int conf_enter(struct state *st, struct state *prev, int intent)
 {
-    if (prev == &st_title)
+    if (prev == &st_putt_title)
         init_changed_value();
 
     int root_id;
@@ -367,7 +366,6 @@ static int conf_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return conf_action(gui_token(gui_active()));
-
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
             return conf_action(CONF_BACK);
     }
@@ -384,7 +382,7 @@ static int null_enter(struct state *st, struct state *prev, int intent)
     video_motionblur_quit();
 #endif
 
-    game_free_objects();
+    putt_free_objects();
     back_free_objects();
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -415,7 +413,7 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 #endif
 
     back_free_objects();
-    game_free_objects();
+    putt_free_objects();
 
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_init();
@@ -425,7 +423,7 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 
 /*---------------------------------------------------------------------------*/
 
-struct state st_conf = {
+struct state st_putt_conf = {
     conf_enter,
     conf_leave,
     conf_paint,

@@ -695,7 +695,7 @@ static int shop_rename_action(int tok, int val)
 
         case SHOP_RENAME_YES:
 #ifdef __EMSCRIPTEN__
-            EM_ASM({ window.open("https://pennyball.stynegame.de/", "_blank"); });
+            EM_ASM({ window.open("https://neverball.stynegame.de/", "_blank"); });
 #else
             account_wgcl_save();
             return goto_name(ok_state, cancel_state, 0, 0, draw_back);
@@ -755,7 +755,7 @@ static int shop_rename_gui(void)
             gui_back_button(jd);
             if (EM_ASM_INT({
                 try {
-                    return window.location.href.toLowerCase().includes("pennyball.stynegame.de") ? 0 : 1;
+                    return window.location.href.toLowerCase().includes("neverball.stynegame.de") ? 0 : 1;
                 } catch (e) { return 1; }
 
                 return 1;

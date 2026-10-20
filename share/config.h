@@ -21,7 +21,7 @@
  */
 #define LOG_NO_STATS
 
- /* HACK: How about motion blur macro function? */
+/* HACK: How about motion blur macro function? */
 #define config_motionblur() \
     (config_get_d(CONFIG_MOTIONBLUR) && video_perf() < 90)
 
@@ -144,6 +144,7 @@ extern int CONFIG_KEY_RESTART;
 extern int CONFIG_KEY_SCORE_NEXT;
 extern int CONFIG_KEY_ROTATE_FAST;
 extern int CONFIG_VIEW_FOV;
+extern int CONFIG_VIEW_FOV_NOSTALGIC;
 extern int CONFIG_VIEW_DP;
 extern int CONFIG_VIEW_DC;
 extern int CONFIG_VIEW_DZ;
@@ -185,10 +186,18 @@ enum
 {
     TOUCH_MODE_LR = 0,
     TOUCH_MODE_RL,
-    TOUCH_MODE_DYNAMIC
+    TOUCH_MODE_DYNAMIC,
 };
 
 extern int CONFIG_ONLINE;
+
+enum game
+{
+    GAME_BALL = 0,
+    GAME_PUTT = 1,
+};
+
+extern int CONFIG_GAME;
 
 extern int CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY;
 extern int CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET;
@@ -250,6 +259,8 @@ void config_clr_cheat(void);
 
 int config_screenshot(void);
 int config_online(void);
+int config_ball(void);
+int config_putt(void);
 
 /*---------------------------------------------------------------------------*/
 

@@ -679,7 +679,6 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
         audio_music_fade_out(2.0f);
 
     video_clr_grab();
-<<<<<<< HEAD
 
     /* Check if we came from a known previous state. */
 

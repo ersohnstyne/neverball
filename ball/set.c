@@ -42,6 +42,7 @@
 #include "fs.h"
 #include "log.h"
 #include "lang.h"
+#include "../putt/course.h"
 
 #include "package_superwaifu.h"
 
@@ -94,9 +95,6 @@ static Array sets;
 static int   curr;
 
 static struct level level_v[MAXLVL_SET];
-
-static char *bundled_filenames[64];
-static int bundled_count;
 
 static char *bundled_filenames[64];
 static int bundled_count;
@@ -303,7 +301,7 @@ static void set_load_hs_world(struct set *s)
     log_printf("WGCL: Loading world set highscore...: %s\n", s->id);
 
 #if defined(__EMSCRIPTEN__)
-    EM_ASM({ Pennyball.gamecore_levelset_loadhs(UTF8ToString($0)); }, s->id);
+    EM_ASM({ Neverball.gamecore_levelset_loadhs(UTF8ToString($0)); }, s->id);
 #elif _WIN32 && _MSC_VER
     struct score_world_wgcl time_score_world;
     struct score_world_wgcl coin_score_world;
@@ -570,12 +568,13 @@ static void set_load_hs(void)
 
 int set_cmp_available_packages(const void *A, const void *B)
 {
+    
     const struct package *a = (const struct package *) A;
     const struct package *b = (const struct package *) B;
 
     const int a_is_set = strcmp(a->type, "set") == 0;
     const int b_is_set = strcmp(b->type, "set") == 0;
-    
+
     // Level sets come first.
 
     if (a_is_set && !b_is_set)
@@ -604,23 +603,46 @@ int set_cmp_available_packages(const void *A, const void *B)
             return a_index - b_index;
     }
 
+    const int a_is_course = strcmp(a->type, "course") == 0;
+    const int b_is_course = strcmp(b->type, "course") == 0;
+
+    // Courses come after level sets.
+
+    if (a_is_course && !b_is_course)
+        return -1;
+
+    if (b_is_course && !a_is_course)
+        return +1;
+
+    if (a_is_course && b_is_course)
+    {
+        const char *a_sub = strchr(a->id, '-');
+        const char *b_sub = strchr(b->id, '-');
+
+        if (a_sub && b_sub)
+        {
+            STRBUF a_name = joinstr("holes-", a_sub + 1);
+            STRBUF b_name = joinstr("holes-", b_sub + 1);
+            STRBUF a_file = joinstr(CSTR(a_name), ".txt");
+            STRBUF b_file = joinstr(CSTR(b_name), ".txt");
+
+            int a_index = course_bundle_index(CSTR(a_file));
+            int b_index = course_bundle_index(CSTR(b_file));
+
+            if (a_index >= 0 && b_index < 0)
+                return -1;
+
+            if (b_index >= 0 && a_index < 0)
+                return +1;
+
+            if (a_index >= 0 && b_index >= 0)
+                return a_index - b_index;
+        }
+    }
+
     // Rest are ordered by id (e.g., "set-mym").
 
     return SDL_strcasecmp(a->id, b->id);
-
-#ifndef _CONSOLE
-#if _WIN32 && _MSC_VER
-    log_printf("%s cmp %s = %d\n", a->id, b->id, c);
-#endif
-#else
-#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
-    printf_s("%s cmp %s = %d\n", a->id, b->id, c);
-#else
-    printf("%s cmp %s = %d\n", a->id, b->id, c);
-#endif
-#endif
-
-    return c;
 }
 
 int set_check_id(const unsigned char *name, const char *needle)

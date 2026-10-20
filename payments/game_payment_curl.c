@@ -39,10 +39,10 @@ extern "C" {
 #include <stdbool.h>
 
 /*
- * Premium: pennyball.stynegame.de
+ * Premium: neverball.stynegame.de
  * Legacy IAP: play.neverball.org
  */
-#define GAMEIAP_CURRDOMAIN "pennyball.stynegame.de"
+#define GAMEIAP_CURRDOMAIN "neverball.stynegame.de"
 
 /*---------------------------------------------------------------------------*/
 

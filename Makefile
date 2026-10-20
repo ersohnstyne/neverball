@@ -514,9 +514,11 @@ MAPC_OBJS := \
 	share/dir.o         \
 	share/array.o       \
 	share/list.o        \
-	share/mapclib_bak.o     \
+	share/mapclib.o     \
 	share/mapc.o
 BALL_OBJS := \
+	wgcl/account_wgcl.o \
+	wgcl/st_wgcl.o      \
 	payments/parson.o   \
 	payments/currency_curl.o\
 	share/accessibility.o\
@@ -563,7 +565,7 @@ BALL_OBJS := \
 	share/fs_ov.o       \
 	share/log.o         \
 	share/console_control_gui.o\
-	share/mapclib_bak.o     \
+	share/mapclib.o     \
 	ball/hud.o          \
 	ball/game_inputbindings.o \
 	ball/game_common.o  \
@@ -612,59 +614,15 @@ BALL_OBJS := \
 	ball/st_beam_style.o\
 	ball/st_malfunction.o\
 	ball/st_game_link.o \
-	ball/main.o
-PUTT_OBJS := \
-	share/accessibility.o\
-	share/dbg_config.o  \
-	share/st_setup.o    \
-	share/lang_gettext.o\
-	share/st_common.o   \
-	share/vec3.o        \
-	share/base_image.o  \
-	share/image.o       \
-	share/solid_base.o  \
-	share/solid_vary.o  \
-	share/solid_draw.o  \
-	share/solid_all.o   \
-	share/mtrl.o        \
-	share/part.o        \
-	share/geom.o        \
-	share/ball.o        \
-	share/base_config.o \
-	share/config.o      \
-	share/video.o       \
-	share/glext.o       \
-	share/binary.o      \
-	share/audio.o       \
-	share/state.o       \
-	share/ease.o        \
-	share/transition.o  \
-	share/gui.o         \
-	share/font.o        \
-	share/theme.o       \
-	share/text.o        \
-	share/common.o      \
-	share/list.o        \
-	share/fs_common.o   \
-	share/fs_png.o      \
-	share/fs_jpg.o      \
-	share/fs_ov.o       \
-	share/dir.o         \
-	share/fbo.o         \
-	share/glsl.o        \
-	share/array.o       \
-	share/log.o         \
-	share/console_control_gui.o\
 	putt/hud.o          \
 	putt/game.o         \
 	putt/hole.o         \
 	putt/course.o       \
 	putt/st_all.o       \
-	putt/st_conf.o      \
-	putt/main.o
-
+	ball/main.o         \
+	ball/main_desktop.o
+	
 BALL_OBJS += share/solid_sim_sol.o
-PUTT_OBJS += share/solid_sim_sol.o
 
 ifeq ($(ENABLE_RFD),1)
 	BALL_OBJS += share/rfd.o
@@ -672,10 +630,8 @@ endif
 
 ifeq ($(PLATFORM),mingw)
 	BALL_OBJS += share/joy_xbox.o
-	PUTT_OBJS += share/joy_xbox.o
 else
 	BALL_OBJS += share/joy.o
-	PUTT_OBJS += share/joy.o
 endif
 
 ifneq ($(FS_VERSION),1)
@@ -686,10 +642,8 @@ endif
 
 ifeq ($(ENABLE_STEAM),1)
 BALL_OBJS += share/account_steam.o wgcl/account_wgcl.o wgcl/st_wgcl.o
-PUTT_OBJS += share/account_steam.o
 else
 BALL_OBJS += share/account_binary.o wgcl/account_wgcl.o wgcl/st_wgcl.o
-PUTT_OBJS += share/account_binary.o
 endif
 
 ifeq ($(ENABLE_GAME_TRANSFER_SOURCE),1)
@@ -706,38 +660,29 @@ ifeq ($(ENABLE_DEDICATED_SERVER),1)
 # Dedicated server, most of people worldwide internet
 $(info You had been choosen dedicated server)
 BALL_OBJS += share/networking_dedicated.o
-PUTT_OBJS += share/networking_dedicated.o
 else
 ifeq ($(EDITION),home)
 BALL_OBJS += share/networking_home.o
-PUTT_OBJS += share/networking_home.o
 else
 ifeq ($(EDITION),pro)
 BALL_OBJS += share/networking_pro.o
-PUTT_OBJS += share/networking_pro.o
 else
 ifeq ($(EDITION),enterprise)
 BALL_OBJS += share/networking_enterprise.o
-PUTT_OBJS += share/networking_enterprise.o
 else
 ifeq ($(EDITION),education)
 BALL_OBJS += share/networking_education.o
-PUTT_OBJS += share/networking_education.o
 else
 ifeq ($(EDITION),server_essentials)
 BALL_OBJS += share/networking_srv_essentials.o
-PUTT_OBJS += share/networking_srv_essentials.o
 else
 ifeq ($(EDITION),server_standard)
 BALL_OBJS += share/networking_srv_standard.o
-PUTT_OBJS += share/networking_srv_standard.o
 else
 ifeq ($(EDITION),server_datacenter)
 BALL_OBJS += share/networking_srv_datacenter.o
-PUTT_OBJS += share/networking_srv_datacenter.o
 else
 BALL_OBJS += share/networking_opensource.o
-PUTT_OBJS += share/networking_opensource.o
 endif
 endif
 endif
@@ -750,18 +695,15 @@ endif
 ifeq ($(FS_VERSION),1)
 ifeq ($(ENABLE_FS),stdio)
 BALL_OBJS += share/fs_stdio.o
-PUTT_OBJS += share/fs_stdio.o
 MAPC_OBJS += share/fs_stdio.o
 endif
 ifeq ($(ENABLE_FS),physfs)
 BALL_OBJS += share/fs_physfs.o
-PUTT_OBJS += share/fs_physfs.o
 MAPC_OBJS += share/fs_physfs.o
 endif
 else
 ifeq ($(ENABLE_FS),stdio)
 BALL_OBJS += share/fs_stdio.o share/zip.o
-PUTT_OBJS += share/fs_stdio.o share/zip.o
 MAPC_OBJS += share/fs_stdio.o share/zip.o
 endif
 endif
@@ -770,9 +712,6 @@ ifneq ($(FS_VERSION),1)
 BALL_OBJS += share/package.o
 BALL_OBJS += share/package_superwaifu.o
 BALL_OBJS += share/st_package.o
-PUTT_OBJS += share/package.o
-PUTT_OBJS += share/package_superwaifu.o
-PUTT_OBJS += share/st_package.o
 endif
 
 ifeq ($(ENABLE_TILT),wii)
@@ -795,20 +734,16 @@ endif
 
 ifeq ($(ENABLE_HMD),openhmd)
 BALL_OBJS += share/hmd_openhmd.o share/hmd_common.o
-PUTT_OBJS += share/hmd_openhmd.o share/hmd_common.o
 else
 ifeq ($(ENABLE_HMD),libovr)
 BALL_OBJS += share/hmd_libovr.o share/hmd_common.o
-PUTT_OBJS += share/hmd_libovr.o share/hmd_common.o
 else
 BALL_OBJS += share/hmd_null.o
-PUTT_OBJS += share/hmd_null.o
 endif
 endif
 
 ifeq ($(PLATFORM),mingw)
 BALL_OBJS += neverball.ico.o
-PUTT_OBJS += neverputt.ico.o
 endif
 
 FETCH_OBJS := share/fetch_null.o
@@ -817,7 +752,13 @@ FETCH_OBJS := share/fetch_curl.o
 endif
 
 BALL_OBJS += $(FETCH_OBJS)
-PUTT_OBJS += $(FETCH_OBJS)
+
+# Putt is just Ball in disguise.
+PUTT_OBJS := $(BALL_OBJS:ball/main.o=putt/main.o)
+ifeq ($(PLATFORM),mingw)
+PUTT_OBJS := $(PUTT_OBJS:neverball.ico.o=neverputt.ico.o)
+endif
+
 
 BALL_DEPS := $(BALL_OBJS:.o=.d)
 PUTT_DEPS := $(PUTT_OBJS:.o=.d)

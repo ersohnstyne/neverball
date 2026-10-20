@@ -56,6 +56,7 @@
 #include "st_title.h"
 #include "st_shared.h"
 #include "st_conf.h"
+#include "../putt/st_all.h"
 
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
 #include "st_operator.h"
@@ -217,7 +218,7 @@ static int demo_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return exit_state(&st_title);
+            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
 
         case GUI_PREV:
             first = MAX(first - DEMO_STEP, 0);
@@ -342,7 +343,7 @@ static int demo_action(int tok, int val)
 #if (_WIN32 && _MSC_VER) && NB_HAVE_PB_BOTH==1
                 if (config_cheat()) {
                     const int demo_curr_balls = df->balls <= 0;
-                    
+
                     const int demo_curr_challenge =
                         (df->status == GAME_TIME || df->status == GAME_FALL) &&
                         (df->mode != MODE_NORMAL && df->mode != MODE_STANDALONE
@@ -1129,7 +1130,7 @@ static int demo_gui(void)
             gui_layout(id, 0, 0);
         }
     }
-    else return exit_state(&st_title);
+    else return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
 
     return id;
 }
@@ -1257,7 +1258,7 @@ static int demo_leave(struct state *st, struct state *next, int id, int intent)
     if (next == &st_null)
         demo_replay_stop(0);
 
-    if (next == &st_title ||
+    if (next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0) ||
         next == &st_null)
     {
         demo_dir_free(demo_items);
@@ -1304,6 +1305,16 @@ static void demo_stick(int id, int a, float v, int bump)
         demo_select(gui_value(jd));
 }
 
+static int demo_buttn(int b, int d);
+static int demo_click(int b, int d)
+{
+    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        return demo_action(GUI_BACK, 0);
+
+    return gui_click(b, d) ?
+           demo_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
+}
+
 static int demo_keybd(int c, int d)
 {
 #if ENABLE_MOON_TASKLOADER!=0
@@ -1326,16 +1337,6 @@ static int demo_keybd(int c, int d)
         }
     }
     return 1;
-}
-
-static int demo_buttn(int b, int d);
-static int demo_click(int b, int d)
-{
-    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
-        return demo_action(GUI_BACK, 0);
-
-    return gui_click(b, d) ?
-           demo_buttn(config_get_d(CONFIG_JOYSTICK_BUTTON_A), 1) : 1;
 }
 
 static int demo_buttn(int b, int d)

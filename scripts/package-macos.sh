@@ -26,9 +26,7 @@ SKIP_BUILD=0
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [options]
-
 Builds and packages Neverball as a self-contained macOS application bundle.
-
 Options:
   --arch <arch>         Target architecture: arm64 or x86_64 (default: host arch)
   --build-type <type>   Build configuration: release (default) or devel
@@ -95,6 +93,13 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
     exit 1
 fi
 
+# AMD64 might used with x86_64
+
+if [[ "$ARCH" == "amd64" || "$ARCH" == "AMD64" ]]; then
+    echo "Error: Use x86_64 instead of amd64 or AMD64" >&2
+    exit 1
+fi
+
 if [[ "$ARCH" != "arm64" && "$ARCH" != "x86_64" ]]; then
     echo "Error: Unsupported architecture '$ARCH'. Supported: arm64, x86_64." >&2
     exit 1
@@ -119,9 +124,10 @@ NCPU="$(sysctl -n hw.ncpu 2>/dev/null || echo 4)"
 
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
     echo "==> Compiling mapc, sols, and locales..."
+    make clean src
     make -j"$NCPU" sols locales
 
-    echo "==> Compiling neverball, neverputt, and mapc for bundle (${ARCH})..."
+    echo "==> Compiling neverball and mapc for bundle (${ARCH})..."
     make clean-src
     make -j"$NCPU" \
         BUILD="$BUILD_TYPE" \
@@ -131,10 +137,10 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
         CFLAGS="-arch $ARCH -O2" \
         CXXFLAGS="-arch $ARCH -O2" \
         LDFLAGS="-arch $ARCH" \
-        neverball neverputt mapc
+        neverball mapc
 fi
 
-for bin in neverball neverputt mapc; do
+for bin in neverball mapc; do
     if [[ ! -f "$REPO_ROOT/$bin" ]]; then
         echo "Error: Expected compiled binary '$bin' was not found." >&2
         exit 1
@@ -159,9 +165,8 @@ rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR" "$FRAMEWORKS_DIR" "$DATA_DIR" "$LOCALE_DIR"
 
 # 1. Copy executables
-echo "==> Copying binaries (neverball, neverputt, mapc)..."
+echo "==> Copying binaries (neverball, mapc)..."
 cp "$REPO_ROOT/neverball" "$MACOS_DIR/neverball"
-cp "$REPO_ROOT/neverputt" "$MACOS_DIR/neverputt"
 cp "$REPO_ROOT/mapc" "$MACOS_DIR/mapc"
 chmod 755 "$MACOS_DIR"/*
 
@@ -189,6 +194,15 @@ echo "==> Configuring Info.plist and PkgInfo..."
 sed "s/@VERSION@/${VERSION}/g" "$REPO_ROOT/dist/macos/Info.plist.in" > "$CONTENTS_DIR/Info.plist"
 printf "APPLball" > "$CONTENTS_DIR/PkgInfo"
 
+# 6. Copy level editor gamepacks into Resources
+for tool_dir in TrenchBroom Radiant; do
+    if [[ -d "$REPO_ROOT/$tool_dir" ]]; then
+        echo "==> Copying $tool_dir gamepack into Resources..."
+        cp -R "$REPO_ROOT/$tool_dir" "$RESOURCES_DIR/"
+        find "$RESOURCES_DIR/$tool_dir" -name ".DS_Store" -delete 2>/dev/null || true
+    fi
+done
+
 # -----------------------------------------------------------------------------
 # Bundle & Relink Dynamic Libraries
 # -----------------------------------------------------------------------------
@@ -197,7 +211,6 @@ echo "==> Resolving, copying, and relinking dynamic libraries into Frameworks...
 python3 "$REPO_ROOT/scripts/bundle-dylibs.py" \
     --frameworks-dir "$FRAMEWORKS_DIR" \
     "$MACOS_DIR/neverball" \
-    "$MACOS_DIR/neverputt" \
     "$MACOS_DIR/mapc"
 
 # -----------------------------------------------------------------------------
@@ -214,19 +227,19 @@ if compgen -G "$FRAMEWORKS_DIR/*.dylib" >/dev/null; then
 fi
 
 # 2. Sign all executables in MacOS
-SIGN_OPTS=()
+CODESIGN_CMD=(codesign --force --sign "${SIGN_IDENTITY}")
 if [[ "$SIGN_IDENTITY" != "-" ]]; then
-    SIGN_OPTS+=(--options runtime)
+    CODESIGN_CMD+=(--options runtime)
 fi
 
 for bin in "$MACOS_DIR"/*; do
     if [[ -f "$bin" && -x "$bin" ]]; then
-        codesign --force --sign "${SIGN_IDENTITY}" "${SIGN_OPTS[@]}" "$bin"
+        "${CODESIGN_CMD[@]}" "$bin"
     fi
 done
 
 # 3. Sign the application bundle
-codesign --force --sign "${SIGN_IDENTITY}" "${SIGN_OPTS[@]}" "$APP_DIR"
+"${CODESIGN_CMD[@]}" "$APP_DIR"
 
 # 4. Strictly verify bundle signature
 echo "==> Verifying code signature..."
@@ -258,6 +271,12 @@ if [[ "$CREATE_DMG" -eq 1 ]]; then
     if [[ -f "$REPO_ROOT/dist/macos/How to Open.html" ]]; then
         cp "$REPO_ROOT/dist/macos/How to Open.html" "$DMG_STAGE/How to Open.html"
     fi
+    for tool_dir in TrenchBroom Radiant; do
+        if [[ -d "$REPO_ROOT/$tool_dir" ]]; then
+            cp -R "$REPO_ROOT/$tool_dir" "$DMG_STAGE/"
+            find "$DMG_STAGE/$tool_dir" -name ".DS_Store" -delete 2>/dev/null || true
+        fi
+    done
 
     rm -f "$DMG_PATH"
     hdiutil create -volname "Neverball" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG_PATH" >/dev/null

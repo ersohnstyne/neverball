@@ -675,7 +675,7 @@ static void package_select(int pi)
     gui_set_hilite(button_ids[selected % PACKAGE_STEP], 1);
 
     gui_set_image(shot_id,  package_get_shot_filename(pi));
-    gui_set_multi(desc_id,  package_get_desc(pi));
+    gui_set_multi(desc_id,  package_get_formatted_desc(pi));
     gui_set_label(type_id,  package_get_formatted_type(pi));
     gui_set_label(title_id, package_get_name(pi));
 
@@ -698,12 +698,12 @@ static void package_select(int pi)
     gui_set_font(install_status_id, "ttf/DejaVuSans-Bold.ttf");
 
     /* HACK: Mojang made done this. */
-    
+
     const GLubyte *btn_color      = status == PACKAGE_INSTALLED || selected >= 0 ?
                                     gui_grn : gui_gry;
     const GLubyte *btn_color_text = selected >= 0 ?
                                     gui_wht : gui_gry;
-    
+
     gui_set_state(install_id,        selected >= 0 ? PACKAGE_INSTALL : GUI_NONE, 0);
     gui_set_color(install_status_id, btn_color, btn_color);
     gui_set_color(install_label_id,  btn_color_text, btn_color_text);
@@ -790,6 +790,7 @@ static void package_paint(int id, float st)
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     if (current_platform != PLATFORM_PC || console_gui_shown()) {
         enum package_status status = package_get_status(selected);
+        package_get_type(selected);
 
         if (curr_state() == &st_package &&
             selected >= 0 && package_manage_selected >= 0) switch (status) {
@@ -992,7 +993,7 @@ static int package_check_purchased_extralevels(const char *set_id)
     }
 
     /* Limited offered game dependencies or region only */
-    
+
     if (package_set_check_id(set_id, "anime") &&
         !package_superwaifu_game_installed() &&
         !config_cheat())
@@ -1016,7 +1017,7 @@ static int package_check_purchased_extralevels(const char *set_id)
             return 0;
 #endif
     }
-    
+
     /* Limited special offers only */
 
     if (package_set_check_id(set_id, "valentine") &&
@@ -1169,6 +1170,10 @@ static int package_manage_gui(void)
         {
             if ((btn_id = gui_vstack(id)))
             {
+                const char *start_desc = strcmp(package_get_type(selected), "set") ?
+                                         N_("Start this current Level Set") :
+                                         N_("Start this current course");
+
                 if ((jd = gui_hstack(btn_id)))
                 {
                     gui_filler(jd);
@@ -1179,7 +1184,7 @@ static int package_manage_gui(void)
                     gui_set_font(startbtn_id, "ttf/DejaVuSans-Bold.ttf");
                 }
 
-                gui_multi(btn_id, _("Start this current Level Set"),
+                gui_multi(btn_id, _(start_desc),
                                   GUI_SML, GUI_COLOR_WHT);
 
                 gui_set_state(btn_id, PACKAGE_MANAGE_START, package_manage_selected);

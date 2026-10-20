@@ -41,19 +41,19 @@ static int show_hud_expected;
 static float show_hud_alpha;
 static float show_hud_total_alpha;
 
-void toggle_hud_visibility(int active)
+void putt_toggle_hud_visibility(int active)
 {
     show_hud = active;
 }
 
-int hud_visibility(void)
+int putt_hud_visibility(void)
 {
     return show_hud && show_hud_expected;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void hud_init(void)
+void putt_hud_init(void)
 {
     if (is_init) return;
 
@@ -119,7 +119,7 @@ void hud_init(void)
     is_init = 1;
 }
 
-void hud_free(void)
+void putt_hud_free(void)
 {
     if (!is_init) return;
 
@@ -136,7 +136,7 @@ void hud_free(void)
 
 /*---------------------------------------------------------------------------*/
 
-void hud_paint(void)
+void putt_hud_paint(void)
 {
     if (config_get_d(CONFIG_FPS))
     {
@@ -150,7 +150,7 @@ void hud_paint(void)
     gui_paint(Touch_id);
 }
 
-void hud_timer(float dt)
+void putt_hud_timer(float dt)
 {
     if (touch_timer > 0.0f)
     {
@@ -171,7 +171,7 @@ void hud_timer(float dt)
     gui_timer(Touch_id, dt);
 }
 
-void hud_show(float delay)
+void putt_hud_show(float delay)
 {
     if (show_hud_expected == 1) return;
 
@@ -183,7 +183,7 @@ void hud_show(float delay)
     gui_slide(Rhud_id,        GUI_SE | GUI_EASE_BACK, delay + 0.2f, 0.3f, 0);
 }
 
-void hud_hide(void)
+void putt_hud_hide(void)
 {
     if (show_hud_expected == 0) return;
 
@@ -238,7 +238,7 @@ static void hud_update_alpha(void)
                                    GUI_ANIMATION_S_CURVE | GUI_ANIMATION_E_CURVE);
 }
 
-void hud_set_alpha(float a)
+void putt_hud_set_alpha(float a)
 {
     show_hud_total_alpha = a;
     hud_update_alpha();

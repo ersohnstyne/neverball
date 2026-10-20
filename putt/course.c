@@ -12,9 +12,29 @@
  * General Public License for more details.
  */
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#define SDL_ENABLE_OLD_NAMES
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_stdinc.h>
+#include <SDL3/SDL_oldnames.h>
+#elif _WIN32 && __MINGW32__
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_stdinc.h>
+#elif _WIN32 && _MSC_VER
+#include <SDL.h>
+#include <SDL_stdinc.h>
+#elif _WIN32
+#error Security compilation error: No target include file in path for Windows specified!
+#else
+#include <SDL.h>
+#include <SDL_stdinc.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "strbuf/joinstr.h"
 
 #include "common.h"
 #include "config.h"
@@ -22,6 +42,9 @@
 #include "hole.h"
 #include "fs.h"
 #include "lang.h"
+#include "../putt/course.h"
+
+#include "package.h"
 
 #include "log.h"
 
@@ -41,6 +64,9 @@ static int course;
 static int count;
 
 static struct course course_v[MAXCRS];
+
+static char *bundled_filenames[MAXCRS];
+static int bundled_count;
 
 /*---------------------------------------------------------------------------*/
 
@@ -188,15 +214,20 @@ static int cmp_dir_items(const void *A, const void *B)
     return strcmp(a->path, b->path);
 }
 
-static int course_is_loaded(const char *path)
+int course_find(const char *path)
 {
     int i;
 
     for (i = 0; i < count; i++)
         if (strcmp(course_v[i].holes, path) == 0)
-            return 1;
+            return i;
 
-    return 0;
+    return -1;
+}
+
+static int course_is_loaded(const char *path)
+{
+    return course_find(path) >= 0;
 }
 
 static int is_unseen_course(struct dir_item *item)
@@ -217,17 +248,32 @@ void course_init(void)
     if (course_state)
         course_free();
 
+    for (i = 0; i < bundled_count; ++i)
+    {
+        if (bundled_filenames[i])
+        {
+            free(bundled_filenames[i]);
+            bundled_filenames[i] = NULL;
+        }
+    }
+    bundled_count = 0;
+
     count = 0;
 
     if ((fin = fs_open_read(COURSE_FILE)))
     {
-        while (count < MAXCRS && read_line(&line, fin))
+        while (read_line(&line, fin))
         {
-            if (course_load(&course_v[count], line))
+            if (count < MAXCRS && course_load(&course_v[count], line))
                 count++;
 
-            free(line);
-            line = NULL;
+            if (bundled_count < MAXCRS)
+                bundled_filenames[bundled_count++] = line;
+            else
+            {
+                free(line);
+                line = NULL;
+            }
         }
 
         fs_close(fin);
@@ -261,8 +307,11 @@ int course_count(void)
 
 void course_goto(int i)
 {
-    hole_init(course_v[i].holes);
-    course = i;
+    if (course_exists(i))
+    {
+        hole_init(course_v[i].holes);
+        course = i;
+    }
 }
 
 int course_curr(void)
@@ -272,22 +321,147 @@ int course_curr(void)
 
 void course_free(void)
 {
+    int i;
+
+    for (i = 0; i < bundled_count; ++i)
+    {
+        free(bundled_filenames[i]);
+        bundled_filenames[i] = NULL;
+    }
+    bundled_count = 0;
+
     hole_free();
     course_state = 0;
 }
 
+int course_bundle_index(const char *filename)
+{
+    int i;
+
+    if (!(filename && *filename))
+        return -1;
+
+    for (i = 0; i < bundled_count; ++i)
+    {
+        if (bundled_filenames[i] && strcmp(bundled_filenames[i], filename) == 0)
+            return i;
+    }
+
+    return -1;
+}
+
 void course_rand(void)
 {
-    if (count == 0) return;
+    if (count > 0)
+    {
+        course_goto(rand() % count);
+        if (curr_count() > 0)
+            hole_goto(rand() % curr_count(), 4);
+    }
+}
 
-    course_goto(rand() % count);
-    hole_goto  (rand() % curr_count(), 4);
+int course_cmp_available_packages(const void *A, const void *B)
+{
+    const struct package *a = (const struct package *) A;
+    const struct package *b = (const struct package *) B;
+
+    const int a_is_set = strcmp(a->type, "set") == 0;
+    const int b_is_set = strcmp(b->type, "set") == 0;
+
+    // Level sets come first.
+
+    if (a_is_set && !b_is_set)
+        return -1;
+
+    if (b_is_set && !a_is_set)
+        return +1;
+
+    if (a_is_set && b_is_set)
+    {
+        // Level sets in sets.txt take precedence.
+
+        STRBUF a_file = joinstr(a->id, ".txt");
+        STRBUF b_file = joinstr(b->id, ".txt");
+
+        int a_index = set_bundle_index(CSTR(a_file));
+        int b_index = set_bundle_index(CSTR(a_file));
+
+        if (a_index >= 0 && b_index < 0)
+            return -1;
+
+        if (b_index >= 0 && a_index < 0)
+            return +1;
+
+        if (a_index >= 0 && b_index >= 0)
+            return a_index - b_index;
+    }
+
+    const int a_is_course = strcmp(a->type, "course") == 0;
+    const int b_is_course = strcmp(b->type, "course") == 0;
+
+    // Courses come after level sets.
+
+    if (a_is_course && !b_is_course)
+        return -1;
+
+    if (b_is_course && !a_is_course)
+        return +1;
+
+    if (a_is_course && b_is_course)
+    {
+        const char *a_sub = strchr(a->id, '-');
+        const char *b_sub = strchr(b->id, '-');
+
+        if (a_sub && b_sub)
+        {
+            STRBUF a_name = joinstr("holes-", a_sub + 1);
+            STRBUF b_name = joinstr("holes-", b_sub + 1);
+            STRBUF a_file = joinstr(CSTR(a_name), ".txt");
+            STRBUF b_file = joinstr(CSTR(b_name), ".txt");
+
+            int a_index = course_bundle_index(CSTR(a_file));
+            int b_index = course_bundle_index(CSTR(b_file));
+
+            if (a_index >= 0 && b_index < 0)
+                return -1;
+
+            if (b_index >= 0 && a_index < 0)
+                return +1;
+
+            if (a_index >= 0 && b_index >= 0)
+                return a_index - b_index;
+        }
+    }
+
+    // Rest are ordered by id (e.g., "set-mym").
+
+    return SDL_strcasecmp(a->id, b->id);
 }
 
 /*---------------------------------------------------------------------------*/
 
 const char *course_name(int i)
 {
+    static char name[MAXSTR];
+
+    if (course_exists(i))
+    {
+        const char *p = strchr(course_v[i].desc, '\\');
+
+        if (p)
+        {
+            size_t len = p - course_v[i].desc;
+
+            if (len >= sizeof (name))
+                len = sizeof (name) - 1;
+
+            strncpy(name, course_v[i].desc, len);
+            name[len] = '\0';
+
+            return name;
+        }
+        return course_v[i].desc;
+    }
     return "";
 }
 
@@ -298,7 +472,11 @@ const char *course_desc(int i)
 
 const char *course_shot(int i)
 {
-    return course_exists(i) ? course_v[i].shot : course_v[0].shot;
+    if (course_exists(i))
+        return course_v[i].shot;
+    if (count > 0)
+        return course_v[0].shot;
+    return "";
 }
 
 /*---------------------------------------------------------------------------*/

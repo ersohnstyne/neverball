@@ -191,6 +191,7 @@ int CONFIG_KEY_RESTART;
 int CONFIG_KEY_SCORE_NEXT;
 int CONFIG_KEY_ROTATE_FAST;
 int CONFIG_VIEW_FOV;
+int CONFIG_VIEW_FOV_NOSTALGIC;
 int CONFIG_VIEW_DP;
 int CONFIG_VIEW_DC;
 int CONFIG_VIEW_DZ;
@@ -229,6 +230,7 @@ int CONFIG_TOUCH_MODE;
 int CONFIG_TOUCH_ROTATE_INVERT;
 
 int CONFIG_ONLINE;
+int CONFIG_GAME;
 
 int CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY;
 int CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET;
@@ -391,7 +393,8 @@ static struct
     { &CONFIG_KEY_SCORE_NEXT,    "key_score_next",    SDLK_TAB },
     { &CONFIG_KEY_ROTATE_FAST,   "key_rotate_fast",   SDLK_LSHIFT },
 
-    { &CONFIG_VIEW_FOV,    "view_fov",    50 },
+    { &CONFIG_VIEW_FOV,           "view_fov",           50 },
+    { &CONFIG_VIEW_FOV_NOSTALGIC, "view_fov_nostalgic", 0 },
     { &CONFIG_VIEW_DP,     "view_dp",     75 },
     { &CONFIG_VIEW_DC,     "view_dc",     25 },
     { &CONFIG_VIEW_DZ,     "view_dz",     200 },
@@ -431,6 +434,7 @@ static struct
     { &CONFIG_TOUCH_ROTATE_INVERT, "touch_rotate_invert", 0 },
 
     { &CONFIG_ONLINE, "online", 1 },
+    { &CONFIG_GAME, "game", GAME_BALL },
 
     { &CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY,    "advanced_gameplay_autoretry",   1 },
     { &CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET,  "advanced_gameplay_fasterreset", 0 },
@@ -955,6 +959,8 @@ void config_save(void)
                     continue;
             }
 #endif
+            else if (i == CONFIG_GAME)
+                continue;
 
             if (s)
                 fs_printf(fh, "%-25s %s\n", option_d[i].name, s);
@@ -1174,6 +1180,18 @@ int config_online(void)
 #else
     return 0;
 #endif
+}
+
+/*---------------------------------------------------------------------------*/
+
+int config_ball(void)
+{
+    return config_get_d(CONFIG_GAME) == GAME_BALL;
+}
+
+int config_putt(void)
+{
+    return config_get_d(CONFIG_GAME) == GAME_PUTT;
 }
 
 /*---------------------------------------------------------------------------*/

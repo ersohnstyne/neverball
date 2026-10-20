@@ -103,7 +103,7 @@ static void view_init(void)
     view_e[2][2] = 1.f;
 }
 
-int game_init(const char *s)
+int putt_init(const char *s)
 {
     int i;
 
@@ -146,33 +146,35 @@ int game_init(const char *s)
     return 1;
 }
 
-void game_free(void)
+void putt_free(void)
 {
     personal_respawnable = 0;
+
     sol_free_full(&file);
 }
 
-void game_free_objects(void)
+void putt_free_objects(void)
 {
     if (state)
         sol_free_draw(&file.draw);
 }
 
-void game_load_objects(void)
+int putt_load_objects(void)
 {
     if (state)
         sol_load_draw(&file.draw, &file.vary, config_get_d(CONFIG_SHADOW));
+    return 1;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void game_kill_fade(void)
+void putt_kill_fade(void)
 {
     fade_k = 0.0f;
     fade_d = 0.0f;
 }
 
-void game_step_fade(float dt)
+void putt_step_fade(float dt)
 {
     if ((fade_k < 1.0f && fade_d > 0.0f) ||
         (fade_k > 0.0f && fade_d < 0.0f))
@@ -190,27 +192,14 @@ void game_step_fade(float dt)
     }
 }
 
-void game_fade(float d)
+void putt_fade(float d)
 {
     fade_d = d;
 }
 
 /*---------------------------------------------------------------------------*/
 
-void game_free_objects(void)
-{
-    if (state)
-        sol_free_draw(&file.draw);
-}
-
-int game_load_objects(void)
-{
-    if (state)
-        sol_load_draw(&file.draw, &file.vary, config_get_d(CONFIG_SHADOW));
-    return 1;
-}
-
-static void game_draw_vect(struct s_rend *rend, const struct s_vary *fp)
+static void putt_draw_vect(struct s_rend *rend, const struct s_vary *fp)
 {
     if (view_m > 0.f)
     {
@@ -229,7 +218,7 @@ static void game_draw_vect(struct s_rend *rend, const struct s_vary *fp)
     }
 }
 
-static void game_draw_balls(struct s_rend *rend,
+static void putt_draw_balls(struct s_rend *rend,
                             const struct s_vary *fp,
                             const float *bill_M, float t)
 {
@@ -313,7 +302,7 @@ static void game_draw_balls(struct s_rend *rend,
     r_color_mtrl(rend, 0);
 }
 
-static void game_draw_flags(struct s_rend *rend, const struct s_base *fp)
+static void putt_draw_flags(struct s_rend *rend, const struct s_base *fp)
 {
     int zi;
 
@@ -321,7 +310,7 @@ static void game_draw_flags(struct s_rend *rend, const struct s_base *fp)
         flag_draw(rend, fp->zv[zi].p);
 }
 
-static void game_draw_beams(struct s_rend *rend, const struct s_base *bp,
+static void putt_draw_beams(struct s_rend *rend, const struct s_base *bp,
                                                  const struct s_vary *vp)
 {
     static const GLfloat goal_c[4]       =   { 1.0f, 1.0f, 0.0f, 0.5f };
@@ -360,7 +349,7 @@ static void game_draw_beams(struct s_rend *rend, const struct s_base *bp,
 
 /*---------------------------------------------------------------------------*/
 
-static void game_shadow_conf(int enable)
+static void putt_shadow_conf(int enable)
 {
     if (enable && config_get_d(CONFIG_SHADOW))
     {
@@ -375,7 +364,7 @@ static void game_shadow_conf(int enable)
     }
 }
 
-void game_draw(int pose, float t)
+void putt_draw(int pose, float t)
 {
     const float light_p[4] = { 8.f, 32.f, 8.f, 0.f };
 
@@ -389,7 +378,7 @@ void game_draw(int pose, float t)
 
     fp->shadow_ui = ball;
 
-    game_shadow_conf(1);
+    putt_shadow_conf(1);
     r_draw_enable(&rend);
 
     if (jump_b) fov *= 2.0f * fabsf(jump_dt - 0.5f);
@@ -446,14 +435,14 @@ void game_draw(int pose, float t)
 
         if (pose == 0)
         {
-            game_draw_balls(&rend, fp->vary, T, t);
-            game_draw_vect(&rend, fp->vary);
+            putt_draw_balls(&rend, fp->vary, T, t);
+            putt_draw_vect(&rend, fp->vary);
         }
 
         glDepthMask(GL_FALSE);
         {
-            game_draw_flags(&rend, fp->base);
-            game_draw_beams(&rend, fp->base, fp->vary);
+            putt_draw_flags(&rend, fp->base);
+            putt_draw_beams(&rend, fp->base, fp->vary);
         }
         glDepthMask(GL_TRUE);
 
@@ -471,12 +460,12 @@ void game_draw(int pose, float t)
     sol_fade(fp, &rend, fade_k);
 
     r_draw_disable(&rend);
-    game_shadow_conf(0);
+    putt_shadow_conf(0);
 }
 
 /*---------------------------------------------------------------------------*/
 
-void game_update_view(float dt)
+void putt_update_view(float dt)
 {
     const float y[3] = { 0.f, 1.f, 0.f };
 
@@ -543,7 +532,7 @@ void game_update_view(float dt)
     view_a = V_DEG(fatan2f(view_e[2][0], view_e[2][2]));
 }
 
-static int game_update_state(float dt)
+static int putt_update_state(float dt)
 {
     static float t = 0.f;
 
@@ -592,7 +581,7 @@ static int game_update_state(float dt)
         v_cpy(personal_respawnable_view_c, view_c);
         personal_respawnable = 1;
 
-        return GAME_FALL;
+        return PUTT_FALL;
     }
 
     /* Test for a goal or stop. */
@@ -600,17 +589,17 @@ static int game_update_state(float dt)
     if (t > 1.f && sol_goal_test(fp, p, ball))
     {
         t = 0.f;
-        return GAME_GOAL;
+        return PUTT_GOAL;
     }
 
     if (t > idle_t && roll_force_timeout > 70.0f)
     {
         roll_force_timeout = 0.f;
         t = 0.f;
-        return GAME_STOP;
+        return PUTT_STOP;
     }
 
-    return GAME_NONE;
+    return PUTT_NONE;
 }
 
 /*
@@ -628,7 +617,7 @@ static int game_update_state(float dt)
  * graphics frame rate.
  */
 
-int game_step(const float g[3], float dt)
+int putt_step(const float g[3], float dt)
 {
     struct s_vary *fp = &file.vary;
 
@@ -641,7 +630,7 @@ int game_step(const float g[3], float dt)
     int i, n = 1, m = 0;
 
     if (!state)
-        return GAME_NONE;
+        return PUTT_NONE;
 
     if (config_cheat())
     {
@@ -699,11 +688,11 @@ int game_step(const float g[3], float dt)
     if (fp->uv[ball].v[0] == 0.0f && fp->uv[ball].v[2] == 0.0f)
         enable_force_timeout = 1;
 
-    game_update_view(dt);
-    return game_update_state(st);
+    putt_update_view(dt);
+    return putt_update_state(st);
 }
 
-void game_putt(void)
+void putt_putt(void)
 {
     enable_force_timeout = 1;
     roll_force_timeout = 0;
@@ -734,17 +723,17 @@ void game_putt(void)
 
 /*---------------------------------------------------------------------------*/
 
-void game_set_rot(int d)
+void putt_set_rot(int d)
 {
     view_a += (float) (30.f * d) / config_get_d(CONFIG_MOUSE_SENSE);
 }
 
-void game_clr_mag(void)
+void putt_clr_mag(void)
 {
     view_m = 1.f;
 }
 
-void game_set_mag(int d)
+void putt_set_mag(int d)
 {
     view_m -= (float) (1.f * d) / config_get_d(CONFIG_MOUSE_SENSE);
 
@@ -761,7 +750,7 @@ void game_set_mag(int d)
     }
 }
 
-void game_set_fly(float k)
+void putt_set_fly(float k)
 {
     struct s_vary *fp = &file.vary;
 
@@ -848,7 +837,7 @@ void game_set_fly(float k)
     view_a = V_DEG(fatan2f(view_e[2][0], view_e[2][2]));
 }
 
-void game_ball(int i)
+void putt_ball(int i)
 {
     enable_force_timeout = 1;
 
@@ -871,7 +860,7 @@ void game_ball(int i)
     }
 }
 
-void game_get_pos(float p[3], float e[3][3])
+void putt_get_pos(float p[3], float e[3][3])
 {
     v_cpy(p,    file.vary.uv[ball].p);
     v_cpy(e[0], file.vary.uv[ball].e[0]);
@@ -879,7 +868,7 @@ void game_get_pos(float p[3], float e[3][3])
     v_cpy(e[2], file.vary.uv[ball].e[2]);
 }
 
-void game_set_pos(float p[3], float e[3][3])
+void putt_set_pos(float p[3], float e[3][3])
 {
     v_cpy(file.vary.uv[ball].p,    p);
     v_cpy(file.vary.uv[ball].e[0], e[0]);
@@ -887,7 +876,7 @@ void game_set_pos(float p[3], float e[3][3])
     v_cpy(file.vary.uv[ball].e[2], e[2]);
 }
 
-void game_set_fast(int d)
+void putt_set_fast(int d)
 {
     if (!config_cheat())
     {

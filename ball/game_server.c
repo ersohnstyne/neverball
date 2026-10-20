@@ -1447,7 +1447,7 @@ int game_server_init(const char *file_name, int t, int e)
     lockstep_clr(&server_step);
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    EM_ASM({ Pennyball._current_map_name = UTF8ToString($0); }, file_name);
+    EM_ASM({ Neverball._current_map_name = UTF8ToString($0); }, file_name);
 #endif
 
     return server_state;
@@ -2350,7 +2350,7 @@ static int game_step(const float g[3], float dt, int bt)
                 float k = (b - 0.5f) * 2.0f;
 
 #ifdef __EMSCRIPTEN__
-                EM_ASM({ Pennyball.events.vibratePhone($1); Pennyball.events.vibrateGamepad($0, $1); }, k, 0.2f);
+                EM_ASM({ Neverball.events.vibratePhone($1); Neverball.events.vibrateGamepad($0, $1); }, k, 0.2f);
 #endif
 
                 if      (vary.uv->r > vary.uv->sizes[1]) audio_play(AUD_BUMPL, k);
@@ -2442,18 +2442,18 @@ static void game_server_iter(float dt)
             /* HACK: OK, but now, with WGCL's Emscripten first! */
 
             const int r = EM_ASM_INT({
-                return Pennyball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
+                return Neverball.gamecore_mapmarker_try_place(UTF8ToString($0), $1, $2, $3, $4);
             }, server_base.path, status,
                ROUND(vary.uv[CURR_PLAYER].p[0] * 100), ROUND(vary.uv[CURR_PLAYER].p[1] * 100), ROUND(vary.uv[CURR_PLAYER].p[2] * 100));
 #elif defined(__EMSCRIPTEN__)
             const int r1 = EM_ASM_INT({
                 const server_internal_url = "/api/internal/mapmarkers/place";
-                const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
+                const external_url = "https://neverball.stynegame.de/api/internal/mapmarkers/place";
 
                 try {
                     const parsedUrl = new URL(window.location.href);
 
-                    const regexMatchURL = "/pennyball\.stynegame\.de$/";
+                    const regexMatchURL = "/neverball\.stynegame\.de$/";
                     if (regexMatchURL instanceof RegExp) {
                         return regexMatchURL.test(parsedUrl.href) ? 1 : 0;
                     } else if (typeof regexMatchURL === "string") {
@@ -2464,7 +2464,7 @@ static void game_server_iter(float dt)
 
             EM_ASM({
                 const server_internal_url = "/api/internal/mapmarkers/place";
-                const external_url = "https://pennyball.stynegame.de/api/internal/mapmarkers/place";
+                const external_url = "https://neverball.stynegame.de/api/internal/mapmarkers/place";
 
                 fetch($0 == 1 ? server_internal_url : external_url, {
                     method: "POST", credentials: "include", mode : "cors",

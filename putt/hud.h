@@ -17,17 +17,17 @@
 
 /*---------------------------------------------------------------------------*/
 
-void toggle_hud_visibility(int);
-int  hud_visibility(void);
+void putt_toggle_hud_visibility(int);
+int  putt_hud_visibility(void);
 
-void hud_init(void);
-void hud_free(void);
+void putt_hud_init(void);
+void putt_hud_free(void);
 
-void hud_paint(void);
-void hud_timer(float);
-void hud_set_alpha(float);
-void hud_show(float);
-void hud_hide(void);
+void putt_hud_paint(void);
+void putt_hud_timer(float);
+void putt_hud_set_alpha(float);
+void putt_hud_show(float);
+void putt_hud_hide(void);
 
 /*---------------------------------------------------------------------------*/
 

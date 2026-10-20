@@ -184,7 +184,7 @@ static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
     curl_easy_setopt(handle, CURLOPT_WRITEDATA,     out_data);
 
 #if NB_HAVE_PB_BOTH==1
-    curl_easy_setopt(handle, CURLOPT_USERAGENT, "pennyball/" VERSION);
+    curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
 #else
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
 #endif
@@ -252,7 +252,7 @@ static CURL *account_wgcl_curl_prepare_post(const char *url, const char *in_json
     curl_easy_setopt(handle, CURLOPT_WRITEDATA,     out_data);
 
 #if NB_HAVE_PB_BOTH==1
-    curl_easy_setopt(handle, CURLOPT_USERAGENT, "pennyball/" VERSION);
+    curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
 #else
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "neverball/" VERSION);
 #endif
@@ -292,7 +292,7 @@ static void account_wgcl_curl_quit(CURL *handle)
 
 /*---------------------------------------------------------------------------*/
 
-#define WGCL_URL "pennyball.stynegame.de"
+#define WGCL_URL "neverball.stynegame.de"
 
 static int managed_buy_is_pending = 0;
 
@@ -323,18 +323,18 @@ static struct state *st_kick_return;
 
 static void account_wgcl_visit_browser_login()
 {
-    log_errorf("Calling URL!: pennyball.stynegame.de/login\n");
+    log_errorf("Calling URL!: neverball.stynegame.de/login\n");
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__EMSCRIPTEN__)
 #if !defined(__SWITCH__)
 #if _WIN32
-    system("explorer https://pennyball.stynegame.de/login");
+    system("explorer https://neverball.stynegame.de/login");
 #elif defined(__APPLE__)
-    system("open https://pennyball.stynegame.de/login");
+    system("open https://neverball.stynegame.de/login");
 #elif defined(__linux__)
-    system("x-www-browser https://pennyball.stynegame.de/login");
+    system("x-www-browser https://neverball.stynegame.de/login");
 #endif
 #endif
 #endif
@@ -981,7 +981,7 @@ int account_wgcl_logout(void)
 
     read_only = 0;
 
-    fs_remove("pennyball_wgcl.dat");
+    fs_remove("neverball_wgcl.dat");
     return 1;
 }
 

@@ -39,8 +39,6 @@ static int   package_curr_category = PACKAGE_CATEGORY_LEVELSET;
 
 static cmp_fn cmp_available_packages_fn;
 
-static cmp_fn cmp_available_packages_fn;
-
 #define PACKAGE_GET(a, i) ((struct package *) array_get((a), (i)))
 
 #define PACKAGE_DIR "DLC"
@@ -56,6 +54,7 @@ static cmp_fn cmp_available_packages_fn;
 /*
  * Get a download URL.
  */
+
 #define PACKAGE_BASE_URL "https://play.neverball.org/packages/"
 
 static const char *get_package_url(const char *filename, int category)
@@ -727,7 +726,7 @@ static void available_packages_done(void *data, void *extra_data)
 {
     struct package_list_info *pli = data;
     struct fetch_done *fd = extra_data;
-    
+
     if (fd && fd->success)
     {
         const char *filename = get_package_path("available-packages.txt");
@@ -1028,6 +1027,36 @@ const char *package_get_formatted_type(int pi)
     }
 
     return type;
+}
+
+const char *package_get_formatted_desc(int pi)
+{
+    const char *desc = package_get_desc(pi);
+
+    if (desc && strcmp(package_get_type(pi), "course") == 0)
+    {
+        const char *p = strpbrk(desc, "\r\n\\");
+
+        if (!p)
+            return "";
+
+        while (*p == '\r' || *p == '\n' || *p == '\\')
+            p++;
+
+        while (*p)
+        {
+            if (*p == ' ' && (p[1] == '\r' || p[1] == '\n' || p[1] == '\\'))
+                p++;
+            else if (*p == '\r' || *p == '\n' || *p == '\\')
+                p++;
+            else
+                break;
+        }
+
+        return p;
+    }
+
+    return desc;
 }
 
 /*---------------------------------------------------------------------------*/

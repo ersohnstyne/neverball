@@ -27,9 +27,12 @@ void course_free(void);
 
 int  course_exists(int);
 int  course_count(void);
+int  course_find(const char *);
+int  course_bundle_index(const char *);
 void course_goto(int);
 int  course_curr(void);
 void course_rand(void);
+int  course_cmp_available_packages(const void *, const void *);
 
 const char *course_name(int);
 const char *course_desc(int);

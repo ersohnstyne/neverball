@@ -917,7 +917,7 @@ static int game_setup_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
                             if (val == 0)
-                                game_setup_openlink("https://pennyball.stynegame.de/terms");
+                                game_setup_openlink("https://neverball.stynegame.de/terms");
                             else if (val == 1)
                                 game_setup_openlink("https://discord.com/terms");
                             else if (val == 2)
@@ -1486,7 +1486,7 @@ static int game_setup_install_confirm_gui(void)
                 gui_space(id);
 #if NB_HAVE_PB_BOTH==1
                 gui_label(id, _("There are no new updates right now.\n"
-                                "An update may be available for download at pennyball.stynegame.de"),
+                                "An update may be available for download at neverball.stynegame.de"),
                               GUI_TNY, GUI_COLOR_WHT);
 #else
                 gui_label(id, _("There are no new updates right now.\n"

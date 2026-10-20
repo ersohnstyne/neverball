@@ -12,8 +12,8 @@
  * General Public License for more details.
  */
 
-#ifndef GAME_H
-#define GAME_H
+#ifndef PUTT_H
+#define PUTT_H
 
 /*---------------------------------------------------------------------------*/
 
@@ -36,7 +36,7 @@
 #define AUD_SWITCH     "snd/switch.ogg"
 #define AUD_SUCCESS  _("snd/success.ogg")
 
-/* Same as Switchball? */
+/* Same as Neverball? */
 
 #define AUD_BACK    "snd/back.ogg"
 
@@ -51,43 +51,43 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define MAX_DT  (1.0f / 60.0f)         /* Maximum physics update cycle       */
+#define MAX_DT  (1.0f / 90.0f)         /* Maximum physics update cycle       */
 #define MAX_DN  16                     /* Maximum subdivisions of dt         */
 #define FOV     50.00f                 /* Field of view                      */
 #define RESPONSE 0.05f                 /* Input smoothing time               */
 
-#define GAME_NONE 0
-#define GAME_STOP 1
-#define GAME_GOAL 2
-#define GAME_FALL 3
+#define PUTT_NONE 0
+#define PUTT_STOP 1
+#define PUTT_GOAL 2
+#define PUTT_FALL 3
 
 /*---------------------------------------------------------------------------*/
 
-int  game_init(const char *);
-void game_free(void);
-void game_free_objects(void);
-int  game_load_objects(void);
+int  putt_init(const char *);
+void putt_free(void);
+void putt_free_objects(void);
+int  putt_load_objects(void);
 
-void game_kill_fade(void);
-void game_step_fade(float);
-void game_fade(float d);
+void putt_kill_fade(void);
+void putt_step_fade(float);
+void putt_fade(float d);
 
-void game_draw(int, float);
-void game_putt(void);
-int  game_step(const float[3], float);
+void putt_draw(int, float);
+void putt_putt(void);
+int  putt_step(const float[3], float);
 
-void game_update_view(float);
+void putt_update_view(float);
 
-void game_set_rot(int);
-void game_clr_mag(void);
-void game_set_mag(int);
-void game_set_fly(float);
+void putt_set_rot(int);
+void putt_clr_mag(void);
+void putt_set_mag(int);
+void putt_set_fly(float);
 
-void game_ball(int);
-void game_set_pos(float[3], float[3][3]);
-void game_get_pos(float[3], float[3][3]);
+void putt_ball(int);
+void putt_set_pos(float[3], float[3][3]);
+void putt_get_pos(float[3], float[3][3]);
 
-void game_set_fast(int);
+void putt_set_fast(int);
 
 /*---------------------------------------------------------------------------*/
 

@@ -990,7 +990,7 @@ static int ball_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b) &&
             ST_BALL_GETMORE_AVAILABLE)
             return ball_action(server_policy_get_d(SERVER_POLICY_EDITION) < 0 ?
-                MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
+                               MODEL_UPGRADE_EDITION : MODEL_ONLINE, 0);
 #endif
     }
     return 1;

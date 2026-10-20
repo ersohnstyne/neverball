@@ -218,7 +218,7 @@ static int set_long_loading_cancel_all = 0;
 #if ENABLE_MOON_TASKLOADER!=0
 static int start_is_scanning_with_moon_taskloader = 0;
 
-static int start_scan_moon_taskloader(void* data, void* execute_data)
+static int start_scan_moon_taskloader(void *data, void *execute_data)
 {
     set_long_loading = 0;
     set_scan_level_files();
@@ -226,7 +226,7 @@ static int start_scan_moon_taskloader(void* data, void* execute_data)
     return 1;
 }
 
-static void start_scan_done_moon_taskloader(void* data, void* done_data)
+static void start_scan_done_moon_taskloader(void *data, void *done_data)
 {
     start_is_scanning_with_moon_taskloader = 0;
     set_long_loading = 0;
@@ -248,7 +248,7 @@ static int set_level_play(int i)
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
     EM_ASM({
-        Neverball.gamecore_levelmap_load($0, UTF8ToString($1), false);
+        Pennyball.gamecore_levelmap_load($0, UTF8ToString($1), false);
     }, l->num_indiv_theme, l->song);
 
     start_play_level_state_time = time_state() + 0.2;
@@ -679,7 +679,7 @@ static int start_gui(void)
     file_id = 0;
 #endif
     challenge_id = 0;
-    
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (campaign_used())
     {
@@ -736,10 +736,6 @@ static int start_gui(void)
         }
         else return 0;
     }
-
-    shot_id = 0;
-    file_id = 0;
-    challenge_id = 0;
 
     if ((id = gui_vstack(0)))
     {
@@ -921,6 +917,7 @@ static int start_gui(void)
 #else
             const int scoreboard_flags = (GUI_SCORE_COIN | GUI_SCORE_TIME | GUI_SCORE_GOAL);
 #endif
+
             gui_space(jd);
             gui_score_board(jd, scoreboard_flags, 0, 0);
 
@@ -955,7 +952,7 @@ static int start_gui(void)
 
                     gui_space(kd);
 
-                    ld = gui_label(kd, _("Completed Levels"),
+                    ld = gui_label(kd, _("Goal State in Completed Levels"),
                                        GUI_SML, 0, 0);
 
                     gui_set_trunc(ld, TRUNC_TAIL);
@@ -1671,7 +1668,7 @@ static int start_joinrequired_action(int tok, int val)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
 #if defined(__EMSCRIPTEN__)
-            EM_ASM({ window.open("https://pennyball.stynegame.de/", "_blank");});
+            EM_ASM({ window.open("https://pennyball.stynegame.de/", "_blank"); });
 #elif _WIN32
             system("explorer https://pennyball.stynegame.de/");
 #elif defined(__APPLE__)
@@ -1864,14 +1861,6 @@ static int start_joinrequired_buttn(int b, int d)
             return start_joinrequired_action(GUI_BACK, 0);
     }
     return 1;
-}
-
-static int start_leave(struct state *st, struct state *next, int id, int intent)
-{
-    if (snap.active)
-        start_snap_finish();
-
-    return shared_leave(st, next, id, intent);
 }
 
 /*---------------------------------------------------------------------------*/

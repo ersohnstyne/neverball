@@ -990,13 +990,26 @@ void game_client_free_objects(void)
     }
 }
 
-void game_client_load_objects(void)
+int game_client_load_objects(void)
 {
     if (gd.state)
     {
-        sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW));
-        sol_load_draw(&gd.back.draw, &gd.back.vary, 0);
+        const int load_draw_done      = sol_load_draw(&gd.draw, &gd.vary, config_get_d(CONFIG_SHADOW));
+        const int load_draw_back_done = sol_load_draw(&gd.back.draw, &gd.back.vary, 0);
+
+        if (!load_draw_done || !load_draw_back_done)
+        {
+            game_client_free_objects();
+            return 0;
+        }
     }
+
+    return 1;
+}
+
+int game_client_get_jump_b(void)
+{
+    return gd.jump_b;
 }
 
 /*---------------------------------------------------------------------------*/

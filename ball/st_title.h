@@ -104,7 +104,14 @@
 
 #define TITLE_PLATFORM_ANAZON_FIRE  _("Amazon Fire")
 
-extern struct state st_title;
+extern struct state st_ball_title;
+
+/*
+ * This variable name will be redirected to st_ball_title for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `st_ball_title` to `st_title`.
+ */
+#define st_title st_ball_title
 
 int load_title_background(void);
 

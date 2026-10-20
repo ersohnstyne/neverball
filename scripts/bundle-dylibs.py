@@ -7,7 +7,6 @@ into a macOS application bundle's Frameworks directory.
 
 import argparse
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -25,7 +24,6 @@ def get_dependencies(path):
             if not (dep.startswith("/usr/lib/") or dep.startswith("/System/Library/")):
                 deps.append(dep)
     return deps
-
 
 def main():
     parser = argparse.ArgumentParser(description="Bundle and relink dynamic libraries into macOS bundle.")

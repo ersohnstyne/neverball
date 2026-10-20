@@ -248,7 +248,7 @@ static int   devicemotion_tilt_can_autocalibrate;
 static int   devicemotion_tilt_init_x;
 static int   devicemotion_tilt_init_y;
 
-int play_pause_goto(struct state *returnable)
+int goto_ball_pause(struct state *returnable)
 {
     play_freeze_all = 1;
 
@@ -1527,7 +1527,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
         {
             touch_arrow_enabled = 0;
             game_client_maxspeed(0.0f, touch_arrow_enabled);
-            play_pause_goto(curr_state());
+            goto_ball_pause(curr_state());
         }
         else if (token == GUI_CAMERA)
             next_camera();

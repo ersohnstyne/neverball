@@ -78,6 +78,7 @@
 #include "st_package.h"
 #endif
 #include "st_play.h"
+#include "../putt/st_all.h"
 
 #if NB_HAVE_PB_BOTH==1
 #include "st_wgcl.h"
@@ -235,8 +236,8 @@ static const char *check_unlocked_demo(struct demo *raw_demo)
             case 3: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_FALL; Limit: GAME_TIME\n", raw_demo->path); break;
         } else
         if (limit == 1) switch (raw_demo->status) {
-            case 1: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_TIME; Limit: GAME_GOAL\n", raw_demo->path); break;
-            case 3: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_FALL; Limit: GAME_GOAL\n", raw_demo->path); break;
+            case 1: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_TIME; Limit: PUTT_GOAL\n", raw_demo->path); break;
+            case 3: log_errorf("%s: Current level status exceeds level status limit!: Current: GAME_FALL; Limit: PUTT_GOAL\n", raw_demo->path); break;
         }
     }
 #endif
@@ -384,6 +385,7 @@ enum
     TITLE_DEMO,
     TITLE_CONF,
     TITLE_PACKAGES,
+    TITLE_PUTT,
 
     TITLE_UNLOCK_FULL_GAME = 99,
 
@@ -417,9 +419,9 @@ static void title_refresh_packages_done(void *data1, void *data2)
     if (dn->success)
     {
 #if NB_HAVE_PB_BOTH == 1
-        goto_wgcl_addons_login(0, &st_title, 0);
+        goto_wgcl_addons_login(0, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), 0);
 #else
-        goto_package(0, &st_title);
+        goto_package(0, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
 #endif
     }
     else audio_play("snd/uierror.ogg", 1.0f);
@@ -512,13 +514,13 @@ static int title_action(int tok, int val)
         case TITLE_PLAY:
 #if NB_HAVE_PB_BOTH==1
 #ifdef __EMSCRIPTEN__
-            account_wgcl_autokick_state_prepare(&st_title);
+            account_wgcl_autokick_state_prepare(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
             if (EM_ASM_INT({ return navigator.onLine ? 1 : 0; }))
                 return goto_playgame();
 #else
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
                 !account_wgcl_name_read_only())
-                return goto_wgcl_login(&st_title, 0, 0, title_goto_playgame);
+                return goto_wgcl_login(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), 0, 0, title_goto_playgame);
 #endif
 #endif
 
@@ -529,7 +531,7 @@ static int title_action(int tok, int val)
 #ifdef CONFIG_INCLUDES_ACCOUNT
         case TITLE_SHOP:
 #ifdef __EMSCRIPTEN__
-            account_wgcl_autokick_state_prepare(&st_title);
+            account_wgcl_autokick_state_prepare(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
 #endif
             return goto_shop(curr_state(), 0);
             break;
@@ -539,15 +541,19 @@ static int title_action(int tok, int val)
         case TITLE_CONF:
             game_fade(+4.0);
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
-            WGCL_InitGameOptions(&st_title);
+            WGCL_InitGameOptions(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
             return goto_state(&st_null);
 #else
-            return goto_conf(&st_title, 0, 0);
+            return goto_conf(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), 0, 0);
 #endif
             break;
 #if ENABLE_FETCH
         case TITLE_PACKAGES: return title_refresh_packages(); break;
 #endif
+        case TITLE_PUTT:
+            config_set_d(CONFIG_GAME, GAME_PUTT);
+            return goto_state(&st_putt_title);
+            break;
 #if NB_HAVE_PB_BOTH!=1
         case TITLE_UNLOCK_FULL_GAME:
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -1302,6 +1308,12 @@ static int title_gui(void)
     !defined(__SWITCH__)
             if ((id = gui_vstack(root_id)))
             {
+                const int w = video.device_w;
+                const int h = video.device_h;
+
+                const int ww = MIN(w, h) / flerp(14, 16, 0.5f);
+                const int hh = ww;
+
                 if ((jd = gui_hstack(id)))
                 {
 #if NB_HAVE_PB_BOTH==1
@@ -1321,13 +1333,36 @@ static int title_gui(void)
                          i >= 0; i--)
                     {
                         int btn_social = gui_image(jd, title_social_image_paths[i],
-                                                       video.device_h / 16,
-                                                       video.device_h / 16);
+                                                       ww, hh);
 
                         gui_set_state(btn_social, TITLE_SOCIAL, i);
-
                         gui_clr_rect(btn_social);
                     }
+
+                    int kd = gui_image(jd, "gui/neverputt-modern-256.png", ww, hh);
+                    gui_set_state(kd, TITLE_PUTT, 0);
+
+                    gui_space(jd);
+                    gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
+                }
+
+                gui_space(id);
+                gui_layout(id, -1, -1);
+            }
+#else
+
+            if ((id = gui_vstack(root_id)))
+            {
+                const int w = video.device_w;
+                const int h = video.device_h;
+
+                const int ww = MIN(w, h) / flerp(14, 16, 0.5f);
+                const int hh = ww;
+
+                if ((jd = gui_hstack(id)))
+                {
+                    int kd = gui_image(jd, "gui/neverputt-modern-256.png", ww, hh);
+                    gui_set_state(kd, TITLE_PUTT, 0);
 
                     gui_space(jd);
                     gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
@@ -1407,6 +1442,9 @@ static int title_gui(void)
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__)
             if ((id = gui_vstack(root_id)))
             {
+                const int w = video.device_w;
+                const int h = video.device_h;
+
                 if (config_online())
                 {
                     if ((jd = gui_hstack(id)))
@@ -1464,7 +1502,7 @@ static int title_gui(void)
                 }
 #endif
                 gui_space(id);
-                gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
+                gui_set_slide(id, GUI_N | GUI_S | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
 
                 gui_layout(id, +1, -1);
             }
@@ -1554,7 +1592,7 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 
     const int title_gui_main = !title_lockscreen && title_check_wgcl() ? title_gui_wgcl() : title_gui();
 
-    if (prev == &st_title)
+    if (prev == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
         return title_gui_main;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -1616,7 +1654,7 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
 {
     title_gui_wgcl_version_enabled = 0;
 
-    if (title_lockscreen && next == &st_title)
+    if (title_lockscreen && next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
     {
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
         {
@@ -1876,7 +1914,7 @@ static int title_click(int b, int d)
         title_can_unlock = 0;
 
         title_play_narrator_welcome();
-        return goto_state(&st_title);
+        return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
     }
 #if NB_HAVE_PB_BOTH!=1 && !defined(__EMSCRIPTEN__)
     else if (!title_lockscreen && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
@@ -1900,7 +1938,7 @@ static int title_keybd(int c, int d)
         if (c == SDLK_TAB && config_online()) {
             title_swap_help_and_addons = !title_swap_help_and_addons;
             audio_play(title_swap_help_and_addons ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
-            return goto_state(&st_title);
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
         }
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -1943,7 +1981,7 @@ static int title_buttn(int b, int d)
             title_can_unlock = 0;
 
             title_play_narrator_welcome();
-            return goto_state(&st_title);
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
         }
 
         return 1;
@@ -1958,7 +1996,7 @@ static int title_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && config_online()) {
             title_swap_help_and_addons = !title_swap_help_and_addons;
             audio_play(title_swap_help_and_addons ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
-            return goto_state(&st_title);
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return title_action(gui_token(active), gui_value(active));
@@ -1986,7 +2024,7 @@ static int title_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
-struct state st_title = {
+struct state st_ball_title = {
     title_enter,
     title_leave,
     title_paint,  /* Default: shared_paint */

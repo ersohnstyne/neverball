@@ -65,6 +65,7 @@
 #include "st_title.h"
 #include "st_conf.h"
 #include "st_shared.h"
+#include "../putt/st_all.h"
 
 #if NB_HAVE_PB_BOTH==1 && !defined(SKIP_END_SUPPORT)
 #include "st_end_support.h"
@@ -83,7 +84,7 @@
     do { \
         return networking_connected() == 1 ? \
                goto_state(MAINTENANCE_HOLD ? &st_server_maintenance : \
-                          (CHECK_ACCOUNT_ENABLED ? &st_title : \
+                          (CHECK_ACCOUNT_ENABLED ? (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
                                                    &st_intro_accn_disabled)) : \
                goto_state(networking_connected() == 2 ? \
                           &st_intro_waitinternet : \
@@ -94,7 +95,7 @@
     do { \
                networking_connected() == 1 ? \
                goto_state(MAINTENANCE_HOLD ? &st_server_maintenance : \
-                          (CHECK_ACCOUNT_ENABLED ? &st_title : \
+                          (CHECK_ACCOUNT_ENABLED ? (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
                                                    &st_intro_accn_disabled)) : \
                goto_state(networking_connected() == 2 ? \
                           &st_intro_waitinternet : \
@@ -105,7 +106,7 @@
     do { \
         return goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 (CHECK_ACCOUNT_ENABLED ? &st_title : \
+                                 (CHECK_ACCOUNT_ENABLED ? (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
                                                           &st_intro_accn_disabled)) : \
                                 (networking_connected() == 2 ? \
                                  &st_intro_waitinternet : \
@@ -116,7 +117,7 @@
     do { \
                goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 (CHECK_ACCOUNT_ENABLED ? &st_title : \
+                                 (CHECK_ACCOUNT_ENABLED ? (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
                                                           &st_intro_accn_disabled)) : \
                                 (networking_connected() == 2 ? \
                                  &st_intro_waitinternet : \
@@ -128,7 +129,7 @@
     do { \
         return goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 &st_title) : \
+                                 config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
                                 (networking_connected() == 2 ? \
                                  &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
@@ -138,7 +139,7 @@
     do { \
                goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 &st_title) : \
+                                 config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
                                 (networking_connected() == 2 ? \
                                  &st_intro_waitinternet : \
                                  &st_intro_nointernet)); \
@@ -158,6 +159,11 @@ struct state st_server_maintenance;
 static int intro_init = 0;
 static int intro_page;
 static int intro_done;
+
+int goto_ball_intro(struct state *s)
+{
+    return goto_state(&st_intro);
+}
 
 static int intro_gui(void)
 {
@@ -274,7 +280,7 @@ static int intro_leave(struct state *st, struct state *next, int id, int intent)
     }
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    if (next == &st_title)
+    if (next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
     {
         EM_ASM({ CoreLauncher_EMSDK_RequestAutoSuggest_InputPreset(); });
     }
@@ -399,7 +405,7 @@ static int intro_accn_disabled_action(int tok, int val)
             break;
 
         case ACCOUNT_DISBALED_CANCEL:
-            return goto_state(&st_title);
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
     }
 
     return 1;
@@ -853,7 +859,7 @@ static void nointernet_timer(int id, float dt)
     if (networking_connected() == 1 && !nointernet_transition_busy)
     {
         nointernet_transition_busy = 1;
-        goto_state(&st_title);
+        goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
     }
 }
 
@@ -881,7 +887,7 @@ static int nointernet_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) &&
             networking_standalone())
-            return goto_state(&st_title);
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
     }
     return 1;
 }
@@ -918,7 +924,7 @@ static void waitinternet_timer(int id, float dt)
     else if (networking_connected() == 1)
     {
         connect_done = 1;
-        goto_state(&st_title);
+        goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
     }
 }
 
@@ -949,7 +955,7 @@ static int server_maintenance_action(int tok, int val)
             break;
 
         case MAINTENANCE_OFFLINE:
-            return goto_state(&st_title);
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
             break;
     }
     return 1;
@@ -971,7 +977,7 @@ static int server_maintenance_enter(struct state *st, struct state *prev, int in
                             "You can play offline instead!"),
                           GUI_SML, GUI_COLOR_WHT);
         else gui_multi(id, _("It might take a while until\n"
-                             "the server maintenance is success."),
+                             "the server maintenance is finished."),
                            GUI_SML, GUI_COLOR_WHT);
 
         gui_space(id);

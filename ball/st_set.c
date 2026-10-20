@@ -56,6 +56,7 @@
 #include "st_title.h"
 #include "st_start.h"
 #include "st_shared.h"
+#include "../putt/st_all.h"
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
 #include "st_playmodes.h"
@@ -201,7 +202,7 @@ static int set_action(int tok, int val)
             set_quit();
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
             return exit_state(server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET) ?
-                              &st_title : &st_levelgroup);
+                              config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0) : &st_levelgroup);
 #else
             return exit_state(&st_title);
 #endif
@@ -587,7 +588,7 @@ static int set_gui(void)
 
 static int set_enter(struct state *st, struct state *prev, int intent)
 {
-    if (prev == &st_title ||
+    if (prev == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0) ||
         prev == &st_levelgroup)
         activity_services_group_update(AS_GROUP_LEVELSET);
 
@@ -672,7 +673,7 @@ static int set_leave(struct state *st, struct state *next, int id, int intent)
 {
     do_init = 0;
 
-    if (next == &st_title ||
+    if (next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0) ||
         next == &st_levelgroup)
         activity_services_group_update(AS_GROUP_NONE);
 
@@ -953,7 +954,7 @@ static int campaign_action(int tok, int val)
                 return exit_state(&st_campaign);
             }
             else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-                return exit_state(&st_title);
+                return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
             else return exit_state(&st_levelgroup);
 
         case CAMPAIGN_RANK:
@@ -1058,7 +1059,7 @@ static int campaign_worldselect_carousel_gui(int id)
     int jd, kd, ld, md;
 
     campaign_theme_image_id = 0;
-    campaign_theme_text_id = 0;
+    campaign_theme_text_id  = 0;
 
     if ((jd = gui_hstack(id)))
     {
@@ -1330,7 +1331,7 @@ static void campaign_prepare(struct state *prev)
 
 static int campaign_enter(struct state *st, struct state *prev, int intent)
 {
-    if (prev == &st_title || prev == &st_levelgroup)
+    if (prev == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0) || prev == &st_levelgroup)
         activity_services_group_update(AS_GROUP_CAMPAIGN);
 
     audio_music_fade_to(0.5f, "bgm/inter_local.ogg", 1);
@@ -1365,7 +1366,7 @@ static int campaign_leave(struct state *st, struct state *next, int id, int inte
 {
     campaign_theme_style_carousel = 0;
 
-    if (next == &st_title || next == &st_levelgroup)
+    if (next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0) || next == &st_levelgroup)
         activity_services_group_update(AS_GROUP_NONE);
 
     if (next == &st_levelgroup)
@@ -1450,7 +1451,7 @@ static int levelgroup_action(int tok, int val)
 
     switch (tok)
     {
-        case GUI_BACK: return exit_state(&st_title);
+        case GUI_BACK: return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
 
         case LEVELGROUP_CAMPAIGN:
             if (campaign_init())
@@ -1739,12 +1740,12 @@ int goto_playgame_register(void)
 {
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_CAMPAIGN))
-        return goto_name(&st_campaign, &st_title, goto_playgame_param, 0, 0);
+        return goto_name(&st_campaign, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), goto_playgame_param, 0, 0);
     else if (server_policy_get_d(SERVER_POLICY_LEVELGROUP_ONLY_LEVELSET))
 #endif
-        return goto_name(&st_set, &st_title, goto_playgame_param, 0, 0);
+        return goto_name(&st_set, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), goto_playgame_param, 0, 0);
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    else return goto_name(&st_levelgroup, &st_title, goto_playgame_param, 0, 0);
+    else return goto_name(&st_levelgroup, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), goto_playgame_param, 0, 0);
 #endif
 }
 
@@ -1753,7 +1754,7 @@ int goto_playmenu(int m)
 #if NB_HAVE_PB_BOTH==1
     if (dailychallenge_active_mode()) {
         dailychallenge_exit();
-        return exit_state(&st_title);
+        return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
     }
 #endif
 

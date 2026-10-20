@@ -300,6 +300,11 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\st_title.c" />
     <ClCompile Include="..\ball\st_tutorial.c" />
     <ClCompile Include="..\ball\util.c" />
+    <ClInclude Include="..\putt\course.c" />
+    <ClInclude Include="..\putt\game.c" />
+    <ClInclude Include="..\putt\hole.c" />
+    <ClInclude Include="..\putt\hud.c" />
+    <ClInclude Include="..\putt\st_all.c" />
     <ClCompile Include="..\payments\game_payment_curl.c" />
     <ClCompile Include="..\payments\currency_curl.c" />
     <ClCompile Include="..\payments\parson.c" />
@@ -486,6 +491,11 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\payments\game_payment.h" />
     <ClInclude Include="..\payments\currency.h" />
     <ClInclude Include="..\payments\parson.h" />
+    <ClInclude Include="..\putt\course.h" />
+    <ClInclude Include="..\putt\game.h" />
+    <ClInclude Include="..\putt\hole.h" />
+    <ClInclude Include="..\putt\hud.h" />
+    <ClInclude Include="..\putt\st_all.h" />
     <ClInclude Include="..\share\accessibility.h" />
     <ClInclude Include="..\share\account.h" />
     <ClInclude Include="..\share\account_transfer.h" />

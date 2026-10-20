@@ -50,6 +50,7 @@
 #include "st_title.h"
 #include "st_help.h"
 #include "st_shared.h"
+#include "../putt/st_all.h"
 
 #if NB_HAVE_PB_BOTH==1 && defined(LEVELGROUPS_INCLUDES_CAMPAIGN) &&\
     defined(SWITCHBALL_GUI)
@@ -157,7 +158,7 @@ static int help_action(int tok, int val)
                 help_page_current = 1;
                 return exit_state(&st_help);
             }
-            else return exit_state(&st_title);
+            else return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
 
         case HELP_DEMO:
             progress_reinit(MODE_NONE);
@@ -196,7 +197,7 @@ static int help_action(int tok, int val)
 #else
     switch (tok)
     {
-        case GUI_BACK: return exit_state(&st_title);
+        case GUI_BACK: return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
 
         case HELP_DEMO:
 //#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -1376,10 +1377,10 @@ static int help_gui(void)
                           HELP_SELECT, PAGE_TRICKS);
         }
 
+        vstack_id = id;
         gui_layout(id, 0, 0);
     }
 
-    vstack_id = id;
     return root_id;
 #else
     int id;
@@ -1409,7 +1410,7 @@ static int help_gui(void)
 static int help_enter(struct state *st, struct state *prev, int intent)
 {
 #ifndef SWITCHBALL_HELP
-    if (prev == &st_title)
+    if (prev == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
         page = PAGE_RULES;
 #endif
 
@@ -1508,7 +1509,7 @@ static int help_demo_enter(struct state *st, struct state *prev, int intent)
 
     audio_ambient_play("bgm_ambient/ambient_03.ogg");
     audio_ambient_fade_in(0.5f);
-    game_client_toggle_sound(0);
+    game_client_toggle_sound(1);
     game_client_fly(0.0f);
     demo_replay_speed(SPEED_NORMAL);
     return 0;

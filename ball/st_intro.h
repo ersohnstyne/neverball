@@ -24,4 +24,6 @@ extern struct state st_intro_restore;
 
 extern struct state st_screensaver;
 
+int goto_ball_intro(struct state *);
+
 #endif

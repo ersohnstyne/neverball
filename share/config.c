@@ -231,7 +231,6 @@ int CONFIG_TOUCH_ROTATE_INVERT;
 
 int CONFIG_ONLINE;
 int CONFIG_GAME;
-<<<<<<< HEAD
 
 int CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY;
 int CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET;
@@ -240,8 +239,6 @@ int CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING;
 
 int CONFIG_ADVANCEDGAMING_PERFORMANCE_SUPERWAIFU_ENVTILT;
 int CONFIG_ADVANCEDGAMING_PERFORMANCE_SUPERWAIFU_ENVTILT_WARNING;
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
 /* String options. */
 
@@ -438,7 +435,6 @@ static struct
 
     { &CONFIG_ONLINE, "online", 1 },
     { &CONFIG_GAME, "game", GAME_BALL },
-<<<<<<< HEAD
 
     { &CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY,    "advanced_gameplay_autoretry",   1 },
     { &CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET,  "advanced_gameplay_fasterreset", 0 },
@@ -447,8 +443,6 @@ static struct
 
     { &CONFIG_ADVANCEDGAMING_PERFORMANCE_SUPERWAIFU_ENVTILT,         "advanced_performance_env_tilt",         1 },
     { &CONFIG_ADVANCEDGAMING_PERFORMANCE_SUPERWAIFU_ENVTILT_WARNING, "advanced_performance_env_tilt_warning", 1 },
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 };
 
 static struct
@@ -964,10 +958,7 @@ void config_save(void)
                 if (!config_cheat())
                     continue;
             }
-<<<<<<< HEAD
 #endif
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
             else if (i == CONFIG_GAME)
                 continue;
 
@@ -1204,7 +1195,6 @@ int config_putt(void)
 }
 
 /*---------------------------------------------------------------------------*/
-<<<<<<< HEAD
 
 static int local_username_locked;
 
@@ -1252,5 +1242,3 @@ int config_playername_locked(void)
 }
 
 /*---------------------------------------------------------------------------*/
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b

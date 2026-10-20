@@ -199,15 +199,12 @@ extern "C" {
 #include "../putt/hole.h"
 #include "../putt/course.h"
 
-<<<<<<< HEAD
 #include "main_share.h"
 
 #if __cplusplus
 }
 #endif
 
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 #ifndef GAME_DEFAULT
 #define GAME_DEFAULT GAME_BALL
 #endif
@@ -220,7 +217,6 @@ extern "C" {
 #define GAME_ICON "icon/neverball.png"
 #endif
 
-<<<<<<< HEAD
 #ifdef main
 #undef main
 #endif
@@ -229,14 +225,11 @@ extern "C" {
 /* This fixes some malfunctions instead */
 #define SDL_EVENT_ANTI_MALFUNCTIONS(events) do { events.type = 0; } while (0)
 
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 const char TITLE[] = GAME_TITLE;
 const char ICON[] = GAME_ICON;
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 static_assert(GAME_DEFAULT == 0, "Mismatch game product!: GAME_DEFAULT == GAME_BALL");
 
 static List opt_data_multi = NULL;
@@ -263,21 +256,6 @@ static char *opt_panorama;
     "  -s, --screensaver         show screensaver.\n" \
     "      --safetysetup         show safety video (not yet implemented).\n" \
     "      --touch               force mobile/tablet touch version instead of keyboard.\n" \
-=======
-static char *opt_data;
-static char *opt_replay;
-static char *opt_level;
-static char *opt_link;
-static enum game opt_game = GAME_DEFAULT;
-
-#define opt_usage                                                     \
-    "Usage: %s [options ...]\n"                                       \
-    "Options:\n"                                                      \
-    "      --putt                launch Neverputt\n"                  \
-    "      --ball                launch Neverball\n"                  \
-    "  -h, --help                show this usage message.\n"          \
-    "  -v, --version             show version.\n"                     \
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
     "  -d, --data <dir>          use 'dir' as game data directory.\n" \
     "  -r, --replay <file>       play the replay 'file'.\n" \
     "  -l, --level <file>        load the level 'file'\n" \
@@ -1054,25 +1032,7 @@ static int cmp_available_packages(const void *A, const void *B)
  */
 static void main_preload(struct state *start_state, int (*start_fn)(struct state *))
 {
-<<<<<<< HEAD
     if (config_online())
-=======
-    struct fetch_callback callback = { 0 };
-
-    callback.data = start_state;
-    callback.done = refresh_packages_done;
-
-    goto_state(&st_loading);
-
-    /* To sort packages by sets.txt / courses.txt order, metadata must be loaded first. */
-
-    set_init();
-    course_init();
-
-    /* Link processing works best with a package list. */
-
-    if (package_refresh(callback, cmp_available_packages))
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
     {
         struct fetch_callback callback = {0};
 
@@ -1121,24 +1081,12 @@ static void main_preload(struct state *start_state, int (*start_fn)(struct state
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 #if ENABLE_DEDICATED_SERVER==1
 
 Uint32 DEDICATED_SERVER_EVENT = -1u;
 int networking_ec;
 
 static void dispatch_networking_event(void *data)
-=======
-static void goto_pause(void)
-{
-    if (config_putt())
-        goto_putt_pause(&st_putt_over);
-    else
-        goto_state(&st_pause);
-}
-
-static int loop(void)
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 {
     SDL_Event e;
 
@@ -1444,17 +1392,11 @@ static int loop(void)
                     opt_touch_event.type = SDL_FINGERDOWN;
                     break;
 
-<<<<<<< HEAD
                 case SDL_MOUSEBUTTONUP:
                     opt_touch_anchor     = 0;
                     opt_touch_event.dx   = 0;
                     opt_touch_event.dy   = 0;
                     opt_touch_event.type = SDL_FINGERUP;
-=======
-                case USER_EVENT_PAUSE:
-                    if (video_get_grab())
-                        goto_pause();
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
                     break;
             }
         }
@@ -1518,20 +1460,6 @@ static int loop(void)
                 else if (!opt_touch)
 #endif
                     st_point(ax, ay, dx, dy);
-
-<<<<<<< HEAD
-=======
-        case SDL_KEYUP:
-            d = handle_key_up(&e);
-            break;
-
-        case SDL_WINDOWEVENT:
-            switch (e.window.event)
-            {
-            case SDL_WINDOWEVENT_FOCUS_LOST:
-                if (video_get_grab())
-                    goto_pause();
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
@@ -1877,11 +1805,8 @@ static int handle_installed_action(int pi)
             return goto_state(&st_putt_title);
         }
     }
-<<<<<<< HEAD
 
     log_errorf("%s: That's not the level set or course!\n", package_get_id(pi));
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
     return 1;
 }
@@ -2306,7 +2231,6 @@ static int main_init(int argc, char *argv[])
 
     config_set_d(CONFIG_GAME, opt_game);
 
-<<<<<<< HEAD
     if (!fetch_enable(config_get_d(CONFIG_ONLINE)))
     {
         if (config_online())
@@ -2314,9 +2238,6 @@ static int main_init(int argc, char *argv[])
 
         config_set_d(CONFIG_ONLINE, 0);
     }
-=======
-    fetch_enable(config_get_d(CONFIG_ONLINE));
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
     package_init();
 
@@ -2709,12 +2630,7 @@ int main_share(int argc, char *argv[])
 
     /* Screen states. */
 
-<<<<<<< HEAD
     start_state = config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0);
-=======
-    if (config_putt())
-        start_state = &st_putt_title;
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
     init_state(&st_null);
 
@@ -2746,7 +2662,6 @@ int main_share(int argc, char *argv[])
     else
 #endif
 
-<<<<<<< HEAD
     if (opt_replay &&
         fs_add_path(dir_name(opt_replay)) &&
         progress_replay(base_name(opt_replay)))
@@ -2762,29 +2677,6 @@ int main_share(int argc, char *argv[])
         else
             start_state = &st_end_support;
 #endif
-=======
-        if (config_putt())
-        {
-            if (path)
-            {
-                hole_init(NULL);
-
-                if (hole_load(0, path) &&
-                    hole_load(1, path) &&
-                    hole_goto(1, 1))
-                {
-                    start_state = &st_putt_next;
-                }
-            }
-        }
-        else
-        {
-            if (goto_level(path))
-                start_state = &st_level;
-            else
-                log_printf("File %s is not in game path\n", opt_level);
-        }
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
     }
 
 #ifndef SKIP_END_SUPPORT

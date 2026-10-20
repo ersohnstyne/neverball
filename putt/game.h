@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
@@ -13,8 +12,6 @@
  * General Public License for more details.
  */
 
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 #ifndef PUTT_H
 #define PUTT_H
 
@@ -66,7 +63,6 @@
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 int  putt_init(const char *);
 void putt_free(void);
 void putt_free_objects(void);
@@ -92,27 +88,6 @@ void putt_set_pos(float[3], float[3][3]);
 void putt_get_pos(float[3], float[3][3]);
 
 void putt_set_fast(int);
-=======
-int   putt_init(const char *);
-void  putt_free(void);
-void  putt_free_objects(void);
-void  putt_load_objects(void);
-
-void  putt_draw(int, float);
-void  putt_putt(void);
-int   putt_step(const float[3], float);
-
-void  putt_update_view(float);
-
-void  putt_set_rot(int);
-void  putt_clr_mag(void);
-void  putt_set_mag(int);
-void  putt_set_fly(float);
-
-void  putt_ball(int);
-void  putt_set_pos(float[3], float[3][3]);
-void  putt_get_pos(float[3], float[3][3]);
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
 /*---------------------------------------------------------------------------*/
 

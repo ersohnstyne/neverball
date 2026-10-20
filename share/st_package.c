@@ -674,20 +674,13 @@ static void package_select(int pi)
     selected = pi;
     gui_set_hilite(button_ids[selected % PACKAGE_STEP], 1);
 
-<<<<<<< HEAD
     gui_set_image(shot_id,  package_get_shot_filename(pi));
     gui_set_multi(desc_id,  package_get_formatted_desc(pi));
     gui_set_label(type_id,  package_get_formatted_type(pi));
-=======
-    gui_set_image(shot_id, package_get_shot_filename(pi));
-    gui_set_multi(desc_id, package_get_formatted_desc(pi));
-    gui_set_label(type_id, package_get_formatted_type(pi));
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
     gui_set_label(title_id, package_get_name(pi));
 
     if      (status == PACKAGE_UPDATE)
     {
-<<<<<<< HEAD
         gui_set_label(install_status_id, GUI_CIRCLE_ARROW);
         gui_set_label(install_label_id, _("Update"));
     }
@@ -695,22 +688,6 @@ static void package_select(int pi)
     {
         gui_set_label(install_status_id, "");
         gui_set_label(install_label_id, _("Manage"));
-=======
-        if (strcmp(package_get_type(selected), "set") == 0 ||
-            strcmp(package_get_type(selected), "course") == 0)
-        {
-            gui_set_color(install_status_id, gui_grn, gui_grn);
-            gui_set_color(install_label_id, gui_wht, gui_wht);
-
-            gui_set_label(install_label_id, _("Start"));
-            gui_set_label(install_status_id, GUI_TRIANGLE_RIGHT);
-        }
-        else
-        {
-            gui_set_color(install_status_id, gui_gry, gui_gry);
-            gui_set_color(install_label_id, gui_gry, gui_gry);
-        }
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
     }
     else
     {

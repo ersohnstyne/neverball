@@ -68,7 +68,6 @@ static struct course course_v[MAXCRS];
 static char *bundled_filenames[MAXCRS];
 static int bundled_count;
 
-<<<<<<< HEAD
 /*---------------------------------------------------------------------------*/
 
 /* Scorecard in a single course. */
@@ -178,8 +177,6 @@ void course_score_finish(struct course_score *s)
     }
 }
 
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 /*---------------------------------------------------------------------------*/
 
 static int course_load(struct course *crs, const char *filename)
@@ -253,16 +250,11 @@ void course_init(void)
 
     for (i = 0; i < bundled_count; ++i)
     {
-<<<<<<< HEAD
         if (bundled_filenames[i])
         {
             free(bundled_filenames[i]);
             bundled_filenames[i] = NULL;
         }
-=======
-        free(bundled_filenames[i]);
-        bundled_filenames[i] = NULL;
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
     }
     bundled_count = 0;
 
@@ -278,14 +270,10 @@ void course_init(void)
             if (bundled_count < MAXCRS)
                 bundled_filenames[bundled_count++] = line;
             else
-<<<<<<< HEAD
             {
                 free(line);
                 line = NULL;
             }
-=======
-                free(line);
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
         }
 
         fs_close(fin);
@@ -370,7 +358,6 @@ void course_rand(void)
         if (curr_count() > 0)
             hole_goto(rand() % curr_count(), 4);
     }
-<<<<<<< HEAD
 }
 
 int course_cmp_available_packages(const void *A, const void *B)
@@ -449,8 +436,6 @@ int course_cmp_available_packages(const void *A, const void *B)
     // Rest are ordered by id (e.g., "set-mym").
 
     return SDL_strcasecmp(a->id, b->id);
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 }
 
 /*---------------------------------------------------------------------------*/

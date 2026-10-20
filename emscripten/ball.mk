@@ -93,10 +93,6 @@ BALL_SRCS := \
 	ball/st_title.c \
 	ball/st_game_link.c \
 	ball/util.c \
-<<<<<<< HEAD
-	ball/util.c \
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 	putt/hud.c \
 	putt/game.c \
 	putt/hole.c \

@@ -25,9 +25,6 @@ def get_dependencies(path):
                 deps.append(dep)
     return deps
 
-<<<<<<< HEAD
-=======
-
 def check_needs_sdl3(dylib_path):
     try:
         with open(dylib_path, "rb") as f:
@@ -61,8 +58,6 @@ def find_sdl3_dylib(dep_path):
             return os.path.realpath(c)
     return None
 
-
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 def main():
     parser = argparse.ArgumentParser(description="Bundle and relink dynamic libraries into macOS bundle.")
     parser.add_argument("--frameworks-dir", required=True, help="Destination Frameworks directory")

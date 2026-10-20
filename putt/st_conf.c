@@ -86,17 +86,10 @@ static int conf_action(int i)
 
     switch (i)
     {
-<<<<<<< HEAD
         case CONF_BACK:
             exit_state(conf_back ? conf_back : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
             conf_back = NULL;
             break;
-=======
-    case CONF_BACK:
-        exit_state(conf_back ? conf_back : &st_putt_title);
-        conf_back = NULL;
-        break;
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
         case CONF_VIDEO:
             goto_video(&st_putt_conf);
@@ -383,15 +376,12 @@ static int conf_buttn(int b, int d)
 
 static int null_enter(struct state *st, struct state *prev, int intent)
 {
-<<<<<<< HEAD
     if (prev == &st_null) return 0;
 
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_quit();
 #endif
 
-=======
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
     putt_free_objects();
     back_free_objects();
 
@@ -422,13 +412,8 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
     xbox_control_gui_init();
 #endif
 
-<<<<<<< HEAD
-    back_free_objects();
-    putt_free_objects();
-=======
     back_load_objects();
     putt_load_objects();
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
 #if ENABLE_MOTIONBLUR!=0
     video_motionblur_init();

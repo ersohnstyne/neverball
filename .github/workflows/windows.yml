@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-name:  Windows Build
-=======
 name: Windows Build
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
 on:
   push:

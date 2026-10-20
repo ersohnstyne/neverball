@@ -134,19 +134,11 @@ static int game_link_launch_target(void)
             return goto_state(&st_putt_party);
         }
 
-<<<<<<< HEAD
         log_errorf("Game Link: failed to find course %s after installation\n", game_link_ctx.set_file);
         return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
     }
 
     set_init(0);
-=======
-        log_printf("Game Link: failed to find course %s after installation\n", game_link_ctx.set_file);
-        return goto_state(&st_putt_title);
-    }
-
-    set_init();
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
     if ((index = set_find(game_link_ctx.set_file)) >= 0)
     {

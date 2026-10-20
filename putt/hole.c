@@ -383,11 +383,7 @@ int hole_next(void)
     {
         do
         {
-<<<<<<< HEAD
-            player = (party > 0) ? (hole - 1) % party + 1 : 1;
-=======
             player = (party > 0) ? player % party + 1 : 1;
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
         }
         while (stat_v[player]);
 
@@ -493,11 +489,7 @@ void hole_fall(int split)
     /* Reset to the position of the putt, and apply a one-stroke penalty. */
 
     putt_set_pos(ball_p[player], ball_e[player]);
-<<<<<<< HEAD
     score_v[hole][player] += split ? 1 : 2;
-=======
-    score_v[hole][player] += 2;
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
     /* Cap scores at specific stroke limit or par plus 3. */
 

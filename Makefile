@@ -619,9 +619,14 @@ BALL_OBJS := \
 	putt/hole.o         \
 	putt/course.o       \
 	putt/st_all.o       \
+<<<<<<< HEAD
 	ball/main.o         \
 	ball/main_desktop.o
 	
+=======
+	ball/main.o
+
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 BALL_OBJS += share/solid_sim_sol.o
 
 ifeq ($(ENABLE_RFD),1)
@@ -919,8 +924,13 @@ clean : clean-src clean-sols
 
 web : sols
 	docker build -t neverball-emscripten emscripten
+<<<<<<< HEAD
 	docker run -rm -v "$(CURDIR):/src" -w /src neverball-emscripten make -j$$(nproc) -f emscripten/ball.mk BUILD=$(BUILD)
 	
+=======
+	docker run --rm -v "$(CURDIR):/src" -w /src neverball-emscripten make -j$$(nproc) -f emscripten/ball.mk BUILD=$(BUILD) $(if $(PACKAGE_BASE_URL),PACKAGE_BASE_URL=$(PACKAGE_BASE_URL))
+
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 HOST ?= 0.0.0.0
 PORT ?= 0
 

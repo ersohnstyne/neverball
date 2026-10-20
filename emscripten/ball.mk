@@ -22,6 +22,10 @@ else
 CFLAGS := -O3 -std=gnu99 -Wall -Ishare -DNDEBUG -DENABLE_FETCH=1 -DENABLE_MOTION_BLUR=0 -I$(GL4ES_DIR)/include
 endif
 
+ifdef PACKAGE_BASE_URL
+CFLAGS += -DPACKAGE_BASE_URL=\"$(PACKAGE_BASE_URL)\"
+endif
+
 EM_CFLAGS := \
 	-s USE_SDL=2 \
 	-s USE_SDL_TTF=2 \
@@ -89,7 +93,10 @@ BALL_SRCS := \
 	ball/st_title.c \
 	ball/st_game_link.c \
 	ball/util.c \
+<<<<<<< HEAD
 	ball/util.c \
+=======
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 	putt/hud.c \
 	putt/game.c \
 	putt/hole.c \

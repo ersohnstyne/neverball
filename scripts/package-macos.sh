@@ -124,7 +124,12 @@ NCPU="$(sysctl -n hw.ncpu 2>/dev/null || echo 4)"
 
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
     echo "==> Compiling mapc, sols, and locales..."
+<<<<<<< HEAD
     make clean src
+=======
+    make clean-src
+    make mapc
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
     make -j"$NCPU" sols locales
 
     echo "==> Compiling neverball and mapc for bundle (${ARCH})..."
@@ -222,23 +227,38 @@ echo "==> Code signing bundle (identity: '${SIGN_IDENTITY}')..."
 # 1. Sign all dylibs in Frameworks
 if compgen -G "$FRAMEWORKS_DIR/*.dylib" >/dev/null; then
     for dylib in "$FRAMEWORKS_DIR"/*.dylib; do
-        codesign --force --sign "${SIGN_IDENTITY}" "$dylib"
+        if [[ ! -L "$dylib" ]]; then
+            codesign --force --sign "${SIGN_IDENTITY}" "$dylib"
+        fi
     done
 fi
 
+<<<<<<< HEAD
 # 2. Sign all executables in MacOS
+=======
+# 2. Sign auxiliary executables in MacOS (must be signed before the main bundle)
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 CODESIGN_CMD=(codesign --force --sign "${SIGN_IDENTITY}")
 if [[ "$SIGN_IDENTITY" != "-" ]]; then
     CODESIGN_CMD+=(--options runtime)
 fi
 
+MAIN_BIN="$MACOS_DIR/neverball"
 for bin in "$MACOS_DIR"/*; do
+<<<<<<< HEAD
     if [[ -f "$bin" && -x "$bin" ]]; then
+=======
+    if [[ -f "$bin" && -x "$bin" && ! -L "$bin" && "$bin" != "$MAIN_BIN" ]]; then
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
         "${CODESIGN_CMD[@]}" "$bin"
     fi
 done
 
+<<<<<<< HEAD
 # 3. Sign the application bundle
+=======
+# 3. Sign the application bundle (signs the main executable and seals the bundle)
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 "${CODESIGN_CMD[@]}" "$APP_DIR"
 
 # 4. Strictly verify bundle signature

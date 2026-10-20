@@ -18,4 +18,8 @@
 #define GAME_TITLE   "Neverputt"
 #define GAME_ICON    "icon/neverputt.png"
 
+<<<<<<< HEAD
 #include "../ball/main.c"
+=======
+#include "../ball/main.c"
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b

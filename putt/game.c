@@ -159,7 +159,11 @@ void putt_free_objects(void)
         sol_free_draw(&file.draw);
 }
 
+<<<<<<< HEAD
 int putt_load_objects(void)
+=======
+void putt_load_objects(void)
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 {
     if (state)
         sol_load_draw(&file.draw, &file.vary, config_get_d(CONFIG_SHADOW));
@@ -572,6 +576,7 @@ static int putt_update_state(float dt)
     /* Test for fall-out. */
 
     if (file.base.vc == 0 || fp->uv[ball].p[1] < file.base.vv[0].p[1])
+<<<<<<< HEAD
     {
         /*
          * NOTE: On most view system, rendering requires interpolation
@@ -583,6 +588,9 @@ static int putt_update_state(float dt)
 
         return PUTT_FALL;
     }
+=======
+        return PUTT_FALL;
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
     /* Test for a goal or stop. */
 
@@ -631,6 +639,7 @@ int putt_step(const float g[3], float dt)
 
     if (!state)
         return PUTT_NONE;
+<<<<<<< HEAD
 
     if (config_cheat())
     {
@@ -640,6 +649,8 @@ int putt_step(const float g[3], float dt)
             dt *= 3.0f;
         }
     }
+=======
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
     s = (7.f * s + dt) / 8.f;
     t = s;
@@ -685,11 +696,16 @@ int putt_step(const float g[3], float dt)
             audio_play(AUD_BUMP, (b - 0.5f) * 2.0f);
     }
 
+<<<<<<< HEAD
     if (fp->uv[ball].v[0] == 0.0f && fp->uv[ball].v[2] == 0.0f)
         enable_force_timeout = 1;
 
     putt_update_view(dt);
     return putt_update_state(st);
+=======
+    putt_update_view(dt);
+    return game_update_state(st);
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 }
 
 void putt_putt(void)

@@ -76,6 +76,7 @@
 #include "st_shared.h"
 #if ENABLE_FETCH
 #include "st_package.h"
+<<<<<<< HEAD
 #endif
 #include "st_play.h"
 #include "../putt/st_all.h"
@@ -108,6 +109,9 @@
 /* We're using SDL 1.2 on Wii, which has SDLKey instead of SDL_Keycode. */
 typedef SDLKey SDL_Keycode;
 #endif
+=======
+#include "../putt/st_all.h"
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
 /*---------------------------------------------------------------------------*/
 
@@ -386,10 +390,13 @@ enum
     TITLE_CONF,
     TITLE_PACKAGES,
     TITLE_PUTT,
+<<<<<<< HEAD
 
     TITLE_UNLOCK_FULL_GAME = 99,
 
     TITLE_SOCIAL = 199
+=======
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 };
 
 static int edition_id;
@@ -482,7 +489,19 @@ static int title_action(int tok, int val)
             {
                 title_prequit = 1;
 
+<<<<<<< HEAD
                 /* bye! */
+=======
+    case TITLE_HELP: return goto_state(&st_help); break;
+    case TITLE_DEMO: return goto_state(&st_demo); break;
+    case TITLE_CONF: return goto_state(&st_conf); break;
+    case TITLE_PACKAGES: return goto_state(&st_package); break;
+    case TITLE_PUTT:
+        config_set_d(CONFIG_GAME, GAME_PUTT);
+        return goto_state(&st_putt_title);
+        break;
+    case GUI_CHAR:
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
 
                 return 0;
             }
@@ -1165,6 +1184,7 @@ static int title_gui(void)
 #endif
 #endif
 
+<<<<<<< HEAD
             if ((title_lockscreen_gamename_id = gui_vstack(id)))
             {
                 gui_set_font(title_lockscreen_gamename_id, "ttf/DejaVuSans-Bold.ttf");
@@ -1545,6 +1565,49 @@ static int title_gui(void)
                 gui_set_slide(title_lockscreen_press_id, GUI_S | GUI_EASE_ELASTIC, 2.0f, 1.4f, 0);
                 gui_layout(title_lockscreen_press_id, 0, -1);
             }
+=======
+        if (config_online())
+        {
+            // Original spot for Help is now occupied by Addons, so put Help here.
+
+            if ((id = gui_vstack(root_id)))
+            {
+                if ((jd = gui_hstack(id)))
+                {
+                    gui_space(jd);
+                    gui_state(jd, gt_prefix("menu^Help"), GUI_SML, TITLE_HELP, 0);
+                }
+                gui_space(id);
+
+                gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.2f, 1.4f, 0);
+
+                gui_layout(id, +1, -1);
+            }
+        }
+
+        if ((id = gui_vstack(root_id)))
+        {
+            const int w = video.device_w;
+            const int h = video.device_h;
+
+            const int ww = MIN(w, h) / 14;
+            const int hh = ww;
+
+            if ((jd = gui_hstack(id)))
+            {
+                kd = gui_image(jd, "gui/neverputt-modern-256.png", ww, hh);
+                
+                gui_set_state(kd, TITLE_PUTT, 0);
+
+                gui_space(jd);
+            }
+
+            gui_space(id);
+
+            gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 0.0f, 1.6f, 0);
+
+            gui_layout(id, -1, -1);
+>>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b
         }
     }
 

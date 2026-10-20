@@ -40,8 +40,26 @@
     <Filter Include="Headerdateien\wgcl">
       <UniqueIdentifier>{60b04abb-808a-4ce6-a023-542c23811241}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Quelldateien\share\strbuf">
+    <Filter Include="Quelldateien\wgcl\discord_game_sdk">
+      <UniqueIdentifier>{e75c3fdc-378d-49f2-b3c8-cfcc045f7c57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\wgcl\discord_game_sdk">
+      <UniqueIdentifier>{4c729de6-f3c2-4abf-b42a-ae3873e41f4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\share\strbuf">
       <UniqueIdentifier>{3f7ebfba-3009-4fe0-a457-ee792fc3c5f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\share_directx">
+      <UniqueIdentifier>{0f071efd-603c-4982-9073-3b2da814ff67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\share_directx">
+      <UniqueIdentifier>{6dcc4ee9-c65f-4f3c-988b-cf71311ffab7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headerdateien\putt">
+      <UniqueIdentifier>{409b0c30-258e-436e-a796-4e3804ad2b73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\putt">
+      <UniqueIdentifier>{792b5451-5497-4183-8d6b-3c649dd38dcf}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -49,9 +67,6 @@
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\accessibility.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
-    <ClCompile Include="..\share\account.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\account_transfer.c">
@@ -156,16 +171,31 @@
     <ClCompile Include="..\share\main_desktop.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
-    <ClCompile Include="..\share\miniz.c">
-      <Filter>Quelldateien\share</Filter>
-    </ClCompile>
     <ClCompile Include="..\share\mtrl.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\networking_dedicated.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
+    <ClCompile Include="..\share\networking_education.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_enterprise.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_home.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
     <ClCompile Include="..\share\networking_opensource.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_pro.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_srv_datacenter.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_srv_standard.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\package.c">
@@ -264,19 +294,10 @@
     <ClCompile Include="..\ball\game_draw.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
-    <ClCompile Include="..\ball\game_inputbindings.c">
-      <Filter>Quelldateien\ball</Filter>
-    </ClCompile>
     <ClCompile Include="..\ball\game_proxy.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
     <ClCompile Include="..\ball\game_server.c">
-      <Filter>Quelldateien\ball</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ball\game_switchball.c">
-      <Filter>Quelldateien\ball</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ball\game_transitions.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
     <ClCompile Include="..\ball\hud.c">
@@ -366,9 +387,6 @@
     <ClCompile Include="..\ball\st_start.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
-    <ClCompile Include="..\ball\st_switchball.c">
-      <Filter>Quelldateien\ball</Filter>
-    </ClCompile>
     <ClCompile Include="..\ball\st_title.c">
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
@@ -391,6 +409,9 @@
       <Filter>Quelldateien\ball</Filter>
     </ClCompile>
     <ClCompile Include="..\share\lang_msvc.cpp">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\networking_srv_essentials.c">
       <Filter>Quelldateien\share</Filter>
     </ClCompile>
     <ClCompile Include="..\share\joy_xbox.c">
@@ -429,17 +450,122 @@
     <ClCompile Include="..\payments\parson.c">
       <Filter>Quelldateien\payments</Filter>
     </ClCompile>
-    <ClCompile Include="..\wgcl\mapmarkers_wgcl.cpp">
-      <Filter>Quelldateien\wgcl</Filter>
-    </ClCompile>
     <ClCompile Include="..\wgcl\st_wgcl.c">
       <Filter>Quelldateien\wgcl</Filter>
     </ClCompile>
     <ClCompile Include="..\wgcl\account_wgcl.c">
       <Filter>Quelldateien\wgcl</Filter>
     </ClCompile>
+    <ClCompile Include="..\wgcl\activity_services_null.c">
+      <Filter>Quelldateien\wgcl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\activity_services_discord.cpp">
+      <Filter>Quelldateien\wgcl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\audio_emscripten.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\ease.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\transition.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\config_wgcl.c">
+      <Filter>Quelldateien\wgcl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\achievement_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\activity_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\application_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\core.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\image_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\lobby_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\network_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\overlay_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\relationship_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\storage_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\store_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\types.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\user_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\voice_manager.cpp">
+      <Filter>Quelldateien\wgcl\discord_game_sdk</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share_directx\video_directx12.cpp">
+      <Filter>Quelldateien\share_directx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_operator.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_dailychallenge.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\share\package_superwaifu.c">
+      <Filter>Quelldateien\share</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_transitions.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\mapmarkers_wgcl.cpp">
+      <Filter>Quelldateien\wgcl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_switchball.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\st_switchball.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
     <ClCompile Include="..\ball\st_game_link.c">
-      <Filter>Quelldateien</Filter>
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_inputbindings.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ball\game_sha256.c">
+      <Filter>Quelldateien\ball</Filter>
+    </ClCompile>
+    <ClCompile Include="..\putt\course.c">
+      <Filter>Quelldateien\putt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\putt\game.c">
+      <Filter>Quelldateien\putt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\putt\hole.c">
+      <Filter>Quelldateien\putt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\putt\putt_hud.c">
+      <Filter>Quelldateien\putt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\putt\st_all.c">
+      <Filter>Quelldateien\putt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\putt\main.c">
+      <Filter>Quelldateien\putt</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -632,19 +758,10 @@
     <ClInclude Include="..\ball\game_draw.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
-    <ClInclude Include="..\ball\game_inputbindings.h">
-      <Filter>Headerdateien\ball</Filter>
-    </ClInclude>
     <ClInclude Include="..\ball\game_proxy.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\game_server.h">
-      <Filter>Headerdateien\ball</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ball\game_switchball.h">
-      <Filter>Headerdateien\ball</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ball\game_transitions.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\hud.h">
@@ -734,9 +851,6 @@
     <ClInclude Include="..\ball\st_start.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
-    <ClInclude Include="..\ball\st_switchball.h">
-      <Filter>Headerdateien\ball</Filter>
-    </ClInclude>
     <ClInclude Include="..\ball\st_title.h">
       <Filter>Headerdateien\ball</Filter>
     </ClInclude>
@@ -788,9 +902,6 @@
     <ClInclude Include="..\payments\parson.h">
       <Filter>Headerdateien\payments</Filter>
     </ClInclude>
-    <ClInclude Include="..\wgcl\mapmarkers.h">
-      <Filter>Headerdateien\wgcl</Filter>
-    </ClInclude>
     <ClInclude Include="..\wgcl\st_wgcl.h">
       <Filter>Headerdateien\wgcl</Filter>
     </ClInclude>
@@ -798,19 +909,136 @@
       <Filter>Headerdateien\wgcl</Filter>
     </ClInclude>
     <ClInclude Include="..\share\strbuf\joinstr.h">
-      <Filter>Quelldateien\share\strbuf</Filter>
+      <Filter>Headerdateien\share\strbuf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\strbuf\substr.h">
+      <Filter>Headerdateien\share\strbuf</Filter>
     </ClInclude>
     <ClInclude Include="..\share\strbuf\strbuf.h">
-      <Filter>Quelldateien\share\strbuf</Filter>
+      <Filter>Headerdateien\share\strbuf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\activity_services.h">
+      <Filter>Headerdateien\wgcl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\ease.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\transition.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\config_wgcl.h">
+      <Filter>Headerdateien\wgcl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\achievement_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\activity_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\application_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\core.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\discord.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\event.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\ffi.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\image_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\lobby_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\network_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\overlay_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\relationship_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\storage_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\store_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\types.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\user_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\voice_manager.h">
+      <Filter>Headerdateien\wgcl\discord_game_sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\mapclib.h">
+      <Filter>Headerdateien\share</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\strbuf\dir_name.h">
+      <Filter>Headerdateien\share\strbuf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share\strbuf\base_name.h">
+      <Filter>Headerdateien\share\strbuf</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share_directx\video_directx12.h">
+      <Filter>Headerdateien\share_directx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\share_directx\d3dx12.h">
+      <Filter>Headerdateien\share_directx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_operator.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_dailychallenge.h">
+      <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\share\package_superwaifu.h">
       <Filter>Headerdateien\share</Filter>
     </ClInclude>
-    <ClInclude Include="..\share\package_superwaifu.c">
-      <Filter>Quelldateien\share</Filter>
+    <ClInclude Include="..\ball\game_transitions.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\mapmarkers.h">
+      <Filter>Headerdateien\wgcl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_switchball.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\st_switchball.h">
+      <Filter>Headerdateien\ball</Filter>
     </ClInclude>
     <ClInclude Include="..\ball\st_game_link.h">
-      <Filter>Headerdateien</Filter>
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_inputbindings.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ball\game_sha256.h">
+      <Filter>Headerdateien\ball</Filter>
+    </ClInclude>
+    <ClInclude Include="..\putt\course.h">
+      <Filter>Headerdateien\putt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\putt\game.h">
+      <Filter>Headerdateien\putt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\putt\hole.h">
+      <Filter>Headerdateien\putt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\putt\hud.h">
+      <Filter>Headerdateien\putt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\putt\st_all.h">
+      <Filter>Headerdateien\putt</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -819,13 +1047,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="..\dist\ico\neverball.ico">
-      <Filter>Ressourcendateien</Filter>
-    </Image>
-    <Image Include="..\dist\ico\neverputt.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>

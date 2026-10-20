@@ -1,10 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.props" Condition="Exists('..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.props')" />
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug_SDL3|Win32">
+      <Configuration>Debug_SDL3</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_SDL3|x64">
+      <Configuration>Debug_SDL3</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_SDL3|Win32">
+      <Configuration>Release_SDL3</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_SDL3|x64">
+      <Configuration>Release_SDL3</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -33,7 +48,20 @@
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -46,7 +74,20 @@
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -61,51 +102,119 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(SolutionDir)\share_directx;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(Projectname)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">
+    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(SolutionDir)\share_directx;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(Projectname)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(SolutionDir)\share_directx;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(Projectname)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">
+    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(SolutionDir)\share_directx;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(Projectname)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(SolutionDir)\share_directx;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(Projectname)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">
+    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(SolutionDir)\share_directx;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(Projectname)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(SolutionDir)\share_directx;$(IncludePath)</IncludePath>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(Projectname)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">
+    <IncludePath>$(SolutionDir)\ball;$(SolutionDir)\payments;$(SolutionDir)\wgcl;$(SolutionDir)\share;$(SolutionDir)\share_directx;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)out\$(Platform)\$(Configuration)\$(Projectname)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=0;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=10002;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=10002;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=0;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_ACTIVITY_SERVICES=0;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;ENABLE_MOTIONBLUR=1;DEVEL_BUILD;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;C:\Users\$(Username)\source\sdk\curl\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\include;D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\C++ SDK\curl\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <AdditionalLibraryDirectories>D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\sdk\curl\builds\libcurl-vc17-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration);D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);D:\sdk\discord_game_sdk\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x86_v2\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\source_ersohn\C++ SDK\curl\builds\libcurl-vc18-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command>rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
+del "$(SolutionDir)ball\*.bc"
+del "$(SolutionDir)ball\*.d"
+del "$(SolutionDir)ball\*.o"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
+    <ResourceCompile>
+      <Culture>0x0809</Culture>
+    </ResourceCompile>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration)\pbnb_joy_reinforcement.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration)\opendriveapi_ascii.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_PB_SDL3=1;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=-1;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=0;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_ACTIVITY_SERVICES=0;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;ENABLE_MOTIONBLUR=1;DEVEL_BUILD;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\include;D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\C++ SDK\curl\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <SDLCheck>false</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration);D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);D:\sdk\discord_game_sdk\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\builds\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x86_v2\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\source_ersohn\C++ SDK\curl\builds\libcurl-vc18-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
@@ -124,29 +233,70 @@ del "$(SolutionDir)share\*.o"</Command>
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration)\opendriveapi_ascii.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\Debug\pbnb_joy_reinforcement.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\builds\$(Platform)\Debug\SDL3.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\Debug\opendriveapi_ascii.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=0;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=10002;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=10002;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=0;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_ACTIVITY_SERVICES=0;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;ENABLE_MOTIONBLUR=1;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <ErrorReporting>Prompt</ErrorReporting>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;C:\Users\$(Username)\source\sdk\curl\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\include;D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\C++ SDK\curl\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <AdditionalLibraryDirectories>D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x86\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\sdk\curl\builds\libcurl-vc17-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration);D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);D:\sdk\discord_game_sdk\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x86_v2\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\source_ersohn\C++ SDK\curl\builds\libcurl-vc18-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PreBuildEvent>
+      <Command>rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
+del "$(SolutionDir)ball\*.bc"
+del "$(SolutionDir)ball\*.d"
+del "$(SolutionDir)ball\*.o"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+    </PreBuildEvent>
+    <ResourceCompile>
+      <Culture>0x0809</Culture>
+    </ResourceCompile>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration)\pbnb_joy_reinforcement.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration)\opendriveapi_ascii.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">
+    <ClCompile>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_PB_SDL3=1;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=-1;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=0;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_ACTIVITY_SERVICES=0;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;ENABLE_MOTIONBLUR=1;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\include;D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\C++ SDK\curl\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <SDLCheck>false</SDLCheck>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration);D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);D:\sdk\discord_game_sdk\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\builds\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x86_v2\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\source_ersohn\C++ SDK\curl\builds\libcurl-vc18-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x86-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
@@ -165,26 +315,65 @@ del "$(SolutionDir)share\*.o"</Command>
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration)\opendriveapi_ascii.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\Release\pbnb_joy_reinforcement.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\builds\$(Platform)\Release\SDL3.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\Release\opendriveapi_ascii.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=0;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=10002;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;DEVEL_BUILD;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;C:\Users\$(Username)\source\sdk\curl\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=10002;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=0;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_ACTIVITY_SERVICES=0;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;ENABLE_MOTIONBLUR=1;DEVEL_BUILD;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\include;D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\C++ SDK\curl\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
-      <ErrorReporting>Prompt</ErrorReporting>
       <SDLCheck>false</SDLCheck>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard>Default</LanguageStandard>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\sdk\curl\builds\libcurl-vc17-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
+      <AdditionalLibraryDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration);D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);D:\sdk\discord_game_sdk\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\source_ersohn\C++ SDK\curl\builds\libcurl-vc18-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <PreBuildEvent>
+      <Command>rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
+del "$(SolutionDir)ball\*.bc"
+del "$(SolutionDir)ball\*.d"
+del "$(SolutionDir)ball\*.o"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+      <Message>Clear object files (*.o, *.d, *.bc)</Message>
+    </PreBuildEvent>
+    <ResourceCompile>
+      <Culture>0x0809</Culture>
+    </ResourceCompile>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration)\pbnb_joy_reinforcement.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration)\opendriveapi_ascii.dll" "$(OutDir)"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_PB_SDL3=1;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=-1;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=0;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_ACTIVITY_SERVICES=0;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;ENABLE_MOTIONBLUR=1;DEVEL_BUILD;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\include;D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\C++ SDK\curl\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>false</SDLCheck>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\Debug;D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\Debug;C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\Debug;D:\sdk\discord_game_sdk\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\builds\$(Platform)\Debug;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\Debug;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2\Debug;C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\Debug;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\Debug;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\Debug;C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\Debug;D:\source_ersohn\C++ SDK\curl\builds\libcurl-vc18-$(Platform)-Debug-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PreBuildEvent>
       <Command>del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
@@ -202,31 +391,77 @@ del "$(SolutionDir)share\*.o"</Command>
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration)\opendriveapi_ascii.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\Debug\pbnb_joy_reinforcement.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\builds\$(Platform)\Debug\SDL3.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\Debug\opendriveapi_ascii.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=0;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=10002;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=1;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;C:\Users\$(Username)\source\sdk\curl\include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=10002;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=0;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_ACTIVITY_SERVICES=0;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;ENABLE_MOTIONBLUR=1;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\include;D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\C++ SDK\curl\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ConformanceMode>true</ConformanceMode>
-      <ErrorReporting>Prompt</ErrorReporting>
       <SDLCheck>false</SDLCheck>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard>Default</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+      <Optimization>Disabled</Optimization>
       <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\sdk\curl\builds\libcurl-vc17-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LinkErrorReporting>PromptImmediately</LinkErrorReporting>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration);D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\$(Configuration);C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration);D:\sdk\discord_game_sdk\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk lib\sdl2_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\$(Configuration);C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\$(Configuration);D:\source_ersohn\C++ SDK\curl\builds\libcurl-vc18-$(Platform)-$(Configuration)-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.ilk"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.obj"
+rem del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.pdb"
+del "$(SolutionDir)ball\*.bc"
+del "$(SolutionDir)ball\*.d"
+del "$(SolutionDir)ball\*.o"
+del "$(SolutionDir)share\*.bc"
+del "$(SolutionDir)share\*.d"
+del "$(SolutionDir)share\*.o"</Command>
+      <Message>Clear object files (*.o, *.d, *.bc)</Message>
+    </PreBuildEvent>
+    <ResourceCompile>
+      <Culture>0x0809</Culture>
+    </ResourceCompile>
+    <PostBuildEvent>
+      <Command>xcopy /y /d "D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\$(Configuration)\pbnb_joy_reinforcement.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration)\opendriveapi_ascii.dll" "$(OutDir)"
+</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">
+    <ClCompile>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NB_PB_SDL3=1;NB_HAVE_PB_BOTH=1;NB_STEAM_API=0;NB_EOS_SDK=0;NEVERBALL_FAMILY_API=0;VERSION="2.2.0";NEVERBALL_EDITION=-1;ENABLE_RFD=0;ENABLE_OPENDRIVEAPI=0;ENABLE_DUALDISPLAY=0;ENABLE_MOON_TASKLOADER=1;ENABLE_NVIDIA_PHYSX=0;ENABLE_NLS=0;NLS_GETTEXT=0;ENABLE_FETCH=1;CURL_STATICLIB;ENABLE_ACTIVITY_SERVICES=0;ENABLE_IAP=1;ENABLE_DEDICATED_SERVER=0;ENABLE_MOTIONBLUR=1;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\include;D:\source_ersohn_network\c++\neverball-game-network\client;C:\Users\$(Username)\Documents\GitHub\opendriveapi\include;C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\include;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3_ttf\include;C:\Users\$(Username)\source\repos\c++ sdk\libogg\include;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\include;C:\Users\$(Username)\source\repos\c++ sdk\libpng;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg;C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libgettext\source\gettext-runtime\intl;C:\Users\$(Username)\source\repos\c++ sdk lib\libovr\Include;D:\backup\ersohn\Downloads\SDK\glext\glext\include;D:\source_ersohn\C++ SDK\curl\include;D:\sdk\SteamSDK\public;D:\source_ersohn\win10_libraries\epicgames\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ConformanceMode>true</ConformanceMode>
+      <SDLCheck>false</SDLCheck>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+      <Optimization>Disabled</Optimization>
+      <DebugInformationFormat>None</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\Release;D:\source_ersohn_network\c++\neverball-game-network\out\bin\$(Platform)\Release;C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\Release;D:\sdk\discord_game_sdk\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\builds\$(Platform)\Release;C:\Users\$(Username)\source\repos\c++ sdk lib\sdl3_ttf\lib\$(Platform);C:\Users\$(Username)\source\repos\c++ sdk\libjpeg\VisualC-W11\$(Platform)\Release;C:\Users\$(Username)\source\repos\c++ sdk\libpng\projects\vstudio2026_x64_v2\Release;C:\Users\$(Username)\source\repos\c++ sdk\libogg\win32\VS2026\$(Platform)\Release;C:\Users\$(Username)\source\repos\c++ sdk\libvorbis\win32\VS2026\$(Platform)\Release;C:\Users\$(Username)\source\repos\c++ sdk\libgettext\MSVC\libintl_static\x64\Release;C:\Users\$(Username)\source\repos\c++ sdk\zlib\VisualC-W11\$(Platform)\Release;D:\source_ersohn\C++ SDK\curl\builds\libcurl-vc18-$(Platform)-Release-static-ipv6-sspi-schannel\lib;D:\backup\ersohn\Downloads\SDK\glext\glext\lib;$(SolutionDir)packages\NVIDIA.PhysX.4.1.229882250\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
       <Command>del "$(SolutionDir)out\$(Platform)\$(Configuration)\$(ProjectName)\*.idb"
@@ -244,8 +479,9 @@ del "$(SolutionDir)share\*.o"</Command>
       <Culture>0x0809</Culture>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl2\VisualC\$(Platform)\$(Configuration)\SDL2.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\$(Configuration)\opendriveapi_ascii.dll" "$(OutDir)"</Command>
+      <Command>xcopy /y /d "D:\source_ersohn\C++ Library\pbnb_joy_reinforcement\out\bin\$(Platform)\Release\pbnb_joy_reinforcement.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\source\repos\c++ sdk\libsdl3\builds\$(Platform)\Release\SDL3.dll" "$(OutDir)"
+xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform)_ascii\Release\opendriveapi_ascii.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -277,6 +513,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\st_ball.c" />
     <ClCompile Include="..\ball\st_beam_style.c" />
     <ClCompile Include="..\ball\st_conf.c" />
+    <ClCompile Include="..\ball\st_dailychallenge.c" />
     <ClCompile Include="..\ball\st_demo.c" />
     <ClCompile Include="..\ball\st_done.c" />
     <ClCompile Include="..\ball\st_fail.c" />
@@ -287,6 +524,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\st_level.c" />
     <ClCompile Include="..\ball\st_malfunction.c" />
     <ClCompile Include="..\ball\st_name.c" />
+    <ClCompile Include="..\ball\st_operator.c" />
     <ClCompile Include="..\ball\st_over.c" />
     <ClCompile Include="..\ball\st_pause.c" />
     <ClCompile Include="..\ball\st_play.c" />
@@ -300,27 +538,32 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\ball\st_title.c" />
     <ClCompile Include="..\ball\st_tutorial.c" />
     <ClCompile Include="..\ball\util.c" />
-    <ClInclude Include="..\putt\course.c" />
-    <ClInclude Include="..\putt\game.c" />
-    <ClInclude Include="..\putt\hole.c" />
-    <ClInclude Include="..\putt\hud.c" />
-    <ClInclude Include="..\putt\st_all.c" />
     <ClCompile Include="..\payments\game_payment_curl.c" />
     <ClCompile Include="..\payments\currency_curl.c" />
     <ClCompile Include="..\payments\parson.c" />
-    <ClCompile Include="..\share\accessibility.c" />
-    <ClCompile Include="..\share\account.c">
+    <ClCompile Include="..\putt\course.c" />
+    <ClCompile Include="..\putt\game.c" />
+    <ClCompile Include="..\putt\hole.c" />
+    <ClCompile Include="..\putt\putt_hud.c" />
+    <ClCompile Include="..\putt\main.c">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\putt\st_all.c" />
+    <ClCompile Include="..\share\accessibility.c" />
     <ClCompile Include="..\share\account_binary.c" />
     <ClCompile Include="..\share\account_eos_sdk.cpp" />
     <ClCompile Include="..\share\account_steam.cpp" />
     <ClCompile Include="..\share\account_transfer.c" />
     <ClCompile Include="..\share\array.c" />
     <ClCompile Include="..\share\audio.c" />
+    <ClCompile Include="..\share\audio_emscripten.c" />
     <ClCompile Include="..\share\ball.c" />
     <ClCompile Include="..\share\base_config.c" />
     <ClCompile Include="..\share\base_image.c" />
@@ -331,6 +574,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\console_control_gui.c" />
     <ClCompile Include="..\share\dbg_config.c" />
     <ClCompile Include="..\share\dir.c" />
+    <ClCompile Include="..\share\ease.c" />
     <ClCompile Include="..\share\fbo.c" />
     <ClCompile Include="..\share\fetch_curl.c" />
     <ClCompile Include="..\share\fetch_null.c" />
@@ -344,25 +588,10 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\glext.c" />
     <ClCompile Include="..\share\glsl.c" />
     <ClCompile Include="..\share\gui.c" />
-    <ClCompile Include="..\share\hmd_common.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\share\hmd_libovr.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\share\hmd_common.c" />
+    <ClCompile Include="..\share\hmd_libovr.cpp" />
     <ClCompile Include="..\share\hmd_null.c" />
-    <ClCompile Include="..\share\hmd_openhmd.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\share\hmd_openhmd.c" />
     <ClCompile Include="..\share\image.c" />
     <ClCompile Include="..\share\joy.c" />
     <ClCompile Include="..\share\joy_xbox.c" />
@@ -371,19 +600,19 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\list.c" />
     <ClCompile Include="..\share\log.c" />
     <ClCompile Include="..\share\main_desktop.c" />
-    <ClCompile Include="..\share\miniz.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\share\moon_taskloader.c" />
     <ClCompile Include="..\share\mtrl.c" />
     <ClCompile Include="..\share\networking_dedicated.c" />
+    <ClCompile Include="..\share\networking_education.c" />
+    <ClCompile Include="..\share\networking_enterprise.c" />
+    <ClCompile Include="..\share\networking_home.c" />
     <ClCompile Include="..\share\networking_opensource.c" />
+    <ClCompile Include="..\share\networking_pro.c" />
+    <ClCompile Include="..\share\networking_srv_datacenter.c" />
+    <ClCompile Include="..\share\networking_srv_essentials.c" />
+    <ClCompile Include="..\share\networking_srv_standard.c" />
     <ClCompile Include="..\share\package.c" />
-    <ClInclude Include="..\ball\st_game_link.h" />
-    <ClInclude Include="..\share\package_superwaifu.c" />
+    <ClCompile Include="..\share\package_superwaifu.c" />
     <ClCompile Include="..\share\part.c" />
     <ClCompile Include="..\share\queue.c" />
     <ClCompile Include="..\share\rfd.c" />
@@ -402,36 +631,170 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClCompile Include="..\share\st_transfer_target.c" />
     <ClCompile Include="..\share\text.c" />
     <ClCompile Include="..\share\theme.c" />
-    <ClCompile Include="..\share\tilt_leapmotion.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\share\tilt_loop.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\share\tilt_leapmotion.cpp" />
+    <ClCompile Include="..\share\tilt_loop.c" />
     <ClCompile Include="..\share\tilt_null.c" />
-    <ClCompile Include="..\share\tilt_wii.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="..\share\tilt_wiiuse.c">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="..\share\tilt_wii.c" />
+    <ClCompile Include="..\share\tilt_wiiuse.c" />
+    <ClCompile Include="..\share\transition.c" />
     <ClCompile Include="..\share\vec3.c" />
     <ClCompile Include="..\share\video.c" />
     <ClCompile Include="..\share\video_dualdisplay.c" />
     <ClCompile Include="..\share\zip.c" />
+    <ClCompile Include="..\share_directx\video_directx12.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\wgcl\account_wgcl.c" />
+    <ClCompile Include="..\wgcl\activity_services_discord.cpp" />
+    <ClCompile Include="..\wgcl\activity_services_null.c" />
+    <ClCompile Include="..\wgcl\config_wgcl.c" />
+    <ClCompile Include="..\wgcl\discord_game_sdk\achievement_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\activity_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\application_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\core.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\image_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\lobby_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\network_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\overlay_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\relationship_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\storage_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\store_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\types.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\user_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\wgcl\discord_game_sdk\voice_manager.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\wgcl\mapmarkers_wgcl.cpp" />
     <ClCompile Include="..\wgcl\st_wgcl.c" />
   </ItemGroup>
@@ -463,9 +826,11 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\st_ball.h" />
     <ClInclude Include="..\ball\st_beam_style.h" />
     <ClInclude Include="..\ball\st_conf.h" />
+    <ClInclude Include="..\ball\st_dailychallenge.h" />
     <ClInclude Include="..\ball\st_demo.h" />
     <ClInclude Include="..\ball\st_done.h" />
     <ClInclude Include="..\ball\st_fail.h" />
+    <ClInclude Include="..\ball\st_game_link.h" />
     <ClInclude Include="..\ball\st_goal.h" />
     <ClInclude Include="..\ball\st_help.h" />
     <ClInclude Include="..\ball\st_intro.h" />
@@ -473,6 +838,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\ball\st_level.h" />
     <ClInclude Include="..\ball\st_malfunction.h" />
     <ClInclude Include="..\ball\st_name.h" />
+    <ClInclude Include="..\ball\st_operator.h" />
     <ClInclude Include="..\ball\st_over.h" />
     <ClInclude Include="..\ball\st_pause.h" />
     <ClInclude Include="..\ball\st_play.h" />
@@ -511,6 +877,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\share\console_control_gui.h" />
     <ClInclude Include="..\share\dbg_config.h" />
     <ClInclude Include="..\share\dir.h" />
+    <ClInclude Include="..\share\ease.h" />
     <ClInclude Include="..\share\fbo.h" />
     <ClInclude Include="..\share\fetch.h" />
     <ClInclude Include="..\share\font.h" />
@@ -530,6 +897,7 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\share\lang.h" />
     <ClInclude Include="..\share\list.h" />
     <ClInclude Include="..\share\log.h" />
+    <ClInclude Include="..\share\mapclib.h" />
     <ClInclude Include="..\share\miniz.h" />
     <ClInclude Include="..\share\moon_taskloader.h" />
     <ClInclude Include="..\share\mtrl.h" />
@@ -546,6 +914,9 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\share\solid_sim.h" />
     <ClInclude Include="..\share\solid_vary.h" />
     <ClInclude Include="..\share\state.h" />
+    <ClInclude Include="..\share\strbuf\base_name.h" />
+    <ClInclude Include="..\share\strbuf\dir_name.h" />
+    <ClInclude Include="..\share\strbuf\strbuf.h" />
     <ClInclude Include="..\share\st_package.h" />
     <ClInclude Include="..\share\st_common.h" />
     <ClInclude Include="..\share\st_end_support.h" />
@@ -554,35 +925,215 @@ xcopy /y /d "C:\Users\$(Username)\Documents\GitHub\opendriveapi\build\$(Platform
     <ClInclude Include="..\share\text.h" />
     <ClInclude Include="..\share\theme.h" />
     <ClInclude Include="..\share\tilt.h" />
+    <ClInclude Include="..\share\transition.h" />
     <ClInclude Include="..\share\vec3.h" />
     <ClInclude Include="..\share\video.h" />
     <ClInclude Include="..\share\video_dualdisplay.h" />
     <ClInclude Include="..\share\zip.h" />
+    <ClInclude Include="..\share_directx\video_directx12.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\share_directx\d3dx12.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\wgcl\account_wgcl.h" />
+    <ClInclude Include="..\wgcl\activity_services.h" />
+    <ClInclude Include="..\wgcl\config_wgcl.h" />
+    <ClInclude Include="..\wgcl\discord_game_sdk\achievement_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\activity_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\application_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\core.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\discord.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\event.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\ffi.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\image_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\lobby_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\network_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\overlay_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\relationship_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\storage_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\store_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\types.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\user_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="..\wgcl\discord_game_sdk\voice_manager.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_SDL3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_SDL3|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\wgcl\mapmarkers.h" />
     <ClInclude Include="..\wgcl\st_wgcl.h" />
     <ClInclude Include="..\share\strbuf\joinstr.h" />
-    <ClInclude Include="..\share\strbuf\strbuf.h" />
+    <ClInclude Include="..\share\strbuf\substr.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\dist\neverball_rc.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="..\dist\ico\neverball.ico" />
-    <Image Include="..\dist\ico\neverputt.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.targets" Condition="Exists('..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>Dieses Projekt verweist auf mindestens ein NuGet-Paket, das auf diesem Computer fehlt. Verwenden Sie die Wiederherstellung von NuGet-Paketen, um die fehlenden Dateien herunterzuladen. Weitere Informationen finden Sie unter "http://go.microsoft.com/fwlink/?LinkID=322105". Die fehlende Datei ist "{0}".</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.props'))" />
-    <Error Condition="!Exists('..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NVIDIA.PhysX.4.1.229882250\build\native\NVIDIA.PhysX.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

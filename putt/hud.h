@@ -15,6 +15,12 @@
 #ifndef HUD_H
 #define HUD_H
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#include <SDL3/SDL_Events.h>
+#else
+#include "SDL_events.h"
+#endif
+
 /*---------------------------------------------------------------------------*/
 
 void putt_toggle_hud_visibility(int);
@@ -28,6 +34,11 @@ void putt_hud_timer(float);
 void putt_hud_set_alpha(float);
 void putt_hud_show(float);
 void putt_hud_hide(void);
+
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
+int putt_hud_touch(const SDL_TouchFingerEvent *e);
+#endif
 
 /*---------------------------------------------------------------------------*/
 

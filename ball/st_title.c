@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
  *
- * NEVERBALL is  free software; you can redistribute  it and/or modify
+ * PENNYBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
  * by the Free  Software Foundation; either version 2  of the License,
  * or (at your option) any later version.
@@ -38,6 +38,7 @@
 #include "vec3.h"
 #include "demo.h"
 #include "geom.h"
+#include "hud.h"
 #include "audio.h"
 #include "config.h"
 #include "cmd.h"
@@ -551,7 +552,12 @@ static int title_action(int tok, int val)
         case TITLE_PACKAGES: return title_refresh_packages(); break;
 #endif
         case TITLE_PUTT:
+            //hud_free();
+            //transition_quit();
+            //gui_free();
             config_set_d(CONFIG_GAME, GAME_PUTT);
+            //gui_init();
+            //transition_init();
             return goto_state(&st_putt_title);
             break;
 #if NB_HAVE_PB_BOTH!=1
@@ -1339,17 +1345,14 @@ static int title_gui(void)
                         gui_clr_rect(btn_social);
                     }
 
-                    int kd = gui_image(jd, "gui/neverputt-modern-256.png", ww, hh);
-                    gui_set_state(kd, TITLE_PUTT, 0);
-
-                    gui_space(jd);
                     gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
                 }
 
                 gui_space(id);
-                gui_layout(id, -1, -1);
+                gui_space(id);
+                gui_layout(id, 0, -1);
             }
-#else
+#endif
 
             if ((id = gui_vstack(root_id)))
             {
@@ -1365,13 +1368,12 @@ static int title_gui(void)
                     gui_set_state(kd, TITLE_PUTT, 0);
 
                     gui_space(jd);
-                    gui_set_slide(jd, GUI_S | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
+                    gui_set_slide(jd, GUI_N | GUI_FLING | GUI_EASE_ELASTIC, 1.3f, 1.0f, 0.05f);
                 }
 
                 gui_space(id);
                 gui_layout(id, -1, -1);
             }
-#endif
 
 #ifdef SWITCHBALL_TITLE_BTN_V2
             if ((id = gui_varray(root_id)))
@@ -1590,9 +1592,12 @@ static int title_enter(struct state *st, struct state *prev, int intent)
 #endif
     audio_ambient_fade_in(0.5f);
 
+    //if (prev == &st_putt_title)
+        //hud_init();
+
     const int title_gui_main = !title_lockscreen && title_check_wgcl() ? title_gui_wgcl() : title_gui();
 
-    if (prev == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
+    if (prev == &st_ball_title)
         return title_gui_main;
 
 #ifdef CONFIG_INCLUDES_ACCOUNT
@@ -1654,7 +1659,7 @@ static int title_leave(struct state *st, struct state *next, int id, int intent)
 {
     title_gui_wgcl_version_enabled = 0;
 
-    if (title_lockscreen && next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
+    if (title_lockscreen && next == &st_ball_title)
     {
         if (config_get_d(CONFIG_SCREEN_ANIMATIONS))
         {

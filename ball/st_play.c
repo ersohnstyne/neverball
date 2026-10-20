@@ -248,13 +248,6 @@ static int   devicemotion_tilt_can_autocalibrate;
 static int   devicemotion_tilt_init_x;
 static int   devicemotion_tilt_init_y;
 
-int goto_ball_pause(struct state *returnable)
-{
-    play_freeze_all = 1;
-
-    return goto_pause(returnable);
-}
-
 static int play_ready_gui(void)
 {
     int id;
@@ -677,7 +670,7 @@ static int play_prep_keybd(int c, int d)
             )
         {
             hud_speedup_reset();
-            goto_pause(curr_state());
+            goto_ball_pause(curr_state());
         }
     }
     return 1;
@@ -700,7 +693,7 @@ static int play_prep_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         {
             hud_speedup_reset();
-            return goto_pause(curr_state());
+            return goto_ball_pause(curr_state());
         }
     }
     return 1;
@@ -1332,7 +1325,7 @@ static int play_loop_keybd(int c, int d)
             {
                 play_freeze_all = 1;
                 hud_speedup_reset();
-                goto_pause(curr_state());
+                goto_ball_pause(curr_state());
             }
         }
     }
@@ -1376,7 +1369,7 @@ static int play_loop_buttn(int b, int d)
         {
             play_freeze_all = 1;
             hud_speedup_reset();
-            goto_pause(curr_state());
+            goto_ball_pause(curr_state());
         }
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
@@ -1661,7 +1654,7 @@ static void play_loop_wheel(int x, int y)
 
 void wgcl_play_touch_pause(void)
 {
-    goto_pause(curr_state());
+    goto_ball_pause(curr_state());
 }
 
 void wgcl_play_touch_cammode(void)

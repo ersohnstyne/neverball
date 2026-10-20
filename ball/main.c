@@ -168,6 +168,9 @@ extern "C" {
 #include "rfd.h"
 #endif
 #include "log.h"
+#include "game_client.h"
+#include "game_server.h"
+#include "game_proxy.h"
 #include "strbuf/substr.h"
 #include "strbuf/joinstr.h"
 #include "lang.h"
@@ -179,18 +182,14 @@ extern "C" {
 #include "st_setup.h"
 #include "st_wgcl.h"
 #endif
-
 #include "st_malfunction.h"
 #include "st_intro.h"
+
 #include "st_conf.h"
-#include "st_name.h"
-#include "st_ball.h"
 #include "st_title.h"
 #include "st_demo.h"
 #include "st_level.h"
 #include "st_pause.h"
-#include "st_play.h"
-#include "st_fail.h"
 #include "st_common.h"
 #include "st_start.h"
 #include "st_package.h"
@@ -198,6 +197,10 @@ extern "C" {
 #include "../putt/st_all.h"
 #include "../putt/hole.h"
 #include "../putt/course.h"
+#include "st_name.h"
+#include "st_ball.h"
+#include "st_play.h"
+#include "st_fail.h"
 
 #include "main_share.h"
 
@@ -206,7 +209,7 @@ extern "C" {
 #endif
 
 #ifndef GAME_DEFAULT
-#define GAME_DEFAULT GAME_BALL
+#define GAME_DEFAULT 0
 #endif
 
 #ifndef GAME_TITLE
@@ -230,7 +233,9 @@ const char ICON[] = GAME_ICON;
 
 /*---------------------------------------------------------------------------*/
 
+#if _MSC_VER
 static_assert(GAME_DEFAULT == 0, "Mismatch game product!: GAME_DEFAULT == GAME_BALL");
+#endif
 
 static List opt_data_multi = NULL;
 static List opt_level_multi = NULL;
@@ -1178,7 +1183,7 @@ static int main_loop_nowindowfocused = 0;
 static int goto_pause(void)
 {
     if (config_putt())
-        return goto_putt_pause(&st_putt_over);
+        return goto_putt_pause(&st_putt_over, 1);
     else if (config_ball() &&
              (curr_state() == &st_play_ready ||
               curr_state() == &st_play_set   ||
@@ -1511,7 +1516,7 @@ static int loop(void)
                         audio_suspend();
 #endif
                         if (video_get_grab())
-                            goto_pause();
+                            d = goto_pause();
                         else if (config_ball() &&
                                  (curr_state() == &st_demo_play || curr_state() == &st_demo_look))
                             d = demo_pause_goto(1);

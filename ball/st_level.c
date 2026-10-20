@@ -313,7 +313,7 @@ static int level_action(int tok, int val)
 
         case GUI_BACK:
 #if NB_HAVE_PB_BOTH==1
-            return goto_pause(curr_state());
+            return goto_ball_pause(curr_state());
 #else
             return goto_abandon();
 #endif
@@ -1004,7 +1004,7 @@ static int level_keybd(int c, int d)
 #endif
         {
             if (c == KEY_EXIT)
-                return goto_pause(curr_state());
+                return goto_ball_pause(curr_state());
             if (c == KEY_POSE)
                 return goto_state(&st_poser);
         }
@@ -1071,7 +1071,7 @@ static int level_buttn(int b, int d)
                 return level_action(gui_token(active), gui_value(active));
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_pause(curr_state());
+            return goto_ball_pause(curr_state());
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && curr_state() == &st_level)
         {
 #ifdef MAPC_INCLUDES_CHKP

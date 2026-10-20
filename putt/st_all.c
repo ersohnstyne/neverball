@@ -37,6 +37,9 @@
 #include "audio.h"
 #include "course.h"
 #include "config.h"
+#if NB_HAVE_PB_BOTH==1
+#include "config_wgcl.h"
+#endif
 #include "video.h"
 #ifndef VERSION
 #include "version.h"
@@ -46,8 +49,9 @@
 #include "package.h"
 
 #include "st_all.h"
-#include "st_conf.h"
+#include "st_package.h"
 #include "st_wgcl.h"
+#include "../ball/st_conf.h"
 
 extern struct state st_ball_title;
 
@@ -327,9 +331,11 @@ static int shared_back_button(int pd)
 
     if ((id = gui_hstack(pd)))
     {
+        gui_filler(id);
         const int icn_id = gui_label(id, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
         gui_label(id, _("Back"), GUI_SML, GUI_COLOR_WHT);
         gui_set_font(icn_id, "ttf/DejaVuSans-Bold.ttf");
+        gui_filler(id);
 
         gui_set_state(id, -1, 0);
         gui_set_rect(id, GUI_ALL);
@@ -358,7 +364,7 @@ static int putt_title_action(int i)
         case TITLE_PLAY: return goto_state(&st_putt_course);
         case TITLE_HELP: return goto_state(&st_putt_help);
         case TITLE_CONF:
-#if NB_HAVE_PB_BOTH == 1 && defined(CONFIG_WGCL_GAME_OPTIONS)
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
             WGCL_InitGameOptions(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
             return goto_state(&st_null);
 #else
@@ -371,8 +377,12 @@ static int putt_title_action(int i)
                 course_free();
                 return 0;
             }
-        case TITLE_BALL: 
+        case TITLE_BALL:
+            //transition_init();
+            //gui_free();
             config_set_d(CONFIG_GAME, GAME_BALL);
+            //gui_init();
+            //transition_init();
             return exit_state(&st_ball_title);
     }
     return 1;
@@ -387,10 +397,13 @@ static int putt_title_action(int i)
 
 static int party_indiv_controllers = 0;
 
-static int gamepadinfo_controller_ids[4];
+/*static int gamepadinfo_controller_ids[4];*/
 
 static int putt_title_enter(struct state *st, struct state *prev, int intent)
 {
+    /*for (int i = 0; i < 4; i++)
+        gamepadinfo_controller_ids[i] = 0;*/
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     support_exit = (current_platform != PLATFORM_PS &&
                     current_platform != PLATFORM_STEAMDECK &&
@@ -416,7 +429,7 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
         {
             if ((jd = gui_vstack(id)))
             {
-                const int title_id = gui_title_header(jd, "  Pennyputt  ", GUI_LRG, 0, 0);
+                const int title_id = gui_title_header(jd, "  Neverputt  ", GUI_LRG, 0, 0);
                 gui_set_font(title_id, "ttf/DejaVuSans-Bold.ttf");
 #if NB_STEAM_API==1
                 gui_label(jd, _("Steam Valve Edition"), GUI_SML, GUI_COLOR_WHT);
@@ -442,9 +455,16 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
 
                     gui_state(kd, gt_prefix("menu^Help"), GUI_MED, TITLE_HELP, 0);
                     gui_state(kd, gt_prefix("menu^Options"), GUI_MED, TITLE_CONF, 0);
-
-                    if (support_exit && config_get_d(CONFIG_FULLSCREEN))
-                        gui_state(kd, gt_prefix("menu^Exit"), GUI_MED, TITLE_EXIT, 0);
+                    
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
+    !defined(__SWITCH__)
+#ifndef __EMSCRIPTEN__
+                    if (support_exit)
+#endif
+                        gui_state(kd, gt_prefix("menu^Exit"),
+                                      GUI_MED, GUI_BACK, 0);
+#endif
 
                     /* Hilight the start button. */
 
@@ -458,7 +478,7 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
         }
 
 #if ENABLE_VERSION
-        if ((id = gui_label(root_id, "Pennyputt " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
+        if ((id = gui_label(root_id, "Neverputt " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
         {
             gui_clr_rect(id);
             gui_layout(id, -1, -1);
@@ -486,7 +506,7 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
 
         /* Build the gamepad GUI. */
 
-        if ((id = gui_hstack(root_id)))
+        /*if ((id = gui_hstack(root_id)))
         {
             gamepadinfo_controller_ids[3] = gui_label(id, _("P4 XXXXX"), GUI_SML, GUI_COLOR_GRY);
             gamepadinfo_controller_ids[2] = gui_label(id, _("P3 XXXXX"), GUI_SML, GUI_COLOR_GRY);
@@ -499,10 +519,10 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
             gui_layout(id, 0, 1);
             gui_set_rect(id, GUI_S);
             gui_set_slide(id, GUI_N | GUI_EASE_ELASTIC, 1.6f, 0.8f, 0.05f);
-        }
+        }*/
     }
 
-    if (prev == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
+    if (prev == &st_putt_title)
         return root_id;
 
     course_init();
@@ -520,6 +540,9 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
 
 static int putt_title_leave(struct state *st, struct state *next, int id, int intent)
 {
+    /*for (int i = 0; i < 4; i++)
+        gamepadinfo_controller_ids[i] = 0;*/
+
     if (next == &st_conf ||
         next == &st_null)
     {
@@ -530,7 +553,7 @@ static int putt_title_leave(struct state *st, struct state *next, int id, int in
         course_free();
     }
 
-    if (next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
+    if (next == &st_putt_title)
     {
         gui_delete(id);
         return 0;
@@ -571,7 +594,7 @@ static void putt_title_timer(int id, float dt)
 
     int battery_level, gamepad_wired;
 
-    if (joy_connected(0, &battery_level, &gamepad_wired) &&
+    /*if (joy_connected(0, &battery_level, &gamepad_wired) &&
         gamepadinfo_controller_ids[0])
     {
         if (gamepad_wired)
@@ -649,7 +672,7 @@ static void putt_title_timer(int id, float dt)
     {
         gui_set_label(gamepadinfo_controller_ids[3], _("P4"));
         gui_set_color(gamepadinfo_controller_ids[3], gui_gry, gui_gry);
-    }
+    }*/
 
     gui_timer(id, dt);
 }
@@ -1401,7 +1424,7 @@ enum
     PAUSE_RESHOT
 };
 
-int goto_putt_pause(int use_keybd)
+int goto_putt_pause(struct state *s, int use_keybd)
 {
     audio_play("snd/2.2/game_pause.ogg", 1.0f);
 
@@ -1414,7 +1437,7 @@ int goto_putt_pause(int use_keybd)
         paused_indiv_ctrl_index = joy_get_gamepad_action_index();
 
     st_continue = curr_state();
-    st_quit = &st_putt_over;
+    st_quit = s;
     paused = 1;
 
     return goto_state(&st_putt_pause);
@@ -1427,7 +1450,7 @@ static int pause_action(int i)
     switch(i)
     {
     case PAUSE_OPTIONS:
-        return goto_state(&st_conf);
+        return goto_conf(curr_state(), 1, 0);
 
     case PAUSE_CONTINUE:
         return exit_state(st_continue ? st_continue : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
@@ -1641,7 +1664,7 @@ static int shared_keybd(int c, int d)
     }
 
     if (d && KEY_IS_PAUSE(c))
-        return goto_putt_pause(1);
+        return goto_putt_pause(&st_putt_over, 1);
 
     return 1;
 }
@@ -1753,7 +1776,7 @@ static int next_keybd(int c, int d)
         if (c == KEY_POSE)
             return goto_state(&st_putt_poser);
         if (KEY_IS_PAUSE(c))
-            return goto_putt_pause(1);
+            return goto_putt_pause(&st_putt_over, 1);
 
         if (config_tst_d(CONFIG_KEY_SCORE_NEXT, c))
         {
@@ -1802,7 +1825,7 @@ static int next_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_putt_pause(0);
+        return goto_putt_pause(&st_putt_over, 0);
 
     return 1;
 }
@@ -1918,7 +1941,7 @@ static int flyby_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_putt_pause(0);
+        return goto_putt_pause(&st_putt_over, 0);
 
     return 1;
 }
@@ -2033,7 +2056,7 @@ static int stroke_keybd(int c, int d)
     if (d)
     {
         if (KEY_IS_PAUSE(c))
-            return goto_putt_pause(1);
+            return goto_putt_pause(&st_putt_over, 1);
         if (c == KEY_PUTT_UPGRADE && stroke_type < 3)
         {
             stroke_type++;
@@ -2087,7 +2110,7 @@ static int stroke_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_putt_pause(0);
+        return goto_putt_pause(&st_putt_over, 0);
 
     return 1;
 }
@@ -2123,7 +2146,8 @@ static int stroke_tap_shot;
 
 static int stroke_touch(const SDL_TouchFingerEvent *e)
 {
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
     static SDL_FingerID rotate_finger = -1;
 
     static float rotate = 0.0f, mag = 0.0f; /* Filtered input. */
@@ -2148,7 +2172,7 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
 
     int id;
 
-    if ((id = hud_touch(e)))
+    if ((id = putt_hud_touch(e)))
     {
         int token = gui_token(id);
 
@@ -2258,7 +2282,7 @@ static void roll_timer(int id, float dt)
 static int roll_buttn(int b, int d)
 {
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_putt_pause(0);
+        return goto_putt_pause(&st_putt_over, 0);
 
     return 1;
 }
@@ -2376,7 +2400,7 @@ static int goal_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_putt_pause(0);
+        return goto_putt_pause(&st_putt_over, 0);
 
     return 1;
 }
@@ -2451,7 +2475,7 @@ static int stop_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_putt_pause(0);
+        return goto_putt_pause(&st_putt_over, 0);
 
     return 1;
 }
@@ -2537,7 +2561,7 @@ static int fall_buttn(int b, int d)
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
-        return goto_putt_pause(0);
+        return goto_putt_pause(&st_putt_over, 0);
 
     return 1;
 }
@@ -2626,7 +2650,7 @@ static int score_keybd(int c, int d)
         (joy_get_cursor_actions(0) || !party_indiv_controllers))
     {
         if (KEY_IS_PAUSE(c))
-            return goto_putt_pause(1);
+            return goto_putt_pause(&st_putt_over, 1);
     }
     return 1;
 }
@@ -2639,7 +2663,7 @@ static int score_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             goto_state(hole_move() ? &st_putt_next : &st_putt_over);
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_putt_pause(0);
+            return goto_putt_pause(&st_putt_over, 0);
     }
     return 1;
 }

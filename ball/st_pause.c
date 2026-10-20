@@ -128,7 +128,7 @@ static int keybd_restart_shift = 0;
  *
  * @param returnable The returned state
  */
-int goto_pause(struct state *returnable)
+int goto_ball_pause(struct state *returnable)
 {
     audio_play("snd/2.2/game_pause.ogg", 1.0f);
     keybd_restart_shift = 0;

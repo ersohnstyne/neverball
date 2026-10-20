@@ -22,6 +22,6 @@ extern struct state st_putt_party;
 extern struct state st_putt_next;
 extern struct state st_putt_over;
 
-int goto_putt_pause(int);
+int goto_putt_pause(struct state *, int);
 
 #endif

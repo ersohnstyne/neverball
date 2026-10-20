@@ -57,6 +57,8 @@ void putt_hud_init(void)
 {
     if (is_init) return;
 
+    int id = 0;
+
     static const GLubyte *color[5] =
     {
         gui_wht,
@@ -91,22 +93,17 @@ void putt_hud_init(void)
 
     /* Let Mojang done these */
 #if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
-    if ((touch_id = gui_vstack(0)))
+    if ((Touch_id = gui_vstack(0)))
     {
-        gui_space(touch_id);
+        gui_space(Touch_id);
 
-        if ((id = gui_hstack(touch_id)))
+        if ((id = gui_hstack(Touch_id)))
         {
-            gui_state(id, GUI_ROMAN_2, GUI_TCH, GUI_BACK, 0);
-
-            gui_space(id);
-
             gui_state(id, GUI_FISHEYE, GUI_TCH, GUI_CAMERA, 0);
-
             gui_space(id);
         }
 
-        gui_layout(touch_id, -1, +1);
+        gui_layout(Touch_id, -1, +1);
     }
 #endif
 
@@ -127,7 +124,7 @@ void putt_hud_free(void)
     gui_delete(Lhud_id);        Lhud_id = 0;
     gui_delete(Rhud_id);        Rhud_id = 0;
 #if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
-    gui_delete(touch_id);       touch_id = 0;
+    gui_delete(Touch_id);       Touch_id = 0;
 #endif
     gui_delete(fps_id);         fps_id = 0;
 
@@ -195,8 +192,9 @@ void putt_hud_hide(void)
     gui_slide(Rhud_id,        GUI_SE | GUI_EASE_BACK, 0, 0.3f, 0);
 }
 
-#if defined(__ANDROID__) || defined(__IOS__) || defined(__EMSCRIPTEN__)
-int hud_touch(const SDL_TouchFingerEvent *e)
+#if !defined(__NDS__) && !defined(__3DS__) && \
+    !defined(__GAMECUBE__) && !defined(__WII__)
+int putt_hud_touch(const SDL_TouchFingerEvent *e)
 {
     if (touch_timer == 0.0f)
         gui_slide(Touch_id, GUI_N | GUI_EASE_BACK, 0, 0.3f, 0);
@@ -208,13 +206,12 @@ int hud_touch(const SDL_TouchFingerEvent *e)
         const int x = (int) ((float) video.device_w * e->x);
         const int y = (int) ((float) video.device_h * (1.0f - e->y));
 
-        return gui_point(touch_id, x, y);
+        return gui_point(Touch_id, x, y);
     }
 
     return 0;
 }
 #endif
-
 
 static void hud_update_alpha(void)
 {

@@ -105,6 +105,7 @@ static float incomecall_timer;
 
 /* Visibility */
 
+static int hud_is_init       = 0;
 static int show_hud          = 1;
 static int show_hud_expected = 0;
 
@@ -159,6 +160,8 @@ static void hud_fps(void)
 
 void hud_init(void)
 {
+    if (hud_is_init) return;
+
     int         id;
     const char *str_cam;
     int         v;
@@ -314,7 +317,7 @@ void hud_init(void)
         gui_set_trunc(lvlname_id, TRUNC_TAIL);
         gui_layout(lvlname_id, 0, 1);
     }
-    
+
     if ((incomecall_id = gui_label(0, "XXXXXXXXXXXXXXXXXXXXXXXXX",
                                        GUI_SML, gui_blu, gui_grn)))
     {
@@ -342,10 +345,14 @@ void hud_init(void)
         gui_set_rect(speed_id, GUI_TOP);
         gui_layout(speed_id, 0, -1);
     }
+
+    hud_is_init = 1;
 }
 
 void hud_free(void)
 {
+    if (!hud_is_init) return;
+
     gui_delete(text_coins_id); text_coins_id = 0;
     gui_delete(text_goal_id);  text_goal_id = 0;
     gui_delete(text_balls_id); text_balls_id = 0;
@@ -376,6 +383,8 @@ void hud_free(void)
     {
         gui_delete(speed_ids[i]); speed_ids[i] = 0;
     }
+
+    hud_is_init = 0;
 }
 
 static void hud_update_alpha(void)

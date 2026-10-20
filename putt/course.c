@@ -42,7 +42,7 @@
 #include "hole.h"
 #include "fs.h"
 #include "lang.h"
-#include "../putt/course.h"
+#include "../ball/set.h"
 
 #include "package.h"
 

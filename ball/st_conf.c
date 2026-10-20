@@ -54,6 +54,7 @@
 #include "version.h"
 #endif
 #include "lang.h"
+#include "../putt/game.h"
 
 #include "package_superwaifu.h"
 
@@ -4040,6 +4041,7 @@ static int null_enter(struct state *st, struct state *prev, int intent)
 #endif
 
     game_client_free_objects();
+    putt_free_objects();
     back_free_objects();
 
 #if ENABLE_DUALDISPLAY==1
@@ -4099,6 +4101,7 @@ static int null_leave(struct state *st, struct state *next, int id, int intent)
 #endif
 
     back_load_objects();
+    putt_load_objects();
     game_client_load_objects();
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT) && defined(CONFIG_INCLUDES_MULTIBALLS)

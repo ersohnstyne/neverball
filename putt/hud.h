@@ -23,6 +23,12 @@
 
 /*---------------------------------------------------------------------------*/
 
+enum
+{
+    PUTT_TOUCH_MODE = 0,
+    PUTT_TOUCH_PAUSE = 1
+};
+
 void putt_toggle_hud_visibility(int);
 int  putt_hud_visibility(void);
 
@@ -37,9 +43,12 @@ void putt_hud_hide(void);
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
-int putt_hud_touch(const SDL_TouchFingerEvent *e);
+int  putt_hud_touch(const SDL_TouchFingerEvent *e);
 #endif
+
+void putt_hud_touch_timer(float dt);
+void putt_hud_touch_reset(void);
+
+void putt_hud_joystick_set(int active, float ox, float oy, float kx, float ky, float rb, float rk);
 
 /*---------------------------------------------------------------------------*/
-
-#endif

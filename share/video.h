@@ -108,7 +108,7 @@ void video_calc_view(float *, const float *,
 #define video_push_ortho video_set_ortho
 
 /* This function is deprecated and is removed without notices. */
-#define video_pop_matrix
+#define video_pop_matrix() ((void *) 0)
 
 void video_set_perspective(float, float, float);
 void video_set_ortho(void);

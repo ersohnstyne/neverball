@@ -120,7 +120,7 @@ void putt_hud_init(void)
             gui_space(id);
         }
         gui_set_slide(touch_pause_id, GUI_N, 0, 0, 0);
-        gui_layout(touch_pause_id, side, -1);
+        gui_layout(touch_pause_id, side, +1);
     }
 
     touch_timer = 0.0f;

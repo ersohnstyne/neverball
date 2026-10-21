@@ -13,10 +13,7 @@
  */
 
 #include "common.h"
-<<<<<<< HEAD
 
-=======
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 #include "gui.h"
 #include "hud.h"
 #include "hole.h"
@@ -32,7 +29,6 @@ static int Lhud_id;
 static int Rhud_id;
 static int fps_id;
 
-<<<<<<< HEAD
 static int stroke_type_id;
 
 static int is_init;
@@ -47,12 +43,6 @@ static float show_hud_alpha;
 static float show_hud_total_alpha;
 
 static struct hud_joystick
-=======
-static int touch_pause_id;
-static float touch_timer;
-
-static struct
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 {
     int active;
     float ox, oy;
@@ -60,7 +50,6 @@ static struct
     float rb, rk;
 } joystick;
 
-<<<<<<< HEAD
 void putt_toggle_hud_visibility(int active)
 {
     show_hud = active;
@@ -71,8 +60,6 @@ int putt_hud_visibility(void)
     return show_hud && show_hud_expected;
 }
 
-=======
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 /*---------------------------------------------------------------------------*/
 
 void putt_hud_init(void)
@@ -90,15 +77,12 @@ void putt_hud_init(void)
 
     int i = curr_player();
     int id;
-<<<<<<< HEAD
 
     if ((stroke_type_id = gui_label(0, _(curr_stroke_type_name()), GUI_SML, color[i], gui_wht)))
     {
         gui_set_rect(stroke_type_id, GUI_BOT);
         gui_layout(stroke_type_id, 0, 1);
     }
-=======
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 
     if ((Lhud_id = gui_hstack(0)))
     {
@@ -120,16 +104,11 @@ void putt_hud_init(void)
         gui_layout(fps_id, -1, +1);
     }
 
-<<<<<<< HEAD
     /* Let Mojang done these */
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
     int mode = config_get_d(CONFIG_TOUCH_MODE);
     int side = (mode == TOUCH_MODE_RL) ? -1 : 1;
-=======
-    int mode = config_get_d(CONFIG_TOUCH_MODE);
-    int side = (mode == TOUCH_MODE_RL) ? -1 : +1;
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 
     if ((touch_pause_id = gui_vstack(0)))
     {
@@ -141,26 +120,18 @@ void putt_hud_init(void)
             gui_space(id);
         }
         gui_set_slide(touch_pause_id, GUI_N, 0, 0, 0);
-<<<<<<< HEAD
-        gui_layout(touch_pause_id, side, -1);
-=======
         gui_layout(touch_pause_id, side, +1);
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
     }
 
     touch_timer = 0.0f;
     joystick.active = 0;
-<<<<<<< HEAD
 #endif
 
     is_init = 1;
-=======
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 }
 
 void putt_hud_free(void)
 {
-<<<<<<< HEAD
     if (!is_init) return;
 
     gui_delete(stroke_type_id); stroke_type_id = 0;
@@ -175,77 +146,6 @@ void putt_hud_free(void)
     touch_timer = 0.0f;
     joystick.active = 0;
     is_init = 0;
-=======
-    gui_delete(Lhud_id);
-    gui_delete(Rhud_id);
-    gui_delete(fps_id);
-    gui_delete(touch_pause_id);
-
-    Lhud_id = 0;
-    Rhud_id = 0;
-    fps_id = 0;
-    touch_pause_id = 0;
-    touch_timer = 0.0f;
-    joystick.active = 0;
-}
-
-/*---------------------------------------------------------------------------*/
-
-int putt_hud_touch(const SDL_TouchFingerEvent *event)
-{
-    const int x = (int) ((float) video.device_w * event->x);
-    const int y = (int) ((float) video.device_h * (1.0f - event->y));
-
-    if (touch_timer <= 0.0f)
-        gui_slide(touch_pause_id, GUI_N | GUI_EASE_BACK, 0, 0.3f, 0);
-    touch_timer = 5.0f;
-
-    int hit_pause = gui_search(touch_pause_id, x, y);
-    if (hit_pause)
-    {
-        if (event->type == SDL_FINGERUP)
-        {
-            gui_focus(0);
-            return PUTT_TOUCH_PAUSE;
-        }
-        return touch_pause_id;
-    }
-
-    return 0;
-}
-
-void putt_hud_touch_timer(float dt)
-{
-    if (touch_timer > 0.0f)
-    {
-        touch_timer -= dt;
-        if (touch_timer <= 0.0f)
-        {
-            touch_timer = 0.0f;
-            gui_slide(touch_pause_id, GUI_N | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
-        }
-    }
-
-    gui_timer(touch_pause_id, dt);
-}
-
-void putt_hud_touch_reset(void)
-{
-    touch_timer = 0.0f;
-    joystick.active = 0;
-    gui_set_slide(touch_pause_id, GUI_N, 0, 0, 0);
-}
-
-void putt_hud_joystick_set(int active, float ox, float oy, float kx, float ky, float rb, float rk)
-{
-    joystick.active = active;
-    joystick.ox = ox;
-    joystick.oy = oy;
-    joystick.kx = kx;
-    joystick.ky = ky;
-    joystick.rb = rb;
-    joystick.rk = rk;
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 }
 
 /*---------------------------------------------------------------------------*/
@@ -326,7 +226,6 @@ void putt_hud_paint(void)
         joystick_draw(joystick.ox, joystick.oy,
                       joystick.kx, joystick.ky,
                       joystick.rb, joystick.rk);
-<<<<<<< HEAD
 }
 
 void putt_hud_timer(float dt)
@@ -391,8 +290,6 @@ void putt_hud_set_alpha(float a)
 {
     show_hud_total_alpha = a;
     hud_update_alpha();
-=======
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 }
 
 /*---------------------------------------------------------------------------*/

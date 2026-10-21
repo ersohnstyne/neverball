@@ -19,34 +19,22 @@
 #ifndef HUD_H
 #define HUD_H
 
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 #include <SDL3/SDL_Events.h>
 #else
 #include "SDL_events.h"
 #endif
-=======
-#include "SDL_events.h"
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 
 /*---------------------------------------------------------------------------*/
 
 enum
 {
-<<<<<<< HEAD
     PUTT_TOUCH_MODE = 0,
     PUTT_TOUCH_PAUSE = 1
 };
 
 void putt_toggle_hud_visibility(int);
 int  putt_hud_visibility(void);
-
-=======
-    PUTT_TOUCH_NONE = 0,
-    PUTT_TOUCH_PAUSE = 1
-};
-
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 void putt_hud_init(void);
 void putt_hud_free(void);
 

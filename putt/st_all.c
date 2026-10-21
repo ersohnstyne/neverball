@@ -14,7 +14,6 @@
 
 #include <math.h>
 
-<<<<<<< HEAD
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 #endif
@@ -27,8 +26,6 @@
 #include "account.h"
 #include "networking.h"
 
-=======
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 #include "common.h"
 #include "hud.h"
 #include "geom.h"
@@ -2022,7 +2019,6 @@ static int stroke_leave(struct state *st, struct state *next, int id, int intent
 {
     video_clr_grab();
     config_set_d(CONFIG_CAMERA, 0);
-<<<<<<< HEAD
     stroke_rotate = 0.0f;
     stroke_mag = 0.0f;
     stroke_touch_reset();
@@ -2033,11 +2029,6 @@ static int stroke_leave(struct state *st, struct state *next, int id, int intent
         video_show_cursor();
     }
 
-=======
-    stroke_rotate = 0;
-    stroke_mag = 0;
-    stroke_touch_reset();
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
     return 0;
 }
 
@@ -2071,7 +2062,6 @@ static void stroke_timer(int id, float dt)
     putt_set_mag(stroke_mag * k);
 
     putt_update_view(dt);
-<<<<<<< HEAD
 
     switch (putt_step(g, dt))
     {
@@ -2086,11 +2076,6 @@ static void stroke_timer(int id, float dt)
     putt_step_fade(dt);
     putt_hud_timer(dt);
     gui_timer(id, dt);
-=======
-    putt_step(g, dt);
-
-    putt_hud_touch_timer(dt);
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 }
 
 static void stroke_point(int id, int x, int y, int dx, int dy)
@@ -2429,16 +2414,12 @@ static void roll_timer(int id, float dt)
 {
     float g[3] = { 0.0f, -9.8f, 0.0f };
 
-<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
     putt_hud_touch_timer(dt);
 #endif
 
     if (dt <= 0.f) return;
-=======
-    putt_hud_touch_timer(dt);
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 
     switch (putt_step(g, dt))
     {
@@ -3036,19 +3017,12 @@ struct state st_putt_stroke = {
     .timer = stroke_timer,
     .point = stroke_point,
     .stick = stroke_stick,
-<<<<<<< HEAD
     .click = shared_click_basic,
     .keybd = stroke_keybd,
     .buttn = stroke_buttn,
     .wheel = stroke_wheel,
     .touch = stroke_touch,
     .fade = stroke_fade
-=======
-    .click = stroke_click,
-    .keybd = shared_keybd,
-    .buttn = stroke_buttn,
-    .touch = stroke_touch
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 };
 
 struct state st_putt_roll = {
@@ -3058,12 +3032,8 @@ struct state st_putt_roll = {
     .timer = roll_timer,
     .keybd = shared_keybd,
     .buttn = roll_buttn,
-<<<<<<< HEAD
     .touch = roll_touch,
     .fade = shared_fade
-=======
-    .touch = roll_touch
->>>>>>> b1a383a7cfc739ea165ce77fdd41268cd37ca5e5
 };
 
 struct state st_putt_goal = {

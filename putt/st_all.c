@@ -136,14 +136,16 @@ static int score_card(const char  *title,
     if ((id = gui_vstack(0)))
     {
         gui_title_header(id, title, GUI_MED, c0, c1);
-
         gui_space(id);
-
+        
         if (display_scr)
+        {
             if ((jd = gui_hstack(id))) {
                 const GLubyte *player_color[] = { gui_red, gui_grn, gui_blu, gui_yel };
 
-                for (i = 1; i < curr_party(); i++)
+                gui_filler(jd);
+
+                for (i = 1; i <= curr_party(); i++)
                 {
                     const int par_diff = hole_out(0) - hole_out(i);
 
@@ -156,9 +158,13 @@ static int score_card(const char  *title,
                             par_diff > 0 ? "+%d" : "%d", par_diff);
 
                     if (i != 1) gui_space(jd);
-                    gui_label(jd, diffattr, GUI_SML, player_color[i - 1], player_color[i - 1]);
+                    gui_label(jd, diffattr, GUI_MED, player_color[i - 1], player_color[i - 1]);
                 }
+
+                gui_filler(jd);
             }
+            gui_space(id);
+        }
 
         gui_space(id);
 

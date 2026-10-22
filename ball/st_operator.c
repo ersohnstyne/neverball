@@ -253,7 +253,11 @@ static int operator_search_enter(struct state *st, struct state *prev, int inten
     if (!operator_back_state) operator_back_state = prev;
 
     operator_mode = 1;
+#if NB_HAVE_PB_BOTH==1
     demo_replay_speed(SPEED_FASTESTESTEST);
+#else
+    demo_replay_speed(SPEED_FASTEST);
+#endif
 
     int id = 0;
 

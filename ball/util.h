@@ -80,37 +80,22 @@ void gui_keyboard_lock_de(void);
 char gui_keyboard_char(char);
 
 /*
- * This function for button with icon will be replaced into the gui_text_icon_button.
- * Your functions will be replaced using eight parameters.
+ * This function name will be redirected to gui_state_icon_full() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `gui_state_icon_full()` to `gui_start_button()`.
  */
-_CRT_NB_UTIL_DEPRECATED(int, (int, int), gui_start_button, gui_text_icon_button);
+#define gui_start_button(_pd, _tok) \
+    gui_state_icon_full(pd, GUI_TRIANGLE_RIGHT, gui_grn, _("Start"), GUI_SML, \
+                            tok, 0, 1, 0)
 
 /*
- * This function name will be redirected to gui_text_icon_button() for modern WGCL source project.
+ * This function name will be redirected to gui_state_icon_full() for modern WGCL source project.
  * To continue with legacy source project Neverball,
- * please change from `gui_text_icon_button()` to `gui_back_button()`.
+ * please change from `gui_state_icon_full()` to `gui_back_button()`.
  */
 #define gui_back_button(_pd) \
-    (gui_text_icon_button(_pd, _("Back"), GUI_CROSS, gui_red, GUI_BACK, 0, 1, 0))
-
-/*
- * This function for button with icon will be replaced into the gui_state_icon.
- * Your functions will be replaced using seven parameters.
- */
-_CRT_NB_UTIL_DEPRECATED(int, (int pd,
-                              const char *text, const char *icon, const unsigned char *color,
-                              const int token, const int value,
-                              const int enabled, const int destructive),
-                             gui_text_icon_button, gui_state_icon);
-/*
- * This function for button with icon will be replaced into the gui_state_icon_LH.
- * Your functions will be replaced using seven parameters.
- */
-_CRT_NB_UTIL_DEPRECATED(int, (int pd,
-                              const char *text, const char *icon, const unsigned char *color,
-                              const int token, const int value,
-                              const int enabled, const int destructive),
-                             gui_text_icon_button_LH, gui_state_icon_LH);
+    gui_state_icon_full(_pd, GUI_CROSS, gui_red, _("Back"), GUI_SML, GUI_BACK, \
+                             0, 1, 0)
 
 void gui_scoreboard_free(void);
 

@@ -3813,36 +3813,39 @@ static int conf_gui(void)
             conf_state_icon(id, _("Community (Discord)"), GUI_TRIANGLE_RIGHT, _("Join"), CONF_SOCIAL);
             gui_space(id);
 #endif
-
+            
+            if (config_ball())
+            {
 #if NB_HAVE_PB_BOTH==1
 #ifndef __EMSCRIPTEN__
-            const char *conf_account_btn_txt = !conf_check_playername(config_get_s(CONFIG_PLAYER)) ?
-                                               N_("Register") : N_("Manage");
+                const char *conf_account_btn_txt = !conf_check_playername(config_get_s(CONFIG_PLAYER)) ?
+                                                                          N_("Register") : N_("Manage");
 
-            conf_state_icon(id, _("Account"), GUI_TRIANGLE_RIGHT, _(conf_account_btn_txt), CONF_ACCOUNT);
+                conf_state_icon(id, _("Account"), GUI_TRIANGLE_RIGHT, _(conf_account_btn_txt), CONF_ACCOUNT);
 #else
-            if (conf_check_playername(config_get_s(CONFIG_PLAYER)))
-                conf_state_icon(id, _("Account"), GUI_TRIANGLE_RIGHT, _("Manage"), CONF_ACCOUNT);
+                if (conf_check_playername(config_get_s(CONFIG_PLAYER)))
+                    conf_state_icon(id, _("Account"), GUI_TRIANGLE_RIGHT, _("Manage"), CONF_ACCOUNT);
 #endif
-            conf_state_icon(id, _("Notifications"), GUI_TRIANGLE_RIGHT, _("Manage"), CONF_NOTIFICATIONS);
-            gui_space(id);
+                conf_state_icon(id, _("Notifications"), GUI_TRIANGLE_RIGHT, _("Manage"), CONF_NOTIFICATIONS);
+                gui_space(id);
 #endif
+            }
 
 #if NB_HAVE_PB_BOTH==1
             conf_state_icon(id, _("Gameplay"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_GAMEPLAY);
             gui_space(id);
 
-            if (mainmenu_conf && !game_server_state() && !demo_state()) {
+            if (mainmenu_conf && !game_server_state() && !demo_state() && config_ball()) {
                 conf_state_icon(id, _("Controls"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_CONTROLS);
                 conf_state_icon(id, _("Graphics"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_VIDEO);
             }
 #else
-            if (mainmenu_conf && !game_server_state() && !demo_state())
+            if (mainmenu_conf && !game_server_state() && !demo_state() && config_ball())
                 conf_state_icon(id, _("Graphics"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_VIDEO);
 
             conf_state_icon(id, _("Gameplay"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_GAMEPLAY);
 
-            if (mainmenu_conf && !game_server_state() && !demo_state())
+            if (mainmenu_conf && !game_server_state() && !demo_state() && config_ball())
                 conf_state_icon(id, _("Controls"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_CONTROLS);
 #endif
 

@@ -109,7 +109,8 @@ static char *number(int i)
 
 static int score_card(const char  *title,
                       const GLubyte *c0,
-                      const GLubyte *c1)
+                      const GLubyte *c1,
+                      int display_scr)
 {
     int id, jd, kd, ld;
 
@@ -135,6 +136,30 @@ static int score_card(const char  *title,
     if ((id = gui_vstack(0)))
     {
         gui_title_header(id, title, GUI_MED, c0, c1);
+
+        gui_space(id);
+
+        if (display_scr)
+            if ((jd = gui_hstack(id))) {
+                const GLubyte *player_color[] = { gui_red, gui_grn, gui_blu, gui_yel };
+
+                for (i = 1; i < curr_party(); i++)
+                {
+                    const int par_diff = hole_out(0) - hole_out(i);
+
+                    char diffattr[16];
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(diffattr, 16
+#else
+                    sprintf(diffattr,
+#endif
+                            par_diff > 0 ? "+%d" : "%d", par_diff);
+
+                    if (i != 1) gui_space(jd);
+                    gui_label(jd, diffattr, GUI_SML, player_color[i - 1], player_color[i - 1]);
+                }
+            }
+
         gui_space(id);
 
         if ((jd = gui_hstack(id)))
@@ -350,16 +375,22 @@ static int shared_back_button(int pd)
 
 enum
 {
-    TITLE_PLAY = 1,
+    TITLE_PLAY = GUI_LAST,
     TITLE_HELP,
     TITLE_CONF,
-    TITLE_EXIT,
     TITLE_BALL
 };
 
+/*
+ * This enum name will be redirected to GUI_BACK for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `GUI_BACK` to `TITLE_EXIT`.
+ */
+#define TITLE_EXIT GUI_BACK
+
 static int putt_title_action(int i)
 {
-    PUTT_GAMEMENU_ACTION(-1);
+    PUTT_GAMEMENU_ACTION(GUI_BACK);
 
     switch (i)
     {
@@ -688,8 +719,8 @@ static void putt_title_timer(int id, float dt)
 
 static int putt_title_click(int b, int d)
 {
-    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
-        return title_action(TITLE_EXIT);
+    //if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
+        //return title_action(TITLE_EXIT);
 
     return gui_click(b, d) ? title_action(gui_token(gui_active())) : 1;
 }
@@ -703,8 +734,8 @@ static int putt_title_click(int b, int d)
 
 static int putt_title_keybd(int c, int d)
 {
-    if (d && c == KEY_EXIT)
-        return title_action(TITLE_EXIT);
+    //if (d && c == KEY_EXIT)
+        //return title_action(TITLE_EXIT);
 
     return 1;
 }
@@ -722,8 +753,8 @@ static int putt_title_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return title_action(gui_token(gui_active()));
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return title_action(TITLE_EXIT);
+        //if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            //return title_action(TITLE_EXIT);
     }
     return 1;
 }
@@ -736,19 +767,6 @@ static int putt_title_buttn(int b, int d)
 #define title_buttn putt_title_buttn
 
 /*---------------------------------------------------------------------------*/
-
-#define HELP_BACK -1
-
-static int putt_help_action(int i)
-{
-    PUTT_GAMEMENU_ACTION(HELP_BACK);
-
-    switch (i)
-    {
-        case HELP_BACK: return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
-    }
-    return 1;
-}
 
 /*
  * This function name will be redirected to putt_help_action() for modern WGCL source project.
@@ -769,7 +787,6 @@ static int putt_help_enter(struct state *st, struct state *prev, int intent)
         {
             gui_label(jd, gt_prefix("menu^Help"), GUI_SML, 0, 0);
             gui_filler(jd);
-            shared_back_button(jd);
         }
 
         gui_space(id);
@@ -798,8 +815,6 @@ static void putt_help_paint(int id, float t)
 {
     putt_draw(0, t);
     gui_paint(id);
-
-    console_gui_list_paint();
 }
 
 /*
@@ -811,8 +826,6 @@ static void putt_help_paint(int id, float t)
 
 static void putt_help_point(int id, int x, int y, int dx, int dy)
 {
-    if (joy_get_cursor_actions(0))
-        gui_pulse(gui_point(id, x, y), 1.2f);
 }
 
 /*
@@ -824,8 +837,6 @@ static void putt_help_point(int id, int x, int y, int dx, int dy)
 
 static void putt_help_stick(int id, int a, float v, int bump)
 {
-    if (joy_get_cursor_actions(0))
-        gui_pulse(shared_stick_basic(id, a, v, bump), 1.2f);
 }
 
 /*
@@ -837,10 +848,8 @@ static void putt_help_stick(int id, int a, float v, int bump)
 
 static int putt_help_click(int b, int d)
 {
-    if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
-        return help_action(HELP_BACK);
-
-    return gui_click(b, d) ? help_action(gui_token(gui_active())) : 1;
+    return d && b == SDL_BUTTON_LEFT ?
+           exit_state(config_ball() ? &st_title : (config_putt() ? &st_putt_title : 0)) : 1;
 }
 
 /*
@@ -853,7 +862,7 @@ static int putt_help_click(int b, int d)
 static int putt_help_keybd(int c, int d)
 {
     if (d && c == KEY_EXIT)
-        return help_action(HELP_BACK);
+        return exit_state(config_ball() ? &st_title : (config_putt() ? &st_putt_title : 0));
 
     return 1;
 }
@@ -869,10 +878,9 @@ static int putt_help_buttn(int b, int d)
 {
     if (d && joy_get_cursor_actions(0))
     {
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return help_action(gui_token(gui_active()));
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return help_action(HELP_BACK);
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
+            config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
     }
     return 1;
 }
@@ -1112,7 +1120,7 @@ static void course_stick(int id, int a, float v, int bump)
 static int course_click(int b, int d)
 {
     if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
-        return course_action(HELP_BACK);
+        return course_action(COURSE_BACK);
 
     return gui_click(b, d) ? course_action(gui_token(gui_active())) : 1;
 }
@@ -1357,13 +1365,14 @@ static void controltype_timer(int id, float dt)
     {
         if (!joy_connected(i, 0, 0))
         {
-            char descattr[64];
+            char descattr[44];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf(descattr, 64
+            sprintf_s(descattr, 44
 #else
             sprintf(descattr,
 #endif
-                    _("Connect %d more Controller to play this!"), i - holdage_player_count);
+                    _("Connect %d more Controller\n"
+                      "to play this!"), i - holdage_player_count);
 
             gui_set_color(ctrltype_name_id, gui_gry, gui_red);
             gui_set_multi(ctrltype_desc_id, descattr);
@@ -1438,7 +1447,9 @@ int goto_putt_pause(struct state *s, int use_keybd)
     else if (party_indiv_controllers)
         paused_indiv_ctrl_index = joy_get_gamepad_action_index();
 
-    st_continue = curr_state();
+    if (st_continue == NULL)
+        st_continue = curr_state();
+
     st_quit = s;
     paused = 1;
 
@@ -1449,27 +1460,34 @@ static int pause_action(int i)
 {
     PUTT_GAMEMENU_ACTION(-1);
 
+    int r = 1;
+
     switch(i)
     {
     case PAUSE_OPTIONS:
         return goto_conf(curr_state(), 1, 0);
 
     case PAUSE_CONTINUE:
-        return exit_state(st_continue ? st_continue : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        r = exit_state(st_continue ? st_continue : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        st_continue = NULL;
+        return r;
 
     case PAUSE_RESHOT:
+        st_continue = NULL;
         return exit_state(&st_putt_retry);
 
     case PAUSE_SKIP:
+        st_continue = NULL;
         hole_skip();
         return goto_state(&st_putt_score);
 
     case PAUSE_QUIT:
+        st_continue = NULL;
         stroke_type = 0;
         stroke_set_type(0);
         return goto_state(st_quit);
     }
-    return 1;
+    return r;
 }
 
 static int stroke_allowed = 0;
@@ -1700,39 +1718,32 @@ static int next_enter(struct state *st, struct state *prev, int intent)
 
         if (curr_party() > 1)
         {
-            audio_play(AUD_NEXTTURN, 1.f);
-
+            audio_play(AUD_NEXTTURN, 1.0f);
             gui_space(id);
 
             if ((jd = gui_vstack(id)))
             {
                 gui_label(jd, _("Player"), GUI_SML, GUI_COLOR_DEFAULT);
 
-                switch (curr_player())
-                {
-                    case 1:
-                        gui_label(jd, "1", GUI_LRG, gui_red, gui_wht);
-                        audio_narrator_play(AUD_PLAYER1);
-                        break;
-                    case 2:
-                        gui_label(jd, "2", GUI_LRG, gui_grn, gui_wht);
-                        audio_narrator_play(AUD_PLAYER2);
-                        break;
-                    case 3:
-                        gui_label(jd, "3", GUI_LRG, gui_blu, gui_wht);
-                        audio_narrator_play(AUD_PLAYER3);
-                        break;
-                    case 4:
-                        gui_label(jd, "4", GUI_LRG, gui_yel, gui_wht);
-                        audio_narrator_play(AUD_PLAYER4);
-                        break;
+                switch (curr_player()) {
+                    case 1: gui_label(jd, "1", GUI_LRG, gui_red, gui_wht);
+                            break;
+                    case 2: gui_label(jd, "2", GUI_LRG, gui_grn, gui_wht);
+                            break;
+                    case 3: gui_label(jd, "3", GUI_LRG, gui_blu, gui_wht);
+                            break;
+                    case 4: gui_label(jd, "4", GUI_LRG, gui_yel, gui_wht);
+                            break;
                 }
 
                 gui_set_rect(jd, GUI_ALL);
             }
 
             if (!party_indiv_controllers)
-                gui_label(jd, _("Pass the controller to another player"), GUI_SML, 0, 0);
+            {
+                gui_space(id);
+                gui_label(id, _("Pass the controller to another player"), GUI_SML, 0, 0);
+            }
             else
             {
                 joy_active_cursor(curr_player() - 1, curr_player() == 1);
@@ -1741,6 +1752,14 @@ static int next_enter(struct state *st, struct state *prev, int intent)
                 joy_active_cursor(curr_player() - 1, curr_player() == 4);
             }
         }
+        else if ((jd = gui_harray(id)))
+        {
+            gui_space(id);
+            gui_label(jd, curr_par(), GUI_SML, GUI_COLOR_DEFAULT);
+            gui_label(jd, _("Par"), GUI_SML, GUI_COLOR_WHT);
+            gui_set_rect(jd, GUI_ALL);
+        }
+
         gui_layout(id, 0, 0);
     }
 
@@ -1842,7 +1861,7 @@ static int poser_enter(struct state *st, struct state *prev, int intent)
         return 0;
     }
 
-    return score_card(_("Scores"), GUI_COLOR_DEFAULT);
+    return transition_slide(score_card(_("Scores"), GUI_COLOR_DEFAULT, 1), 1, intent);
 }
 
 static void poser_paint(int id, float t)
@@ -1853,7 +1872,7 @@ static void poser_paint(int id, float t)
 static int poser_keybd(int c, int d)
 {
     if (d && c == KEY_EXIT)
-        return goto_state(&st_putt_next);
+        return exit_state(&st_putt_next);
 
     return 1;
 }
@@ -1865,7 +1884,7 @@ static int poser_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)
          || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return goto_state(&st_putt_next);
+            return exit_state(&st_putt_next);
     }
     return 1;
 }
@@ -1971,22 +1990,6 @@ static void stroke_touch_reset(void)
     putt_hud_joystick_set(0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-static SDL_FingerID stroke_touch_finger = -1;
-static float stroke_touch_ox = 0.0f, stroke_touch_oy = 0.0f;
-static float stroke_touch_kx = 0.0f, stroke_touch_ky = 0.0f;
-static float stroke_touch_rb = 0.0f, stroke_touch_rk = 0.0f;
-static int stroke_touch_moved = 0;
-
-static void stroke_touch_reset(void)
-{
-    stroke_touch_finger = -1;
-    stroke_touch_ox = stroke_touch_oy = 0.0f;
-    stroke_touch_kx = stroke_touch_ky = 0.0f;
-    stroke_touch_rb = stroke_touch_rk = 0.0f;
-    stroke_touch_moved = 0;
-    putt_hud_joystick_set(0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-}
-
 static int stroke_enter(struct state *st, struct state *prev, int intent)
 {
     if (party_indiv_controllers)
@@ -2001,6 +2004,7 @@ static int stroke_enter(struct state *st, struct state *prev, int intent)
     putt_clr_mag();
     config_set_d(CONFIG_CAMERA, 2);
     video_set_grab(1);
+    putt_hud_init();
     putt_hud_show(prev == &st_putt_flyby ? 0.5f : 0.0f);
 
     if (paused) paused = 0;
@@ -2009,8 +2013,6 @@ static int stroke_enter(struct state *st, struct state *prev, int intent)
     stroke_touch_reset();
 
     audio_music_fade_in(0.5f);
-
-    stroke_touch_reset();
 
     return 0;
 }
@@ -2280,95 +2282,6 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
     return 1;
 }
 
-static int stroke_touch(const SDL_TouchFingerEvent *event)
-{
-    int action = putt_hud_touch(event);
-    if (action)
-    {
-        if (action == PUTT_TOUCH_PAUSE)
-            return goto_putt_pause(&st_putt_over);
-        return 1;
-    }
-
-    const float x = (float) video.device_w * event->x;
-    const float y = (float) video.device_h * (1.0f - event->y);
-
-    if (event->type == SDL_FINGERDOWN)
-    {
-        if (stroke_touch_finger == -1)
-        {
-            stroke_touch_finger = event->fingerId;
-            stroke_touch_moved = 0;
-            stroke_touch_ox = stroke_touch_kx = x;
-            stroke_touch_oy = stroke_touch_ky = y;
-
-            const float s = (float) MIN(video.device_w, video.device_h);
-            stroke_touch_rb = s * 0.15f;
-            stroke_touch_rk = stroke_touch_rb * 0.40f;
-
-            stroke_rotate = 0;
-            stroke_mag = 0;
-
-            putt_hud_joystick_set(1, stroke_touch_ox, stroke_touch_oy,
-                                  stroke_touch_kx, stroke_touch_ky,
-                                  stroke_touch_rb, stroke_touch_rk);
-        }
-    }
-    else if (event->type == SDL_FINGERMOTION)
-    {
-        if (event->fingerId == stroke_touch_finger)
-        {
-            float dx = x - stroke_touch_ox;
-            float dy = y - stroke_touch_oy;
-            float dist = sqrtf(dx * dx + dy * dy);
-
-            if (dist > stroke_touch_rb && dist > 0.0001f)
-            {
-                stroke_touch_kx = stroke_touch_ox + dx * (stroke_touch_rb / dist);
-                stroke_touch_ky = stroke_touch_oy + dy * (stroke_touch_rb / dist);
-            }
-            else
-            {
-                stroke_touch_kx = x;
-                stroke_touch_ky = y;
-            }
-
-            float nx = (stroke_touch_kx - stroke_touch_ox) / stroke_touch_rb;
-            float ny = (stroke_touch_ky - stroke_touch_oy) / stroke_touch_rb;
-
-            if (fabsf(nx) > 0.08f || fabsf(ny) > 0.08f)
-                stroke_touch_moved = 1;
-
-            if (fabsf(nx) < 0.08f) nx = 0.0f;
-            if (fabsf(ny) < 0.08f) ny = 0.0f;
-
-            const float sign = config_get_d(CONFIG_TOUCH_ROTATE_INVERT) ? -1.0f : +1.0f;
-            stroke_rotate = (int) (sign * 10.0f * nx);
-            stroke_mag    = (int) (+8.0f * ny);
-
-            putt_hud_joystick_set(1, stroke_touch_ox, stroke_touch_oy,
-                                  stroke_touch_kx, stroke_touch_ky,
-                                  stroke_touch_rb, stroke_touch_rk);
-        }
-    }
-    else if (event->type == SDL_FINGERUP)
-    {
-        if (event->fingerId == stroke_touch_finger)
-        {
-            const int was_tap = !stroke_touch_moved;
-
-            stroke_touch_reset();
-            stroke_rotate = 0;
-            stroke_mag = 0;
-
-            if (was_tap)
-                return goto_state(&st_putt_roll);
-        }
-    }
-
-    return 1;
-}
-
 /*---------------------------------------------------------------------------*/
 
 static int roll_enter(struct state *st, struct state *prev, int intent)
@@ -2438,14 +2351,6 @@ static int roll_touch(const SDL_TouchFingerEvent *e)
     int action = putt_hud_touch(e);
     if (action == PUTT_TOUCH_PAUSE)
         return goto_putt_pause(&st_putt_over, 1);
-    return 1;
-}
-
-static int roll_touch(const SDL_TouchFingerEvent *event)
-{
-    int action = putt_hud_touch(event);
-    if (action == PUTT_TOUCH_PAUSE)
-        return goto_putt_pause(&st_putt_over);
     return 1;
 }
 
@@ -2531,6 +2436,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
         hole_goal();
 
     putt_hud_hide();
+    putt_hud_free();
     return transition_slide(id, 1, intent);
 }
 
@@ -2593,6 +2499,7 @@ static int stop_enter(struct state *st, struct state *prev, int intent)
         hole_stop();
 
     putt_hud_hide();
+    putt_hud_free();
     return 0;
 }
 
@@ -2679,6 +2586,7 @@ static int fall_enter(struct state *st, struct state *prev, int intent)
     stroke_allowed = 1;
 
     putt_hud_hide();
+    putt_hud_free();
     return transition_slide(id, 1, intent);
 }
 
@@ -2764,6 +2672,7 @@ static int retry_enter(struct state *st, struct state *prev, int intent)
     stroke_allowed = 1;
 
     putt_hud_hide();
+    putt_hud_free();
     return transition_slide(id, 1, intent);
 }
 
@@ -2803,7 +2712,8 @@ static int score_enter(struct state *st, struct state *prev, int intent)
         paused = 0;
 
     putt_hud_hide();
-    return transition_slide(score_card(_("Scores"), GUI_COLOR_DEFAULT), 1, intent);
+    putt_hud_free();
+    return transition_slide(score_card(_("Scores"), GUI_COLOR_DEFAULT, 0), 1, intent);
 }
 
 static void score_paint(int id, float t)
@@ -2853,7 +2763,7 @@ static int over_enter(struct state *st, struct state *prev, int intent)
     }
 
     audio_music_fade_out(2.f);
-    return transition_slide(score_card(_("Final Scores"), GUI_COLOR_DEFAULT), 1, intent);
+    return transition_slide(score_card(_("Final Scores"), GUI_COLOR_DEFAULT, 1), 1, intent);
 }
 
 static int over_leave(struct state *st, struct state *next, int id, int intent)

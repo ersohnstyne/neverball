@@ -43,7 +43,7 @@
 /*---------------------------------------------------------------------------*/
 
 #define PUTT_GAMEMENU_ACTION(back_tok)                  \
-    if (st_global_animating()) {                        \
+    if (st_global_animating() || i == GUI_NONE) {       \
         audio_play("snd/disabled.ogg", 1.f);            \
         return 1;                                       \
     }                                                   \

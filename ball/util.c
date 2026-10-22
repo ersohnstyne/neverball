@@ -863,32 +863,6 @@ char gui_keyboard_char(char c)
 
 /*---------------------------------------------------------------------------*/
 
-int gui_start_button(int pd, int tok)
-{
-    return gui_text_icon_button(pd, _("Start"), GUI_TRIANGLE_RIGHT, gui_grn, tok, 0, 1, 0);
-}
-
-/*int gui_back_button(int pd)
-{
-    return gui_text_icon_button(pd, _("Back"), GUI_CROSS, gui_red, GUI_BACK, 0, 1, 0);
-}*/
-
-int gui_text_icon_button(int pd,
-                         const char *text, const char *icon, const unsigned char *color,
-                         const int token, const int value,
-                         const int enabled, const int destructive)
-{
-    return gui_state_icon(pd, icon, color, text, GUI_SML, token, value);
-}
-
-int gui_text_icon_button_LH(int pd,
-                            const char *text, const char *icon, const unsigned char *color,
-                            const int token, const int value,
-                            const int enabled, const int destructive)
-{
-    return gui_state_icon_LH(pd, icon, color, text, GUI_SML, token, value);
-}
-
 void gui_scoreboard_free(void)
 {
     stats_labels.completed  = 0;

@@ -44,6 +44,10 @@ struct video
     float device_scale;
     float aspect_ratio;
 
+    /* HACK: HATSUNE MIKU! - Ersohn Styne */
+
+    unsigned int hatsunemiku : 1;
+
     int disable_screencapture;
 };
 
@@ -114,6 +118,10 @@ void video_set_perspective(float, float, float);
 void video_set_ortho(void);
 void video_set_current(void);
 void video_clear(void);
+
+/*---------------------------------------------------------------------------*/
+
+int video_get_hatsune_miku(void);
 
 /*---------------------------------------------------------------------------*/
 

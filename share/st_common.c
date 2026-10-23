@@ -1975,6 +1975,14 @@ static int display_gui(void)
             gui_space(id);
         }
 #endif
+        
+        if (video_get_hatsune_miku() && glext_get_hatsune_miku())
+        {
+            gui_multi(id,
+                      _("This configuration was locked by the\n"
+                        "Hatsune Miku PC set."),
+                      GUI_SML, gui_red, gui_red);
+        }
 
         for (i = 0; i < num_displays; i++)
         {

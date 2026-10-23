@@ -458,6 +458,8 @@ void video_quit(void)
     }
 //#endif
 #endif
+
+    video.hatsunemiku = 0;
 }
 
 #if __cplusplus
@@ -874,6 +876,10 @@ video_mode_reconf:
         config_set_d(CONFIG_WIDTH,   video.window_w);
         config_set_d(CONFIG_HEIGHT,  video.window_h);
         video.aspect_ratio = (float) video.window_w / video.window_h;
+
+        /* HACK: Get the monitor display device as Hatsune Miku. */
+
+        video_get_hatsune_miku();
 
         config_save();
         return 1;
@@ -1482,6 +1488,10 @@ video_mode_auto_config_reconf:
         config_set_d(CONFIG_HEIGHT,  video.window_h);
         video.aspect_ratio = (float) video.window_w / video.window_h;
 
+        /* HACK: Get the monitor display device as Hatsune Miku. */
+
+        video_get_hatsune_miku();
+
         config_save();
 
         return 1;
@@ -1944,6 +1954,61 @@ void video_clear(void)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT |
             (config_get_d(CONFIG_REFLECTION) ? GL_STENCIL_BUFFER_BIT : 0));
+}
+
+/*---------------------------------------------------------------------------*/
+
+int video_get_hatsune_miku(void)
+{
+    if (video.hatsunemiku) return 1;
+    if (!glext_get_hatsune_miku()) return 0;
+
+    /*
+     * HACK: SDL_GetDisplayName() will, but let's assume,
+     * how to use the Hatsune Miku Edition in case:
+     * * XG27ACMEG-G with Hatsune Miku
+     *
+     * - Ersohn Styne
+     */
+    
+#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
+#if NB_PB_SDL3==1
+    int num_displays = 0;
+    SDL_DisplayID *display_id = SDL_GetDisplays(&num_displays);
+
+    if (display_id == NULL || num_displays == 0)
+    {
+        if (display_id) SDL_free(display_id);
+        return 0;
+    }
+    else SDL_free(display_id);
+#else
+    const int num_displays = SDL_GetNumVideoDisplays();
+    if (num_displays < 1) return 0;
+#endif
+
+    for (int i = 0; i < num_displays; i++)
+    {
+        const char *name = SDL_GetDisplayName(i);
+
+        if (name && *name && name[0])
+            if (SDL_strcasestr(name, "XG27ACMEG-G") != NULL &&
+                SDL_strcasestr(name, "hatsune")     != NULL &&
+                SDL_strcasestr(name, "miku")        != NULL) {
+                /* If the video display index was mismatched... */
+
+                if (config_get_d(CONFIG_DISPLAY) != i) {
+                    video_set_display(i);
+                    config_set_d(CONFIG_DISPLAY, i);
+                }
+
+                video.hatsunemiku = 1;
+                return 1;
+            }
+    }
+#endif
+
+    return 0;
 }
 
 /*---------------------------------------------------------------------------*/

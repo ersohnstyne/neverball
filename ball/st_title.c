@@ -798,7 +798,7 @@ static int title_action(int tok, int val)
                  */
                 gui_set_label(play_id, gt_prefix("menu^Cheat"));
                 gui_pulse(play_id, 1.2f);
-                if (!glext_get_hatsune_miku() && edition_id)
+                if (!video_get_hatsune_miku() && !glext_get_hatsune_miku() && edition_id)
                     gui_set_label(edition_id, dev_env);
             }
             else if (config_cheat())
@@ -813,7 +813,7 @@ static int title_action(int tok, int val)
                 title_check_balls_shown();
                 gui_set_label(play_id, gt_prefix("menu^Play"));
                 gui_pulse(play_id, 1.2f);
-                if (!glext_get_hatsune_miku() && edition_id)
+                if (!video_get_hatsune_miku() && !glext_get_hatsune_miku() && edition_id)
                     gui_set_label(edition_id, os_env);
             }
 #endif
@@ -1182,14 +1182,18 @@ static int title_gui(void)
                                                                                   GUI_LRG,
                                                                                   0, 0);
                 gui_set_font(title_id, "ttf/DejaVuSans-Bold.ttf");
-
-                if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                
+                if (video_get_hatsune_miku() && glext_get_hatsune_miku())
                     edition_id = gui_label(title_lockscreen_gamename_id,
-                                           config_cheat() ? dev_env : os_env,
+                                           "Hatsune Miku PC Set Edition",
                                            GUI_SML, GUI_COLOR_WHT);
                 else if (glext_get_hatsune_miku())
                     edition_id = gui_label(title_lockscreen_gamename_id,
                                            "Hatsune Miku Edition",
+                                           GUI_SML, GUI_COLOR_WHT);
+                else if (server_policy_get_d(SERVER_POLICY_EDITION) > -1)
+                    edition_id = gui_label(title_lockscreen_gamename_id,
+                                           config_cheat() ? dev_env : os_env,
                                            GUI_SML, GUI_COLOR_WHT);
 #ifdef __EMSCRIPTEN__
                 else

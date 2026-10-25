@@ -251,10 +251,17 @@ struct mapc_context
     int   bill_has_e[MAXR];
 
     float body_e[MAXB][4];
+<<<<<<< HEAD
     float body_has_e[MAXB];
 
     int static_geom[MAXG];
     int static_geom_count;
+=======
+    int   body_has_e[MAXB];
+
+    int   static_geom[MAXG];
+    int   static_geom_count;
+>>>>>>> 627997a97193f6be11f2faff51a2097a5f0c928f
 
     struct _imagedata *imagedata;
     int image_n;
@@ -2989,6 +2996,10 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         ctx->read_dict_entries = 1;
         make_body(ctx, k, v, c, l0);
     }
+<<<<<<< HEAD
+=======
+    if (!strcmp(v[i], "func_train"))               make_body(ctx, k, v, c, l0);
+>>>>>>> 627997a97193f6be11f2faff51a2097a5f0c928f
     if (!strcmp(v[i], "misc_model"))               make_model(ctx, k, v, c);
 
     /* TrenchBroom compatibility: if func_group has any lumps, add it as a body; ignore otherwise. */
@@ -4731,7 +4742,11 @@ static void turn_file(struct mapc_context *ctx)
     struct s_base *fp = &ctx->file;
     int i;
 
+<<<<<<< HEAD
     /* Bodys */
+=======
+    /* Bodies */
+>>>>>>> 627997a97193f6be11f2faff51a2097a5f0c928f
     for (i = 0; i < fp->bc; i++)
     {
         if (fp->bv[i].p0 >= 0)

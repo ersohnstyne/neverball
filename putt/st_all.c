@@ -2200,6 +2200,15 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
 {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__)
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#ifndef fingerId
+#define fingerId fingerID
+#endif
+#ifndef touchId
+#define touchId  touchID
+#endif
+#endif
+
     int action = putt_hud_touch(e);
     if (action)
     {
@@ -2280,7 +2289,10 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
             stroke_mag = 0;
 
             if (was_tap)
+            {
+                putt_putt();
                 return goto_state(&st_putt_roll);
+            }
         }
     }
 #endif

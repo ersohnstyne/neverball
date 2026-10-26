@@ -1207,6 +1207,13 @@ static void move_file(struct mapc_context *ctx)
  * Wings3D.  All faces must be triangles and all vertices must include
  * normals and  texture coordinates.  Material  names are taken  to be
  * references to Neverball materials, rather than MTL definitions.
+ *
+ * OBJ geometry is authored in TrenchBroom map coordinates (Quake Z-up,
+ * 64 units = 1 meter).  read_v and read_vn remap the coordinates into
+ * Neverball engine space:
+ *   Neverball X = +Z_obj / 64
+ *   Neverball Y = +Y_obj / 64
+ *   Neverball Z = -X_obj / 64
  */
 
 static void read_vt(struct mapc_context *ctx, const char *line)
@@ -1225,24 +1232,34 @@ static void read_vn(struct mapc_context *ctx, const char *line)
 {
     struct s_base *fp = &ctx->file;
     struct b_side *sp = fp->sv + incs(ctx);
+    float nx, ny, nz;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sscanf_s(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
+    sscanf_s(line, "%f %f %f", &nx, &ny, &nz);
 #else
-    sscanf(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
+    sscanf(line, "%f %f %f", &nx, &ny, &nz);
 #endif
+
+    sp->n[0] = +nz;
+    sp->n[1] = +ny;
+    sp->n[2] = -nx;
 }
 
 static void read_v(struct mapc_context *ctx, const char *line)
 {
     struct s_base *fp = &ctx->file;
     struct b_vert *vp = fp->vv + incv(ctx);
+    float x, y, z;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sscanf_s(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
+    sscanf_s(line, "%f %f %f", &x, &y, &z);
 #else
-    sscanf(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
+    sscanf(line, "%f %f %f", &x, &y, &z);
 #endif
+
+    vp->p[0] = +z / SCALE;
+    vp->p[1] = +y / SCALE;
+    vp->p[2] = -x / SCALE;
 }
 
 static int parse_triplet(const char *token, int *vi, int *ti, int *si)

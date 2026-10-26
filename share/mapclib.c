@@ -1080,7 +1080,7 @@ static void move_body(struct mapc_context *ctx,
 
     /* Create an array to mark any verts referenced by moved geoms. */
 
-    if (bp->gc > 0 && (b = (int*)calloc(fp->vc, sizeof (int))))
+    if (bp->gc > 0 && (b = (int *) calloc(fp->vc, sizeof (int))))
     {
         /* Mark the verts. */
 
@@ -1225,6 +1225,13 @@ static void move_file(struct mapc_context *ctx)
  * Wings3D.  All faces must be triangles and all vertices must include
  * normals and  texture coordinates.  Material  names are taken  to be
  * references to Neverball materials, rather than MTL definitions.
+ *
+ * OBJ geometry is authored in TrenchBroom map coordinates (Quake Z-up,
+ * 64 units = 1 meter).  read_v and read_vn remap the coordinates into
+ * Neverball engine space:
+ *   Neverball X = +Z_obj / 64
+ *   Neverball Y = +Y_obj / 64
+ *   Neverball Z = -X_obj / 64
  */
 
 static void read_vt(struct mapc_context *ctx, const char *line)
@@ -1243,27 +1250,37 @@ static void read_vn(struct mapc_context *ctx, const char *line)
 {
     struct s_base *fp = &ctx->file;
     struct b_side *sp = fp->sv + incs(ctx);
+    float nx, ny, nz;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sscanf_s(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
+    sscanf_s(line, "%f %f %f", &nx, &ny, &nz);
 #else
-    sscanf(line, "%f %f %f", sp->n, sp->n + 1, sp->n + 2);
+    sscanf(line, "%f %f %f", &nx, &ny, &nz);
 #endif
+
+    sp->n[0] = +nz;
+    sp->n[1] = +ny;
+    sp->n[2] = -nx;
 }
 
 static void read_v(struct mapc_context *ctx, const char *line)
 {
     struct s_base *fp = &ctx->file;
     struct b_vert *vp = fp->vv + incv(ctx);
+    float x, y, z;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sscanf_s(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
+    sscanf_s(line, "%f %f %f", &x, &y, &z);
 #else
-    sscanf(line, "%f %f %f", vp->p, vp->p + 1, vp->p + 2);
+    sscanf(line, "%f %f %f", &x, &y, &z);
 #endif
+
+    vp->p[0] = +z / SCALE;
+    vp->p[1] = +y / SCALE;
+    vp->p[2] = -x / SCALE;
 }
 
-static int parse_triplet(const char *token, int* vi, int* ti, int* si)
+static int parse_triplet(const char *token, int *vi, int *ti, int *si)
 {
     *vi = 0;
     *ti = 0;
@@ -3762,7 +3779,7 @@ static void smth_file(struct mapc_context *ctx)
 
         /* Built vertex equivalence map by position. */
 
-        int* canonical_verts = (int*)malloc(fp->vc * sizeof (int));
+        int *canonical_verts = (int *) malloc(fp->vc * sizeof (int));
         int idx;
 
         if (canonical_verts)
@@ -4301,7 +4318,7 @@ struct dump_stats
     size_t off;
     char name[5];
     char desc[32];
-    int* ptr;
+    int *ptr;
 };
 
 /*
@@ -4339,7 +4356,7 @@ static void dump_init(struct s_base *fp)
     int i;
 
     for (i = 0; i < ARRAYSIZE(stats); i++)
-        stats[i].ptr = (int*) &((unsigned char *) fp)[stats[i].off];
+        stats[i].ptr = (int *) &((unsigned char *) fp)[stats[i].off];
 }
 
 void mapc_dump(struct mapc_context *ctx)
@@ -4627,7 +4644,7 @@ static void calc_cylinder_pos(float p[3], const float e[4], float extent)
  * position into the local reference frame of the parent body.
  */
 static void make_parented_path(struct mapc_context *ctx,
-    float p[3], int p0, int* p1, const float e[4])
+    float p[3], int p0, int *p1, const float e[4])
 {
     struct s_base *fp = &ctx->file;
     float inv_e[4], d[3];
@@ -4693,7 +4710,7 @@ static void check_oriented_path(struct mapc_context *ctx, int p0, int has_angles
  * holding a constant orientation e for an unmoving entity.
  */
 static void make_stationary_path(struct mapc_context *ctx,
-    const float p[3], int* p0, int* p1, const float e[4])
+    const float p[3], int *p0, int *p1, const float e[4])
 {
     struct s_base *fp = &ctx->file;
 
@@ -4718,7 +4735,7 @@ static void make_stationary_path(struct mapc_context *ctx,
  * rotation path (p1) was already assigned.
  */
 static void turn_entity(struct mapc_context *ctx,
-    const float p[3], int* p0, int* p1, const float e[4])
+    const float p[3], int *p0, int *p1, const float e[4])
 {
     if (*p0 >= 0 && *p1 < 0)
         make_parented_path(ctx, p, *p0, p1, e);

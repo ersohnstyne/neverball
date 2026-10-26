@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
+<<<<<<< HEAD
 Convert Pennyball Wavefront OBJ models from legacy OpenGL coordinates
+=======
+Convert Neverball Wavefront OBJ models from legacy OpenGL coordinates
+>>>>>>> 86bcdf5f8933de48adc997eb5c5ff860e71e4492
 (Y-up, in meters) to TrenchBroom map coordinates (Quake Z-up, 64 units = 1m).
 
 Transformation:
@@ -67,4 +71,8 @@ def main():
             print(f"Skipped {path} (not a file)", file=sys.stderr)
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     main()
+=======
+    main()
+>>>>>>> 86bcdf5f8933de48adc997eb5c5ff860e71e4492

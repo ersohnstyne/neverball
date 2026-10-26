@@ -397,13 +397,15 @@ enum
 static int putt_title_action(int i)
 {
     PUTT_GAMEMENU_ACTION(GUI_BACK);
-
+    
     switch (i)
     {
         case TITLE_PLAY: return goto_state(&st_putt_course);
         case TITLE_HELP: return goto_state(&st_putt_help);
         case TITLE_CONF:
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
+            hole_free();
+            course_free();
             WGCL_InitGameOptions(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
             return goto_state(&st_null);
 #else
@@ -417,11 +419,9 @@ static int putt_title_action(int i)
                 return 0;
             }
         case TITLE_BALL:
-            //transition_init();
-            //gui_free();
+            hole_free();
+            course_free();
             config_set_d(CONFIG_GAME, GAME_BALL);
-            //gui_init();
-            //transition_init();
             return exit_state(&st_ball_title);
     }
     return 1;
@@ -832,6 +832,7 @@ static void putt_help_paint(int id, float t)
 
 static void putt_help_point(int id, int x, int y, int dx, int dy)
 {
+    gui_point(id, x, y);
 }
 
 /*
@@ -935,7 +936,9 @@ static unsigned int course_refresh_packages(void)
 
 static int course_action(int i)
 {
-    PUTT_GAMEMENU_ACTION(COURSE_BACK);
+    if (st_global_animating()) {
+        audio_play("snd/disabled.ogg", 1.f); return 1;
+    } audio_play(i == COURSE_BACK ? "snd/back.ogg" : "snd/menu.ogg", 1.f);
 
     if (i == COURSE_GETONLINE)
         course_refresh_packages();

@@ -1066,8 +1066,10 @@ static int course_enter(struct state *st, struct state *prev, int intent)
         }
 
         gui_space(id);
-        desc_id = gui_multi(id, _(course_desc(0)), GUI_SML, gui_yel, gui_wht);
+        desc_id = gui_multi(id, " \n \n \n \n \n", GUI_SML, gui_yel, gui_wht);
         gui_space(id);
+
+        gui_set_multi(desc_id, _(course_desc(0)));
 
         /* This one is out of date */
         /*if ((jd = gui_hstack(id)))
@@ -1380,8 +1382,7 @@ static void controltype_timer(int id, float dt)
 #else
             sprintf(descattr,
 #endif
-                    _("Connect %d more Controller\n"
-                      "to play this!"), i - holdage_player_count);
+                    _("Connect %d more Controllers to play this!"), i - holdage_player_count * -1);
 
             gui_set_color(ctrltype_name_id, gui_gry, gui_red);
             gui_set_multi(ctrltype_desc_id, descattr);
@@ -1761,12 +1762,16 @@ static int next_enter(struct state *st, struct state *prev, int intent)
                 joy_active_cursor(curr_player() - 1, curr_player() == 4);
             }
         }
-        else if ((jd = gui_harray(id)))
+        else
         {
             gui_space(id);
-            gui_label(jd, curr_par(), GUI_SML, GUI_COLOR_DEFAULT);
-            gui_label(jd, _("Par"), GUI_SML, GUI_COLOR_WHT);
-            gui_set_rect(jd, GUI_ALL);
+
+            if ((jd = gui_harray(id)))
+            {
+                gui_label(jd, curr_par(), GUI_MED, GUI_COLOR_DEFAULT);
+                gui_label(jd, _("Par"), GUI_SML, GUI_COLOR_WHT);
+                gui_set_rect(jd, GUI_ALL);
+            }
         }
 
         gui_layout(id, 0, 0);
@@ -2277,8 +2282,8 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
             stroke_mag    = (int) (+8.0f * ny);
 
             putt_hud_joystick_set(1, stroke_touch_ox, stroke_touch_oy,
-                                  stroke_touch_kx, stroke_touch_ky,
-                                  stroke_touch_rb, stroke_touch_rk);
+                                     stroke_touch_kx, stroke_touch_ky,
+                                     stroke_touch_rb, stroke_touch_rk);
         }
     }
     else if (e->type == SDL_FINGERUP)

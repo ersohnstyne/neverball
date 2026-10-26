@@ -71,8 +71,4 @@ def main():
             print(f"Skipped {path} (not a file)", file=sys.stderr)
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     main()
-=======
-    main()
->>>>>>> 86bcdf5f8933de48adc997eb5c5ff860e71e4492

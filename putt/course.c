@@ -74,12 +74,16 @@ static int bundled_count;
 
 static int course_score_comp(struct course_score *S, int i, int j)
 {
+    if (i < 0 || j < 0 || i >= MAXPLY || j >= MAXPLY) return 0;
+
     return  S->score[i] <  S->score[j] ||
            (S->score[i] == S->score[j] && S->score[i] > S->score[j]);
 }
 
 static void course_score_swap(struct course_score *S, int i, int j)
 {
+    if (i < 0 || j < 0 || i >= MAXPLY || j >= MAXPLY) return;
+
     char player[MAXSTR];
     int  tmp;
 
@@ -138,6 +142,8 @@ void course_score_init_hs(struct course_score *s)
 void course_score_update_name(struct course_score *s,
                               int id, const char *name)
 {
+    if (id < 0 || id >= MAXPLY) return;
+
     memset(s->player[id], 0, sizeof (s->player[id]));
     SAFECPY(s->player[id], name);
 }
@@ -321,9 +327,9 @@ int course_curr(void)
 
 void course_free(void)
 {
-    int i;
+    if (!course_state) return;
 
-    for (i = 0; i < bundled_count; ++i)
+    for (int i = 0; i < bundled_count; ++i)
     {
         free(bundled_filenames[i]);
         bundled_filenames[i] = NULL;

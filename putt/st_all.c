@@ -1504,8 +1504,7 @@ static int stroke_allowed = 0;
 
 static int pause_enter(struct state *st, struct state *prev, int intent)
 {
-    int pdid;
-    int id, jd, kd, ld, md, td;
+    int id, jd, td, pdid;
 
     audio_music_fade_out(0.2f);
 
@@ -1515,14 +1514,7 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
         {
             if ((jd = gui_hstack(id)))
             {
-                if ((kd = gui_hstack(jd)))
-                {
-                    gui_label(kd, GUI_GEAR, GUI_SML, GUI_COLOR_WHT);
-                    gui_label(kd, _("Options"), GUI_SML, GUI_COLOR_WHT);
-
-                    gui_set_state(kd, PAUSE_OPTIONS, 0);
-                    gui_set_rect(kd, GUI_ALL);
-                }
+                gui_state_icon(jd, GUI_GEAR, 0, _("Options"), GUI_SML, PAUSE_OPTIONS, 0);
                 gui_filler(jd);
             }
 
@@ -1559,61 +1551,13 @@ static int pause_enter(struct state *st, struct state *prev, int intent)
 
         if ((jd = gui_harray(id)))
         {
-            if ((kd = gui_hstack(jd)))
-            {
-                if ((ld = gui_hstack(kd)))
-                {
-                    gui_label(ld, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-
-                    md = gui_label(ld, _("Quit"), GUI_SML, GUI_COLOR_WHT);
-                    gui_set_fill(md);
-
-                    gui_set_state(ld, PAUSE_QUIT, 0);
-                    gui_set_rect(ld, GUI_ALL);
-                }
-            }
-
-            if ((kd = gui_hstack(jd)))
-            {
-                if ((ld = gui_hstack(kd)))
-                {
-                    gui_label(ld, GUI_CROSS, GUI_SML, GUI_COLOR_RED);
-
-                    md = gui_label(ld, _("Skip"), GUI_SML, GUI_COLOR_WHT);
-                    gui_set_fill(md);
-
-                    gui_set_state(ld, PAUSE_QUIT, 0);
-                    gui_set_rect(ld, GUI_ALL);
-                }
-            }
+            gui_state_icon(jd, GUI_CROSS, gui_red, _("Quit"), GUI_SML, PAUSE_QUIT, 0);
+            gui_state_icon(jd, GUI_CROSS, gui_red, _("Skip"), GUI_SML, PAUSE_SKIP, 0);
 
             if (!stroke_allowed && hole_retry_avail(stroke_allowed))
-                if ((kd = gui_hstack(jd)))
-                {
-                    if ((ld = gui_hstack(kd)))
-                    {
-                        gui_label(ld, GUI_CIRCLE_ARROW, GUI_SML, GUI_COLOR_RED);
+                gui_state_icon(jd, GUI_CIRCLE_ARROW, gui_red, _("Retry"), GUI_SML, PAUSE_RESHOT, 0);
 
-                        md = gui_label(ld, _("Retry"), GUI_SML, GUI_COLOR_WHT);
-                        gui_set_fill(md);
-
-                        gui_set_state(ld, PAUSE_RESHOT, 0);
-                        gui_set_rect(ld, GUI_ALL);
-                    }
-                }
-
-            if ((kd = gui_hstack(jd)))
-            {
-                gui_label(kd, GUI_TRIANGLE_RIGHT, GUI_SML, GUI_COLOR_GRN);
-
-                ld = gui_label(kd, _("Continue"), GUI_SML, GUI_COLOR_WHT);
-                gui_set_fill(ld);
-
-                gui_set_state(kd, PAUSE_CONTINUE, 1);
-                gui_set_rect(kd, GUI_ALL);
-
-                gui_focus(kd);
-            }
+            gui_start_icon(jd, GUI_TRIANGLE_RIGHT, gui_grn, _("Continue"), GUI_SML, PAUSE_CONTINUE, 1);
         }
 
         gui_pulse(td, 1.2f);
@@ -2122,14 +2066,14 @@ static int stroke_keybd(int c, int d)
             stroke_type++;
             stroke_set_type(stroke_type);
             putt_set_mag(0);
-            return goto_state(&st_putt_stroke);
+            putt_hud_update_type();
         }
         if (c == KEY_PUTT_DNGRADE && stroke_type > 0)
         {
             stroke_type--;
             stroke_set_type(stroke_type);
             putt_set_mag(0);
-            return goto_state(&st_putt_stroke);
+            putt_hud_update_type();
         }
     }
     return 1;
@@ -2153,14 +2097,14 @@ static int stroke_buttn(int b, int d)
             stroke_type++;
             stroke_set_type(stroke_type);
             putt_set_mag(0);
-            return goto_state(&st_putt_stroke);
+            putt_hud_update_type();
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) && stroke_type > 0)
         {
             stroke_type--;
             stroke_set_type(stroke_type);
             putt_set_mag(0);
-            return goto_state(&st_putt_stroke);
+            putt_hud_update_type();
         }
     }
     else if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
@@ -2190,14 +2134,14 @@ static void stroke_wheel(int x, int y)
             stroke_type++;
             stroke_set_type(stroke_type);
             putt_set_mag(0);
-            goto_state(&st_putt_stroke);
+            putt_hud_update_type();
         }
         if (y < 0 && stroke_type > 0)
         {
             stroke_type--;
             stroke_set_type(stroke_type);
             putt_set_mag(0);
-            goto_state(&st_putt_stroke);
+            putt_hud_update_type();
         }
     }
 }

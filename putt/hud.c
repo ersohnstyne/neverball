@@ -78,8 +78,9 @@ void putt_hud_init(void)
     int i = curr_player();
     int id;
 
-    if ((stroke_type_id = gui_label(0, _(curr_stroke_type_name()), GUI_SML, color[i], gui_wht)))
+    if ((stroke_type_id = gui_label(0, "XXXXXXX", GUI_SML, color[i], gui_wht)))
     {
+        gui_set_label(stroke_type_id, curr_stroke_type_name());
         gui_set_rect(stroke_type_id, GUI_BOT);
         gui_layout(stroke_type_id, 0, 1);
     }
@@ -290,6 +291,12 @@ void putt_hud_set_alpha(float a)
 {
     show_hud_total_alpha = a;
     hud_update_alpha();
+}
+
+void putt_hud_update_type(void)
+{
+    if (stroke_type_id)
+        gui_set_label(stroke_type_id, curr_stroke_type_name());
 }
 
 /*---------------------------------------------------------------------------*/

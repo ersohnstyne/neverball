@@ -60,6 +60,8 @@ void putt_hud_touch_reset(void);
 
 void putt_hud_joystick_set(int active, float ox, float oy, float kx, float ky, float rb, float rk);
 
+void putt_hud_update_type(void);
+
 /*---------------------------------------------------------------------------*/
 
 #endif

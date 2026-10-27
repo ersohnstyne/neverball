@@ -76,25 +76,28 @@ static void hole_init_rc(const char *filename)
             fs_gets(buff, sizeof (buff), fin))
         {
             /* Read the list. */
-            
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+
             while (count < MAXHOL &&
                    fs_gets(buff, sizeof (buff), fin) &&
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                    sscanf_s(buff, "%s %s %d %s",
                           hole_v[count].file,
                           hole_v[count].back,
                          &hole_v[count].par,
                           hole_v[count].song) >= 1)
 #else
-            while (count < MAXHOL &&
-                   fs_gets(buff, sizeof (buff), fin) &&
                    sscanf(buff, "%s %s %d %s",
                           hole_v[count].file,
                           hole_v[count].back,
                          &hole_v[count].par,
                           hole_v[count].song) >= 1)
 #endif
-                count++;
+            {
+                /* HACK: Check if there's hole map exists in this course. */
+
+                if (fs_exists(hole_v[count].file))
+                    count++;
+            }
         }
 
         fs_close(fin);

@@ -277,6 +277,62 @@ static int goal_gui(void)
 
     if (goal_intro_animation_phase == 1)
     {
+        if (curr_mode() != MODE_NORMAL && curr_mode() != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+         && curr_mode() != MODE_ZEN
+#endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         && curr_mode() != MODE_CAMPAIGN
+#endif
+            )
+        {
+            if ((id = gui_vstack(0)))
+            {
+                char timer_diffattr[64];
+
+                if ((jd = gui_title_header(id, s2, GUI_LRG, gui_blu, gui_grn)))
+                    gui_pulse(jd, 1.2f);
+
+                int timer_diff       = curr_times_diff();
+                int timer_diff_ahead = 0;
+
+                if (timer_diff < 0)
+                {
+                    timer_diff_ahead = 1;
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(timer_diffattr, 64,
+#else
+                    sprintf(timer_diffattr,
+#endif
+                            "-%d:%02d.%02d",
+                            ROUND((timer_diff * -1.0f) / 6000.0f),
+                            ROUND((timer_diff * -1.0f) /  100.0f) %  60,
+                            ROUND( timer_diff * -1.0f)            % 100);
+                }
+                else
+                {
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                    sprintf_s(timer_diffattr, 64,
+#else
+                    sprintf(timer_diffattr,
+#endif
+                            "+%d:%02d.%02d",
+                            ROUND(timer_diff / 6000.0f),
+                            ROUND(timer_diff /  100.0f) %  60,
+                                  timer_diff            % 100);
+                }
+
+                gui_label(id, timer_diffattr, GUI_SML,
+                          timer_diff_ahead ? gui_grn : gui_red,
+                          timer_diff_ahead ? gui_grn : gui_red);
+
+                gui_set_rect(id, GUI_ALL);
+                gui_set_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.5f, 0);
+                gui_layout(id, 0, 0);
+
+                return id;
+            }
+        }
         if ((id = gui_title_header(0, s2, GUI_LRG, gui_blu, gui_grn)))
         {
             gui_set_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.5f, 0);

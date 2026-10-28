@@ -297,6 +297,10 @@ struct progress
     int   flawless_runs;
 #endif
 
+    int   hardlimit_times_isinit; /* Hard limits (already init)                      */
+    int   hardlimit_times_level;  /* Hard limits (level time limit in seconds * 100) */
+    int   hardlimit_times_diff;   /* Hard limits (difference in seconds * 100)       */
+
     float speedpercent;
 };
 
@@ -567,6 +571,10 @@ void progress_init(int m)
 #endif
     curr.speedpercent  = 0;
 
+    curr.hardlimit_times_isinit = 0;
+    curr.hardlimit_times_level  = 0;
+    curr.hardlimit_times_diff   = 0;
+
     prev = curr;
 #ifdef MAPC_INCLUDES_CHKP
     chkp = prev;
@@ -751,7 +759,7 @@ static int init_level(void)
         game_client_toggle_show_balls(1);
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-        EM_ASM({ Neverball.gamecore_levelmap_loading_finished(true, false); });
+        EM_ASM({ Pennyball.gamecore_levelmap_loading_finished(true, false); });
 #endif
 
         game_client_sync(
@@ -797,6 +805,8 @@ int  progress_play(struct level *l)
         return 0;
 #endif
 
+    int r = 0;
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     game_fade_color(mode == MODE_HARDCORE ? 0.25f : 0.0f, 0.0f, 0.0f);
 #endif
@@ -829,7 +839,7 @@ int  progress_play(struct level *l)
         if (!campaign_used())
         {
             /* When they using level set, it will be added in the required coins. */
-            
+
             goal_e = (((mode != MODE_CHALLENGE  &&
                         mode != MODE_HARDCORE   &&
                         mode != MODE_BOOST_RUSH &&
@@ -908,7 +918,7 @@ int  progress_play(struct level *l)
 #endif
 
         activity_services_level_update(curr.balls + account_curr_balls);
-        
+
 #if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
         if (mode != MODE_NORMAL && mode != MODE_STANDALONE
 #ifdef LEVELGROUPS_INCLUDES_ZEN
@@ -921,9 +931,24 @@ int  progress_play(struct level *l)
 
         if (game_sha256_play())
 #endif
-            return init_level();
+            r = init_level();
     }
-    return 0;
+
+    if (r && !curr.hardlimit_times_isinit)
+    {
+        if (mode != MODE_NORMAL && mode != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+         && mode != MODE_ZEN
+#endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         && mode != MODE_CAMPAIGN
+#endif
+            ) curr.hardlimit_times_level += level->time;
+
+        curr.hardlimit_times_isinit = 1;
+    }
+
+    return r;
 }
 
 void progress_buy_balls(int amount)
@@ -1048,6 +1073,16 @@ void progress_stat(int s)
 
                 curr.score += coins;
                 curr.times += timer;
+
+                /* Start difference (per levels each) */
+                if (mode != MODE_NORMAL && mode != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+                 && mode != MODE_ZEN
+#endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+                 && mode != MODE_CAMPAIGN
+#endif
+                    ) curr.hardlimit_times_diff = curr.times - curr.hardlimit_times_level;
 
 #if ENABLE_DUALDISPLAY==1
                 game_dualdisplay_set_heart(curr.balls);
@@ -1686,6 +1721,8 @@ int  progress_next(void)
         return 0;
 #endif
 
+    int r = 0;
+
     if (next && status == GAME_GOAL && !progress_dead() &&
         (str_ends_with(next->file, ".csol")  ||
          str_ends_with(next->file, ".csolx") ||
@@ -1713,16 +1750,26 @@ int  progress_next(void)
 #endif
 
 #if ENABLE_LIVESPLIT!=0
-        const int r = progress_play(next);
+        r = progress_play(next);
         if (r) progress_livesplit_next();
-
-        return r;
 #else
-        return progress_play(next);
+        r = progress_play(next);
 #endif
     }
 
-    return 0;
+    if (r)
+    {
+        if (mode != MODE_NORMAL && mode != MODE_STANDALONE
+#ifdef LEVELGROUPS_INCLUDES_ZEN
+         && mode != MODE_ZEN
+#endif
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+         && mode != MODE_CAMPAIGN
+#endif
+            ) curr.hardlimit_times_level += level->time;
+    }
+
+    return r;
 }
 
 int  progress_same(void)
@@ -1783,7 +1830,7 @@ int  progress_dead(void)
     if (!game_sha256_state()) return 1;
 #endif
 
-    if (status != GAME_NONE) return 0;
+    if (status == GAME_NONE) return 0;
 
     switch (mode)
     {
@@ -1941,10 +1988,11 @@ int curr_balls(void)
     return curr.balls;
 }
 
-int curr_score(void) { return curr.score; }
-int curr_times(void) { return curr.times; }
-int curr_mode (void) { return mode;       }
-int curr_goal (void) { return goal;       }
+int curr_score     (void) { return curr.score;                }
+int curr_times     (void) { return curr.times;                }
+int curr_times_diff(void) { return curr.hardlimit_times_diff; }
+int curr_mode      (void) { return mode;                      }
+int curr_goal      (void) { return goal;                      }
 
 #if NB_HAVE_PB_BOTH==1
 int curr_flawless_runs(void) { return curr.flawless_runs; }

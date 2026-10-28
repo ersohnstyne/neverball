@@ -105,11 +105,12 @@ struct level *curr_level(void);
 
 float curr_speed_percent(void);
 
-int  curr_balls(void);
-int  curr_score(void);
-int  curr_times(void);
-int  curr_mode (void);
-int  curr_goal (void);
+int  curr_balls     (void);
+int  curr_score     (void);
+int  curr_times     (void);
+int  curr_times_diff(void);
+int  curr_mode      (void);
+int  curr_goal      (void);
 
 #if NB_HAVE_PB_BOTH==1
 int curr_flawless_runs(void);

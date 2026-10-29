@@ -292,39 +292,22 @@ static int goal_gui(void)
 
                 if ((jd = gui_title_header(id, s2, GUI_LRG, gui_blu, gui_grn)))
                     gui_pulse(jd, 1.2f);
+                
+                int timer_diff = curr_times_diff();
 
-                int timer_diff       = curr_times_diff();
-                int timer_diff_ahead = 0;
-
-                if (timer_diff < 0)
-                {
-                    timer_diff_ahead = 1;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(timer_diffattr, 64,
+                sprintf_s(timer_diffattr, 64,
 #else
-                    sprintf(timer_diffattr,
+                sprintf(timer_diffattr,
 #endif
-                            "-%d:%02d.%02d",
-                            ROUND((timer_diff * -1.0f) / 6000.0f),
-                            ROUND((timer_diff * -1.0f) /  100.0f) %  60,
-                            ROUND( timer_diff * -1.0f)            % 100);
-                }
-                else
-                {
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(timer_diffattr, 64,
-#else
-                    sprintf(timer_diffattr,
-#endif
-                            "+%d:%02d.%02d",
-                            ROUND(timer_diff / 6000.0f),
-                            ROUND(timer_diff /  100.0f) %  60,
-                                  timer_diff            % 100);
-                }
+                        timer_diff < 0 ? "-%d:%02d.%02d" : "+%d:%02d.%02d",
+                        ROUND(fabsf(timer_diff) / 6000.0f),
+                        ROUND(fabsf(timer_diff) /  100.0f) %  60,
+                        ROUND(fabsf(timer_diff))           % 100);
 
                 gui_label(id, timer_diffattr, GUI_SML,
-                          timer_diff_ahead ? gui_grn : gui_red,
-                          timer_diff_ahead ? gui_grn : gui_red);
+                          timer_diff < 0 ? gui_grn : gui_red,
+                          timer_diff < 0 ? gui_grn : gui_red);
 
                 gui_set_rect(id, GUI_ALL);
                 gui_set_slide(id, GUI_E | GUI_FLING | GUI_EASE_BACK, 0, 0.5f, 0);

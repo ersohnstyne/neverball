@@ -59,6 +59,17 @@ extern struct video video;
 
 extern int video_can_swap_window;
 
+#if _WIN32
+/*
+ * WINDOWS 11 EXCLUSIVE
+ */
+const char *video_get_display_name(int, int *);
+#else
+const char *video_get_display_name(int, int *);
+#endif
+
+/*---------------------------------------------------------------------------*/
+
 int  video_init(void);
 void video_quit(void);
 

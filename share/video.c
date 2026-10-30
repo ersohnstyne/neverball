@@ -102,6 +102,168 @@ struct video video;
 
 /*---------------------------------------------------------------------------*/
 
+#if _WIN32
+static BOOL video_win32_enum_proc(HMONITOR hMonitor, HDC hdc, LPRECT pRect, LPARAM lParam)
+{
+    if (!lParam || *(int *) lParam >= 9 || !pRect)
+        return FALSE;
+
+    *(int *) lParam += 1;
+    return TRUE;
+}
+#endif
+
+#if __cplusplus
+extern "C"
+#endif
+#if _WIN32
+const char *video_get_display_name(int id, PINT dpy_count)
+#else
+const char *video_get_display_name(int id, int *dpy_count)
+#endif
+{
+#if _WIN32
+    /*
+     * HACK: Windows will do it!: EnumDisplayMonitors, EnumDisplayDevices
+     * - Ersohn Styne
+     */
+
+#define VIDEO_WIN32_MAX_DISPLAY_COUNT 9
+
+    int  display_count = 0;
+    int  display_monitor_names_given[VIDEO_WIN32_MAX_DISPLAY_COUNT];
+    int  display_monitor_names_written[VIDEO_WIN32_MAX_DISPLAY_COUNT];
+    char display_monitor_names[VIDEO_WIN32_MAX_DISPLAY_COUNT][64], display_monitor_names_real[VIDEO_WIN32_MAX_DISPLAY_COUNT][64];
+
+    for (int i = 0; i < VIDEO_WIN32_MAX_DISPLAY_COUNT; i++) {
+        display_monitor_names_given[i]   = FALSE;
+        display_monitor_names_written[i] = FALSE;
+        memset(display_monitor_names[i],      0, sizeof (display_monitor_names[i]));
+        memset(display_monitor_names_real[i], 0, sizeof (display_monitor_names_real[i]));
+    }
+
+    if (!EnumDisplayMonitors(NULL, NULL, video_win32_enum_proc, (LPARAM) &display_count))
+        return NULL;
+
+    UINT deviceIndex = 0;
+    DISPLAY_DEVICEA displayDeviceA, displayDeviceB;
+    displayDeviceA.cb = sizeof (DISPLAY_DEVICEA);
+    displayDeviceB.cb = sizeof (DISPLAY_DEVICEA);
+
+    while (EnumDisplayDevicesA(NULL, deviceIndex, &displayDeviceA, 0)) {
+        UINT monitorIndex = 0;
+        while (EnumDisplayDevices(displayDeviceA.DeviceName, monitorIndex, &displayDeviceB, 0)) {
+            LONG rc = 0;
+            UINT32 path_count = 0, mode_count = 0;
+            DISPLAYCONFIG_PATH_INFO *paths = NULL;
+            DISPLAYCONFIG_MODE_INFO *modes = NULL;
+            BOOL display_device_real_name = FALSE;
+
+            do {
+                if (paths) { free(paths); paths = NULL; }
+                if (modes) { free(modes); modes = NULL; }
+
+                rc = GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS | QDC_VIRTUAL_MODE_AWARE, &path_count, &mode_count);
+                if (rc != ERROR_SUCCESS) break; // didn't work than expected
+
+                paths = (DISPLAYCONFIG_PATH_INFO *) malloc(sizeof (DISPLAYCONFIG_PATH_INFO) * path_count);
+                modes = (DISPLAYCONFIG_MODE_INFO *) malloc(sizeof (DISPLAYCONFIG_MODE_INFO) * mode_count);
+
+                if (!paths || !modes) {
+                    if (paths) { free(paths); paths = NULL; }
+                    if (modes) { free(modes); modes = NULL; }
+
+                    // didn't work than expected
+                    break;
+                }
+
+                rc = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS | QDC_VIRTUAL_MODE_AWARE, &path_count, paths, &mode_count, modes, 0);
+            } while (rc == ERROR_INSUFFICIENT_BUFFER);
+
+            if (rc == ERROR_SUCCESS && paths != NULL && modes != NULL) {
+                for (UINT32 i = 0; i < path_count; i++) {
+                    DISPLAYCONFIG_SOURCE_DEVICE_NAME sourceName;
+                    DISPLAYCONFIG_TARGET_DEVICE_NAME targetName;
+                    
+                    sourceName.header.size      = sizeof (sourceName);
+                    sourceName.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
+                    sourceName.header.adapterId = paths[i].targetInfo.adapterId;
+                    sourceName.header.id        = paths[i].sourceInfo.id;
+                    rc = DisplayConfigGetDeviceInfo(&sourceName.header);
+                    if (rc != ERROR_SUCCESS) break;
+                    
+                    targetName.header.size      = sizeof (targetName);
+                    targetName.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+                    targetName.header.adapterId = paths[i].targetInfo.adapterId;
+                    targetName.header.id        = paths[i].targetInfo.id;
+                    rc = DisplayConfigGetDeviceInfo(&targetName.header);
+                    if (rc == ERROR_SUCCESS) {
+                        size_t num_converted = 0;
+                        wcstombs_s(&num_converted, display_monitor_names_real[i], 64, targetName.monitorFriendlyDeviceName, 64);
+                        display_monitor_names_given[i] = TRUE;
+                    }
+                }
+            }
+
+            if (paths) { free(paths); paths = NULL; }
+            if (modes) { free(modes); modes = NULL; }
+
+            if (!display_monitor_names_written[deviceIndex] && deviceIndex < display_count) {
+                if (display_monitor_names_given[deviceIndex]) {
+                    BOOL real_name_done = FALSE, real_name_skip = FALSE;
+
+                    if (display_monitor_names_real[deviceIndex][0] == displayDeviceB.DeviceString[0]) {
+                        UINT32 i = 0;
+
+                        for (i = 0; i < 64 && !real_name_done && !real_name_skip; i++)
+                            if (display_monitor_names_real[deviceIndex][i] != displayDeviceB.DeviceString[i]) {
+                                if (i >= 4) real_name_done = TRUE;
+
+                                real_name_skip = TRUE;
+                                break;
+                            }
+                    }
+
+                    if (real_name_done)
+                        SAFECPY(display_monitor_names[deviceIndex], display_monitor_names_real[deviceIndex]);
+                    else sprintf_s(display_monitor_names[deviceIndex], 64, "%s (%s)", display_monitor_names_real[deviceIndex], displayDeviceB.DeviceString);
+                }
+                else SAFECPY(display_monitor_names[deviceIndex], displayDeviceB.DeviceString);
+
+                display_monitor_names_written[deviceIndex] = TRUE;
+            }
+
+            monitorIndex++;
+        }
+        deviceIndex++;
+    }
+
+    if (dpy_count) *dpy_count = display_count;
+
+    if (id >= 0 && id < display_count)
+        return display_monitor_names[id];
+
+    return NULL;
+#else
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    int num_displays = 0;
+    SDL_DisplayID *display_id = SDL_GetDisplays(&num_displays);
+
+    if (display_id == NULL || num_displays == 0)
+    {
+        if (display_id) SDL_free(display_id);
+        return NULL;
+    }
+
+    if (display_id) SDL_free(display_id);
+    if (dpy_count) *dpy_count = num_displays;
+#endif
+    return SDL_GetDisplayName(id);
+#endif
+}
+
+/*---------------------------------------------------------------------------*/
+
 /* Normally...... show the system cursor and hide the virtual cursor.        */
 /* In HMD mode... show the virtual cursor and hide the system cursor.        */
 
@@ -525,24 +687,8 @@ video_mode_reconf:
     hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
     highdpi  = config_get_d(CONFIG_HIGHDPI)     ? 1 : 0;
 
-#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
     int num_displays = 0;
-    SDL_DisplayID *display_id = SDL_GetDisplays(&num_displays);
-
-    if (display_id == NULL || num_displays == 0)
-    {
-        if (display_id) SDL_free(display_id);
-        log_errorf("No displays provided!\n");
-        return 0;
-    } else SDL_free(display_id);
-#else
-    const int num_displays = SDL_GetNumVideoDisplays();
-    if (num_displays < 1)
-    {
-        log_errorf("No displays provided!\n");
-        return 0;
-    }
-#endif
+    video_get_display_name(config_get_d(CONFIG_DISPLAY), &num_displays);
 
 #if defined(__EMSCRIPTEN__)
     int dpy = config_get_d(CONFIG_DISPLAY);
@@ -550,6 +696,12 @@ video_mode_reconf:
     int dpy =
         CLAMP(0, config_get_d(CONFIG_DISPLAY), num_displays - 1);
 #endif
+
+    if (num_displays < 1)
+    {
+        log_errorf("No displays provided!\n");
+        return 0;
+    }
 
     SDL_DisplayMode ddm;
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
@@ -1060,25 +1212,9 @@ int video_mode_auto_config(int f, int w, int h)
 video_mode_auto_config_reconf:
     stereo   = config_get_d(CONFIG_STEREO)      ? 1 : 0;
     hmd      = config_get_d(CONFIG_HMD)         ? 1 : 0;
-    
-#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-    int num_displays = 0;
-    SDL_DisplayID *display_id = SDL_GetDisplays(&num_displays);
 
-    if (display_id == NULL || num_displays == 0)
-    {
-        if (display_id) SDL_free(display_id);
-        log_errorf("No displays provided!\n");
-        return 0;
-    } else SDL_free(display_id);
-#else
-    const int num_displays = SDL_GetNumVideoDisplays();
-    if (num_displays < 1)
-    {
-        log_errorf("No displays provided!\n");
-        return 0;
-    }
-#endif
+    int num_displays = 0;
+    video_get_display_name(config_get_d(CONFIG_DISPLAY), &num_displays);
 
 #if defined(__EMSCRIPTEN__)
     int dpy = config_get_d(CONFIG_DISPLAY);
@@ -1086,6 +1222,12 @@ video_mode_auto_config_reconf:
     int dpy =
         CLAMP(0, config_get_d(CONFIG_DISPLAY), num_displays - 1);
 #endif
+
+    if (num_displays < 1)
+    {
+        log_errorf("No displays provided!\n");
+        return 0;
+    }
 
     SDL_DisplayMode ddm;
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
@@ -1964,13 +2106,12 @@ int video_get_hatsune_miku(void)
     if (!glext_get_hatsune_miku()) return 0;
 
     /*
-     * HACK: SDL_GetDisplayName() will, but let's assume,
-     * how to use the Hatsune Miku Edition in case:
+     * HACK: Let's assume, how to use the Hatsune Miku Edition in case:
      * * XG27ACMEG-G with Hatsune Miku
      *
      * - Ersohn Styne
      */
-    
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
 #if NB_PB_SDL3==1
     int num_displays = 0;
@@ -1989,7 +2130,8 @@ int video_get_hatsune_miku(void)
 
     for (int i = 0; i < num_displays; i++)
     {
-        const char *name = SDL_GetDisplayName(i);
+        int out_num_displays = 0;
+        const char *name = video_get_display_name(i, &out_num_displays);
 
         if (name && *name && name[0])
             if (SDL_strcasestr(name, "XG27ACMEG-G") != NULL &&

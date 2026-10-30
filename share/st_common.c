@@ -1138,7 +1138,8 @@ static int video_gui(void)
 
         int dpy = config_get_d(CONFIG_DISPLAY);
         const char *display;
-        if (!(display = SDL_GetDisplayName(dpy)))
+        int out_num_displays = 0;
+        if (!(display = video_get_display_name(dpy, &out_num_displays)))
             display = _("Unknown Display");
 
         char dpy_info[MAXSTR];
@@ -1188,7 +1189,7 @@ static int video_gui(void)
                                      VIDEO_DISPLAY)))
             {
                 gui_set_trunc(jd, TRUNC_TAIL);
-                gui_set_label(jd, display);
+                gui_set_label(jd, video_get_display_name(dpy, &out_num_displays));
             }
 #endif
 
@@ -1786,6 +1787,9 @@ static int video_advanced_gui(void)
         char resolution[sizeof ("12345678 x 12345678")];
         const char *display;
         int dpy = config_get_d(CONFIG_DISPLAY);
+        int out_num_displays = 0;
+
+        conf_header(id, _("Graphics"), GUI_BACK);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(resolution, MAXSTR,
@@ -1796,9 +1800,8 @@ static int video_advanced_gui(void)
                 video.window_w,
                 video.window_h);
 
-        if (!(display = SDL_GetDisplayName(dpy)))
+        if (!(display = video_get_display_name(dpy, &out_num_displays)))
             display = _("Unknown Display");
-        conf_header(id, _("Graphics"), GUI_BACK);
 
         /* This ignores display configurations and resolutions. */
 
@@ -1994,7 +1997,8 @@ static int display_gui(void)
 #else
             SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
 #endif
-
+            
+            int out_num_displays = 0;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(name, MAXSTR,
 #else
@@ -2003,12 +2007,12 @@ static int display_gui(void)
                     "%d: %s\n"
                     "%d x %d - %d Hz",
                     i + 1,
-                    SDL_GetDisplayName(i),
+                    video_get_display_name(i, &out_num_displays),
                     dpyMode.w, dpyMode.h, dpyMode.refresh_rate);
 
             jd = gui_multi(id,
-                           "XXXXXXXXXXXXXXXXXXX\n"
-                           "XXXXXXXXXXXXXXXXXXX",
+                           "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+                           "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
                            GUI_SML, gui_wht, gui_wht);
             gui_set_state (jd, DISPLAY_SELECT, i);
             gui_set_hilite(jd, (i == config_get_d(CONFIG_DISPLAY)));

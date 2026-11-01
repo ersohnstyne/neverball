@@ -1827,6 +1827,9 @@ struct main_loop
     Uint32 motionblur_leftover;
 #endif
     unsigned int done : 1;
+
+    Sint32 powerstate_prev, powerstate_curr,
+           powerstate_sec,  powerstate_pct;
 };
 
 static void step_primary_screen(Uint32 now, Uint32 dt, int allow_clear)
@@ -1878,6 +1881,19 @@ static void step(void *data)
 
     if (running)
     {
+        mainloop->powerstate_curr = SDL_GetPowerInfo(&mainloop->powerstate_sec, &mainloop->powerstate_pct);
+
+        if (mainloop->powerstate_prev != mainloop->powerstate_curr &&
+            mainloop->powerstate_curr != SDL_POWERSTATE_UNKNOWN) {
+            if (mainloop->powerstate_curr == SDL_POWERSTATE_CHARGED ||
+                mainloop->powerstate_curr == SDL_POWERSTATE_CHARGING)
+                audio_play("snd/miui_charge_10.ogg", 1.0f);
+            else if (mainloop->powerstate_curr == SDL_POWERSTATE_ON_BATTERY)
+                audio_play("snd/miui_disconnect_10.ogg", 1.0f);
+
+            mainloop->powerstate_prev = mainloop->powerstate_curr;
+        }
+
         Uint32 now = SDL_GetTicks();
         Uint32 dt  = (now - mainloop->now);
 

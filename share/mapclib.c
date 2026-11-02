@@ -198,6 +198,8 @@ struct mapc_context
     const char *opt_data;
     int opt_debug;
     int opt_csv;
+    int opt_debug_paths;
+
     int campaign_output;
     int campaign_cost;
     int campaign_budget;
@@ -481,6 +483,7 @@ int mapc_init(struct mapc_context **ctx_ptr)
     ctx->opt_csv = 0;
     ctx->opt_file = NULL;
     ctx->opt_data = NULL;
+    ctx->opt_debug_paths = 0;
 
 #if ENABLE_RADIANT_CONSOLE
     ctx->bcast_socket = NULL;
@@ -1220,18 +1223,10 @@ static void move_file(struct mapc_context *ctx)
 /*---------------------------------------------------------------------------*/
 
 /*
-<<<<<<< HEAD
- * This is a basic OBJ loader.  It is by no means fully compliant with
- * the  OBJ  specification, but  it  works  well  with the  output  of
- * Wings3D.  All faces must be triangles and all vertices must include
- * normals and  texture coordinates.  Material  names are taken  to be
- * references to Neverball materials, rather than MTL definitions.
-=======
  * This is a basic OBJ loader.  All faces must be triangles and all
  * vertices must include normals and texture coordinates.  Material
  * names are taken to be references to Neverball materials, rather
  * than MTL definitions.
->>>>>>> 86bcdf5f8933de48adc997eb5c5ff860e71e4492
  *
  * OBJ geometry is authored in TrenchBroom map coordinates (Quake Z-up,
  * 64 units = 1 meter).  read_v and read_vn remap the coordinates into
@@ -1295,88 +1290,109 @@ static int parse_triplet(const char *token, int *vi, int *ti, int *si)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     if (sscanf_s(token, "%d/%d/%d", vi, ti, si) == 3) return 1;
+    if (sscanf_s(token, "%d//%d", vi, si) == 2)       return 1;
     if (sscanf_s(token, "%d/%d", vi, ti) == 2)        return 1;
-    if (sscanf_s(token, "%d/%d", vi, si) == 2)        return 1;
     if (sscanf_s(token, "%d", vi) == 1)               return 1;
 #else
     if (sscanf(token, "%d/%d/%d", vi, ti, si) == 3) return 1;
+    if (sscanf(token, "%d//%d", vi, si) == 2)       return 1;
     if (sscanf(token, "%d/%d", vi, ti) == 2)        return 1;
-    if (sscanf(token, "%d/%d", vi, si) == 2)        return 1;
     if (sscanf(token, "%d", vi) == 1)               return 1;
 #endif
 
     return 0;
 }
 
-static void read_f(struct mapc_context *ctx, const char *line,
-    int v0, int t0, int s0, int mi)
+static void read_f(struct mapc_context *ctx, const char *name, const char *line, const int line_num,
+                   int v0, int t0, int s0, int mi)
 {
     struct s_base *fp = &ctx->file;
-    struct b_geom *gp = fp->gv + incg(ctx);
 
-    struct b_offs *op = fp->ov + (gp->oi = inco(ctx));
-    struct b_offs *oq = fp->ov + (gp->oj = inco(ctx));
-    struct b_offs *or = fp->ov + (gp->ok = inco(ctx));
+    char tok[64] = "";
 
-    char tok1[64] = "";
-    char tok2[64] = "";
-    char tok3[64] = "";
+    int viv[128] = { 0 };
+    int tiv[128] = { 0 };
+    int siv[128] = { 0 };
 
-    int vi1 = 0, ti1 = 0, si1 = 0;
-    int vi2 = 0, ti2 = 0, si2 = 0;
-    int vi3 = 0, ti3 = 0, si3 = 0;
+    int i = 0, c = 0, n = 0;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    if (sscanf_s(line, "%63s %63s %63s", tok1, tok2, tok3) == 3)
+    while (sscanf_s(line, "%63s%n", tok, &n) >= 1)
 #else
-    if (sscanf(line, "%63s %63s %63s", tok1, tok2, tok3) == 3)
+    while (sscanf(line, "%63s%n", tok, &n) >= 1)
 #endif
     {
-        if (!parse_triplet(tok1, &vi1, &ti1, &si1)) {
+        if (!parse_triplet(tok, &viv[c], &tiv[c], &siv[c])) {
 #if _MSC_VER
-            fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
-                ctx->src_path.buf);
+            fprintf_s(stderr, "%s(%d): error MAPCE: Parse triplet error\n",
+                               name, line_num);
 #else
             MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
 #endif
-            longjmp(ctx->jmpbuf, MAPC_ERROR);
-            return;
+            break;
         }
-        if (!parse_triplet(tok2, &vi2, &ti2, &si2)) {
+        else
+        {
+            line += n;
+
+            if (c++ >= 128)
+            {
 #if _MSC_VER
-            fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
-                ctx->src_path.buf);
+                fprintf_s(stderr, "%s: error MAPCE: over 128 vertices on OBJ face, skipping the rest\n",
+                                  name, line_num);
 #else
-            MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
+                MAPC_LOG_ERROR(ctx, "over 128 vertices on OBJ face, skipping the rest\n");
 #endif
-            longjmp(ctx->jmpbuf, MAPC_ERROR);
-            return;
-        }
-        if (!parse_triplet(tok3, &vi3, &ti3, &si3)) {
-#if _MSC_VER
-            fprintf_s(stderr, "%s: error MAPCE: Parse triplet error\n",
-                ctx->src_path.buf);
-#else
-            MAPC_LOG_ERROR(ctx, "Parse triplet error\n");
-#endif
-            longjmp(ctx->jmpbuf, MAPC_ERROR);
-            return;
+                break;
+            }
         }
     }
 
-    op->vi = v0 + vi1 - 1;
-    oq->vi = v0 + vi2 - 1;
-    or->vi = v0 + vi3 - 1;
+    if (c < 3)
+    {
+#if _MSC_VER
+        fprintf_s(stderr, "%s: warning MAPCW: degenerate OBJ face, less than 3 vertices\n",
+            ctx->src_path.buf);
+#else
+        MAPC_LOG_ERROR(ctx, "degenerate OBJ face, less than 3 vertices\n");
+#endif
+        return;
+    }
 
-    op->ti = ti1 > 0 ? (t0 + ti1 - 1) : (t0 < fp->tc ? t0 : 0);
-    oq->ti = ti2 > 0 ? (t0 + ti2 - 1) : (t0 < fp->tc ? t0 : 0);
-    or->ti = ti3 > 0 ? (t0 + ti3 - 1) : (t0 < fp->tc ? t0 : 0);
+    for (i = 1; i + 1 < c; i++)
+    {
+        struct b_geom *gp = fp->gv + incg(ctx);
 
-    op->si = si1 > 0 ? (s0 + si1 - 1) : (s0 < fp->sc ? s0 : 0);
-    oq->si = si2 > 0 ? (s0 + si2 - 1) : (s0 < fp->sc ? s0 : 0);
-    or->si = si3 > 0 ? (s0 + si3 - 1) : (s0 < fp->sc ? s0 : 0);
+        struct b_offs *op = fp->ov + (gp->oi + inco(ctx));
+        struct b_offs *oq = fp->ov + (gp->oj + inco(ctx));
+        struct b_offs *or = fp->ov + (gp->ok + inco(ctx));
 
-    gp->mi = mi;
+        int vi = viv[0];
+        int vj = viv[i];
+        int vk = viv[i + 1];
+
+        int ti = tiv[0];
+        int tj = tiv[i];
+        int tk = tiv[i + 1];
+
+        int si = siv[0];
+        int sj = siv[i];
+        int sk = siv[i + 1];
+
+        op->vi = v0 + vi - 1;
+        oq->vi = v0 + vj - 1;
+        or->vi = v0 + vk - 1;
+
+        op->ti = ti > 0 ? (t0 + ti - 1) : (t0 < fp->tc ? t0 : 0);
+        oq->ti = tj > 0 ? (t0 + tj - 1) : (t0 < fp->tc ? t0 : 0);
+        or->ti = tk > 0 ? (t0 + tk - 1) : (t0 < fp->tc ? t0 : 0);
+
+        op->si = si > 0 ? (s0 + si - 1) : (s0 < fp->sc ? s0 : 0);
+        oq->si = sj > 0 ? (s0 + sj - 1) : (s0 < fp->sc ? s0 : 0);
+        or->si = sk > 0 ? (s0 + sk - 1) : (s0 < fp->sc ? s0 : 0);
+
+        gp->mi = mi;
+    }
 }
 
 static void read_obj(struct mapc_context *ctx, const char *name, int mi)
@@ -1391,7 +1407,10 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
     int t0 = fp->tc;
     int s0 = fp->sc;
 
-    if ((fin = fs_open_read(name))) {
+    if ((fin = fs_open_read(name)))
+    {
+        int line_num = 1;
+
         while (fs_gets(line, MAXSTR, fin))
         {
             if (strncmp(line, "usemtl", 6) == 0)
@@ -1407,12 +1426,14 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
             else if (strncmp(line, "f", 1) == 0)
             {
                 if (fp->mv[mi].d[3] > 0.0f)
-                    read_f(ctx, line + 1, v0, t0, s0, mi);
+                    read_f(ctx, name, line + 1, line_num, v0, t0, s0, mi);
             }
 
             else if (strncmp(line, "vt", 2) == 0) read_vt(ctx, line + 2);
             else if (strncmp(line, "vn", 2) == 0) read_vn(ctx, line + 2);
-            else if (strncmp(line, "v", 1) == 0) read_v(ctx, line + 1);
+            else if (strncmp(line, "v",  1) == 0) read_v (ctx, line + 1);
+
+            line_num++;
         }
         fs_close(fin);
     }
@@ -1423,10 +1444,10 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
 #else
         sprintf(stderr_buf,
 #endif
-            "Failure to load OBJ file: %s - %s\n", name, fs_error());
+                "Failure to load OBJ file: %s - %s\n", name, fs_error());
 #if _MSC_VER
         fprintf_s(stderr, "%s: error MAPCE: Failure to load OBJ file: %s - %s\n",
-            ctx->src_path.buf, name, fs_error());
+                          ctx->src_path.buf, name, fs_error());
 #else
         MAPC_LOG_ERROR(ctx, stderr_buf);
 #endif
@@ -4487,8 +4508,9 @@ static void print_usage(const char *name)
 #endif
         "--data <dir>",
 #ifdef MAPC_INCLUDES_CHKP
-        "--campaign"
+        "--campaign",
 #endif
+        "--debug-paths[=<model>]"
     };
 
     for (int i = 0; i < ARRAYSIZE(opt_name); i++)
@@ -4532,6 +4554,12 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
                 fs_add_path_with_archives(argv[argi]);
             }
         }
+
+        else if (strcmp(argv[argi], "--debug-paths") == 0)
+        {
+            ctx->opt_debug_paths = 1;
+        }
+
         else if (strcmp(argv[argi], "--timelimit") == 0)
         {
             ++argi;
@@ -4882,6 +4910,80 @@ static int check_campaign_level(const char *filename)
 
 /*---------------------------------------------------------------------------*/
 
+static void debug_paths(struct mapc_context *ctx)
+{
+    struct s_base *fp = &ctx->file;
+    int i, pc = fp->pc;
+
+    if (pc <= 0)
+        return;
+
+    for (i = 0; i < pc; i++)
+    {
+        int v0 = fp->vc;
+        int g0 = fp->gc;
+        int j, bi, pi_dbg;
+        struct b_body *bp;
+        struct b_path *dbg;
+        int p0 = fp->pv[i].p0;
+        int p1 = fp->pv[i].p1;
+        int fl = fp->pv[i].fl;
+        float p[3], e[4];
+
+        v_cpy(p, fp->pv[i].p);
+
+        if (fl & P_ORIENTED)
+            q_cpy(e, fp->pv[i].e);
+        else
+        {
+            e[0] = 1.0f;
+            e[1] = 0.0f;
+            e[2] = 0.0f;
+            e[3] = 0.0f;
+        }
+
+        read_obj(ctx, "obj/editor/path.obj", 0);
+
+        if (fp->gc <= g0 || fp->vc <= v0)
+            break;
+
+        for (j = v0; j < fp->vc; j++)
+            v_add(fp->vv[j].p, fp->vv[j].p, p);
+
+        pi_dbg = incp(ctx);
+        dbg = fp->pv + pi_dbg;
+        memset(dbg, 0, sizeof (*dbg));
+        dbg->pi = pi_dbg;
+        dbg->t  = 1.0f;
+        dbg->tm = 1000;
+        dbg->f  = 1;
+        dbg->s  = 1;
+        dbg->p0 = p0;
+        dbg->p1 = p1;
+        dbg->fl = fl | P_ORIENTED;
+        if (p0 >= 0 || p1 >= 0)
+            dbg->fl |= P_PARENTED;
+        v_cpy(dbg->p, p);
+        q_cpy(dbg->e, e);
+
+        bi = incb(ctx);
+        bp = fp->bv + bi;
+        memset(bp, 0, sizeof (*bp));
+        bp->p0 = pi_dbg;
+        bp->p1 = pi_dbg;
+        bp->ni = -1;
+        bp->l0 = 0;
+        bp->lc = 0;
+        bp->g0 = fp->ic;
+        bp->gc = fp->gc - g0;
+
+        for (j = 0; j < bp->gc; j++)
+            fp->iv[inci(ctx)] = g0++;
+    }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static int skip_verify;
 
 static void interactive_web(void)
@@ -5031,6 +5133,10 @@ static int mapc_compile_internal(struct mapc_context *ctx)
         targets(ctx);
 
         turn_file(ctx);
+
+        if (ctx->opt_debug_paths)
+            debug_paths(ctx);
+
         clip_file(ctx);
         move_file(ctx);
         uniq_file(ctx);

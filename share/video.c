@@ -122,7 +122,10 @@ const char *video_get_display_name(int id, PINT dpy_count)
 const char *video_get_display_name(int id, int *dpy_count)
 #endif
 {
-#if _WIN32
+#if defined(__EMSCRIPTEN__)
+    if (dpy_count) *dpy_count = 1;
+    return "Emscripten Video Display";
+#elif _WIN32
     /*
      * HACK: Windows will do it!: EnumDisplayMonitors, EnumDisplayDevices
      * - Ersohn Styne

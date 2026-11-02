@@ -1343,10 +1343,10 @@ static void read_f(struct mapc_context *ctx, const char *name, const char *line,
     for (i = 1; i + 1 < c; i++)
     {
         struct b_geom *gp = fp->gv + incg(ctx);
-
-        struct b_offs *op = fp->ov + (gp->oi + inco(ctx));
-        struct b_offs *oq = fp->ov + (gp->oj + inco(ctx));
-        struct b_offs *or = fp->ov + (gp->ok + inco(ctx));
+        
+        struct b_offs *op = fp->ov + (gp->oi = inco(ctx));
+        struct b_offs *oq = fp->ov + (gp->oj = inco(ctx));
+        struct b_offs *or = fp->ov + (gp->ok = inco(ctx));
 
         int vi = viv[0];
         int vj = viv[i];

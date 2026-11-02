@@ -1888,15 +1888,15 @@ static void step(void *data)
 
         if (mainloop->powerstate_prev != mainloop->powerstate_curr &&
             mainloop->powerstate_curr != SDL_POWERSTATE_UNKNOWN &&
-            mainloop->now > 50) {
+            mainloop->now > 500 && dt >= 0 && dt < 1000) {
             if (mainloop->powerstate_curr == SDL_POWERSTATE_CHARGED ||
                 mainloop->powerstate_curr == SDL_POWERSTATE_CHARGING)
                 audio_play("snd/miui_charge_10.ogg", 1.0f);
             else if (mainloop->powerstate_curr == SDL_POWERSTATE_ON_BATTERY)
                 audio_play("snd/miui_disconnect_10.ogg", 1.0f);
-
-            mainloop->powerstate_prev = mainloop->powerstate_curr;
         }
+
+        mainloop->powerstate_prev = mainloop->powerstate_curr;
 
         activity_services_step(dt);
 

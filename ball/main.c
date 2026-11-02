@@ -1883,8 +1883,12 @@ static void step(void *data)
     {
         mainloop->powerstate_curr = SDL_GetPowerInfo(&mainloop->powerstate_sec, &mainloop->powerstate_pct);
 
+        Uint32 now = SDL_GetTicks();
+        Uint32 dt  = (now - mainloop->now);
+
         if (mainloop->powerstate_prev != mainloop->powerstate_curr &&
-            mainloop->powerstate_curr != SDL_POWERSTATE_UNKNOWN) {
+            mainloop->powerstate_curr != SDL_POWERSTATE_UNKNOWN &&
+            mainloop->now > 50) {
             if (mainloop->powerstate_curr == SDL_POWERSTATE_CHARGED ||
                 mainloop->powerstate_curr == SDL_POWERSTATE_CHARGING)
                 audio_play("snd/miui_charge_10.ogg", 1.0f);
@@ -1893,9 +1897,6 @@ static void step(void *data)
 
             mainloop->powerstate_prev = mainloop->powerstate_curr;
         }
-
-        Uint32 now = SDL_GetTicks();
-        Uint32 dt  = (now - mainloop->now);
 
         activity_services_step(dt);
 

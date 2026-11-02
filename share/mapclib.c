@@ -199,6 +199,7 @@ struct mapc_context
     int opt_debug;
     int opt_csv;
     int opt_debug_paths;
+<<<<<<< HEAD
 
     int campaign_output;
     int campaign_cost;
@@ -208,6 +209,8 @@ struct mapc_context
     int linenum;
     int bracket_linenum[256];
     int bracket_stack;
+=======
+>>>>>>> 6325429835545c9e1bc818058c9c288079f8d55c
 
     STRBUF src_path;
     STRBUF dst_path;
@@ -1316,6 +1319,7 @@ static void read_f(struct mapc_context *ctx, const char *name, const char *line,
 
     int i = 0, c = 0, n = 0;
 
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     while (sscanf_s(line, "%63s%n", tok, &n) >= 1)
 #else
@@ -1346,16 +1350,33 @@ static void read_f(struct mapc_context *ctx, const char *name, const char *line,
                 break;
             }
         }
+=======
+    while (sscanf(line, "%63s%n", tok, &n) >= 1)
+    {
+        parse_triplet(tok, &viv[c], &tiv[c], &siv[c]);
+
+        line += n;
+
+        if (c++ >= 128)
+        {
+            WARNING(ctx, "over 128 vertices on OBJ face, skipping the rest\n");
+            break;
+        }
+>>>>>>> 6325429835545c9e1bc818058c9c288079f8d55c
     }
 
     if (c < 3)
     {
+<<<<<<< HEAD
 #if _MSC_VER
         fprintf_s(stderr, "%s: warning MAPCW: degenerate OBJ face, less than 3 vertices\n",
             ctx->src_path.buf);
 #else
         MAPC_LOG_ERROR(ctx, "degenerate OBJ face, less than 3 vertices\n");
 #endif
+=======
+        WARNING(ctx, "degenerate OBJ face, less than 3 vertices\n");
+>>>>>>> 6325429835545c9e1bc818058c9c288079f8d55c
         return;
     }
 
@@ -1363,9 +1384,15 @@ static void read_f(struct mapc_context *ctx, const char *name, const char *line,
     {
         struct b_geom *gp = fp->gv + incg(ctx);
 
+<<<<<<< HEAD
         struct b_offs *op = fp->ov + (gp->oi + inco(ctx));
         struct b_offs *oq = fp->ov + (gp->oj + inco(ctx));
         struct b_offs *or = fp->ov + (gp->ok + inco(ctx));
+=======
+        struct b_offs *op = fp->ov + (gp->oi = inco(ctx));
+        struct b_offs *oq = fp->ov + (gp->oj = inco(ctx));
+        struct b_offs *or = fp->ov + (gp->ok = inco(ctx));
+>>>>>>> 6325429835545c9e1bc818058c9c288079f8d55c
 
         int vi = viv[0];
         int vj = viv[i];
@@ -4586,6 +4613,10 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
                 return 1;
             }
         }
+        else if (strcmp(argv[argi], "--debug-paths") == 0)
+        {
+            ctx->opt_debug_paths = 1;
+        }
         else if (!ctx->opt_file)
         {
             ctx->opt_file = argv[argi];
@@ -4657,7 +4688,11 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
 
     if (!(ctx->opt_file && ctx->opt_data))
     {
+<<<<<<< HEAD
         print_usage(argv[0]);
+=======
+        fprintf(stderr, "Usage: %s <map> <data> [--debug] [--csv] [--data <dir>] [--debug-paths[=<model>]]\n", argv[0]);
+>>>>>>> 6325429835545c9e1bc818058c9c288079f8d55c
         return 0;
     }
 
@@ -4871,6 +4906,7 @@ static void turn_file(struct mapc_context *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 static int campaign_check_budget(struct mapc_context *ctx)
 {
     struct s_base *fp = &ctx->file;
@@ -4910,6 +4946,8 @@ static int check_campaign_level(const char *filename)
 
 /*---------------------------------------------------------------------------*/
 
+=======
+>>>>>>> 6325429835545c9e1bc818058c9c288079f8d55c
 static void debug_paths(struct mapc_context *ctx)
 {
     struct s_base *fp = &ctx->file;
@@ -4984,6 +5022,7 @@ static void debug_paths(struct mapc_context *ctx)
 
 /*---------------------------------------------------------------------------*/
 
+<<<<<<< HEAD
 static int skip_verify;
 
 static void interactive_web(void)
@@ -5012,6 +5051,9 @@ static void interactive_web(void)
 }
 
 static int mapc_compile_internal(struct mapc_context *ctx)
+=======
+static void mapc_compile_internal(struct mapc_context *ctx)
+>>>>>>> 6325429835545c9e1bc818058c9c288079f8d55c
 {
     const char *src = CSTR(ctx->src_path);
     const char *dst = CSTR(ctx->dst_path);

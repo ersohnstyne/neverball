@@ -221,7 +221,7 @@ misc_model entities define visible geometry, but not physical geometry.  So, if 
 </point>
 
 
-<point name="path_corner" color="0.5 0.3 0" box="-8 -8 -8 8 8 8">
+<point name="path_corner" color="0.5 0.3 0" model="{'path': 'obj/editor/path.obj'}" box="-8 -8 -8 8 8 8">
 A path segment of a moving object.
 
 The path segment does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:

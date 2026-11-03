@@ -1822,6 +1822,7 @@ static void main_quit(void);
 
 struct main_loop
 {
+    Uint32 start_time;
     Uint32 now;
 #if ENABLE_MOTIONBLUR!=0
     Uint32 motionblur_leftover;
@@ -1883,7 +1884,7 @@ static void step(void *data)
     {
         mainloop->powerstate_curr = SDL_GetPowerInfo(&mainloop->powerstate_sec, &mainloop->powerstate_pct);
 
-        Uint32 now = SDL_GetTicks();
+        Uint32 now = (SDL_GetTicks() - mainloop->start_time);
         Uint32 dt  = (now - mainloop->now);
 
         if (mainloop->powerstate_prev != mainloop->powerstate_curr &&
@@ -2709,7 +2710,8 @@ int main_share(int argc, char *argv[])
 
     /* Run the main game loop. */
 
-    mainloop.now = SDL_GetTicks();
+    mainloop.start_time = SDL_GetTicks();
+    mainloop.now = mainloop.start_time;
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop_arg(step, (void *) &mainloop, 0, 1);

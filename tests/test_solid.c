@@ -789,18 +789,12 @@ static void test_sol_mover_parented_orientation(void)
     sol_free_vary(&vary);
 }
 
-=======
->>>>>>> 8f42f685c8feb64861bdffdbdcc4f83db15ae0ec
 static void test_sol_mover_parented_relative_orientation(void)
 {
     struct s_base base;
     struct s_vary vary;
     struct b_path paths[3];
-<<<<<<< HEAD
     struct b_body bodys[2];
-=======
-    struct b_body bodies[2];
->>>>>>> 8f42f685c8feb64861bdffdbdcc4f83db15ae0ec
     float e[4];
 
     /* 45 degree yaw: cos(22.5 deg) ~= 0.92387953, sin(22.5 deg) ~= 0.38268343 */
@@ -810,11 +804,7 @@ static void test_sol_mover_parented_relative_orientation(void)
     memset(&base, 0, sizeof (base));
     memset(&vary, 0, sizeof (vary));
     memset(paths, 0, sizeof (paths));
-<<<<<<< HEAD
     memset(bodys, 0, sizeof (bodys));
-=======
-    memset(bodies, 0, sizeof (bodies));
->>>>>>> 8f42f685c8feb64861bdffdbdcc4f83db15ae0ec
 
     /* Node 0: oriented mover with 45 degree yaw */
     paths[0].e[0] = q45_w;
@@ -848,28 +838,16 @@ static void test_sol_mover_parented_relative_orientation(void)
     paths[2].p0   = 0;
     paths[2].p1   = 0;
 
-<<<<<<< HEAD
     bodys[0].p0 = 0;
     bodys[0].p1 = 1;
 
     bodys[1].p0 = 0;
     bodys[1].p1 = 2;
-=======
-    bodies[0].p0 = 0;
-    bodies[0].p1 = 1;
-
-    bodies[1].p0 = 0;
-    bodies[1].p1 = 2;
->>>>>>> 8f42f685c8feb64861bdffdbdcc4f83db15ae0ec
 
     base.pc = 3;
     base.pv = paths;
     base.bc = 2;
-<<<<<<< HEAD
     base.bv = bodys;
-=======
-    base.bv = bodies;
->>>>>>> 8f42f685c8feb64861bdffdbdcc4f83db15ae0ec
 
     if (!sol_load_vary(&vary, &base))
         exit(1);
@@ -902,11 +880,7 @@ int test_solid_all(void)
     RUN_TEST("test_sol_mover_split_node_parents", test_sol_mover_split_node_parents, pass);
     RUN_TEST("test_sol_mover_rotation_parent", test_sol_mover_rotation_parent, pass);
     RUN_TEST("test_sol_mover_parented_orientation", test_sol_mover_parented_orientation, pass);
-<<<<<<< HEAD
-    RUN_TEST("test_sol_mover_parented_relative_orientation", test_sol_mover_parented_relative_orientation);
-=======
     RUN_TEST("test_sol_mover_parented_relative_orientation", test_sol_mover_parented_relative_orientation, pass);
->>>>>>> 8f42f685c8feb64861bdffdbdcc4f83db15ae0ec
 
     return pass;
 }

@@ -1822,10 +1822,18 @@ static void main_quit(void);
 
 struct main_loop
 {
+#if _WIN64
+    Uint64 start_time;
+    Uint64 now;
+#if ENABLE_MOTIONBLUR!=0
+    Uint64 motionblur_leftover;
+#endif
+#else
     Uint32 start_time;
     Uint32 now;
 #if ENABLE_MOTIONBLUR!=0
     Uint32 motionblur_leftover;
+#endif
 #endif
     unsigned int done : 1;
 
@@ -1833,7 +1841,11 @@ struct main_loop
            powerstate_sec,  powerstate_pct;
 };
 
+#if _WIN64
+static void step_primary_screen(Uint64 now, Uint64 dt, int allow_clear)
+#else
 static void step_primary_screen(Uint32 now, Uint32 dt, int allow_clear)
+#endif
 {
     if (0 < dt && dt < 1000)
     {
@@ -1883,9 +1895,14 @@ static void step(void *data)
     if (running)
     {
         mainloop->powerstate_curr = SDL_GetPowerInfo(&mainloop->powerstate_sec, &mainloop->powerstate_pct);
-
+        
+#if _WIN64
+        Uint64 now = (SDL_GetTicks64() - mainloop->start_time);
+        Uint64 dt  = (now - mainloop->now);
+#else
         Uint32 now = (SDL_GetTicks() - mainloop->start_time);
         Uint32 dt  = (now - mainloop->now);
+#endif
 
         if (mainloop->powerstate_prev != mainloop->powerstate_curr &&
             mainloop->powerstate_curr != SDL_POWERSTATE_UNKNOWN &&
@@ -2710,7 +2727,11 @@ int main_share(int argc, char *argv[])
 
     /* Run the main game loop. */
 
+#if _WIN64
+    mainloop.start_time = SDL_GetTicks64();
+#else
     mainloop.start_time = SDL_GetTicks();
+#endif
     mainloop.now = mainloop.start_time;
 
 #ifdef __EMSCRIPTEN__

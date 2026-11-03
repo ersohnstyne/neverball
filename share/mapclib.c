@@ -2170,9 +2170,12 @@ static void make_item(struct mapc_context *ctx,
         }
 
         if (strcmp(k[i], "light") == 0 || strcmp(k[i], "value") == 0)
+<<<<<<< HEAD
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%d", &hp->n);
 #else
+=======
+>>>>>>> 8f42f685c8feb64861bdffdbdcc4f83db15ae0ec
             sscanf(v[i], "%d", &hp->n);
 #endif
         if (strcmp(k[i], "origin") == 0)
@@ -2202,6 +2205,9 @@ static void make_item(struct mapc_context *ctx,
             ctx->item_has_e[hi] = 1;
         }
     }
+
+    if (hp->t == ITEM_COIN && hp->n == 0)
+        hp->n = 1;
 }
 
 static void make_bill(struct mapc_context *ctx,
@@ -2887,6 +2893,7 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         }
     }
 
+<<<<<<< HEAD
     //if (c >= MAXKEY)
         //return;
 
@@ -2903,6 +2910,14 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         if (ctx->campaign_output) ctx->campaign_cost += 5;
         make_swch(ctx, k, v, c, 1);
     }
+=======
+    if (!strcmp(v[i], "light") ||
+        !strcmp(v[i], "item_coin"))                make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "item_health_large"))        make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "item_health_small"))        make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "item_clock"))               make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "info_camp"))                make_swch(ctx, k, v, c, 1);
+>>>>>>> 8f42f685c8feb64861bdffdbdcc4f83db15ae0ec
     if (!strcmp(v[i], "game_switch") ||
         !strcmp(v[i], "info_switch")) {
         if (ctx->campaign_output) ctx->campaign_cost += 5;

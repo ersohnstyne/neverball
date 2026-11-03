@@ -43,22 +43,6 @@ Defines a switch.  This entity exists for backward compatibility; game_switch is
 The switch does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
 
-It is preferable to use this entity in place of info_camp.
-
-<target key="target" name="Target">Refers to the path that the switch controls.</target>
-<target key="target2" name="Path">Path that the switch will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
-<target key="target3" name="Path (rotation)">An optional second path that controls the orientation of the switch, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
-<real key="radius" name="Radius" value="0.5">Switch radius in meters.  The default is "0.5".</real>
-<boolean key="state" name="State" value="0">Initial state of the switch.  "0" is off, "1" is on.  The default is off.  This parallels the state attribute of the path_corner.  An game_switch entity should always have the same initial "state" value as the path_corner it targets.</boolean>
-<real key="timer" name="Timer" value="0">A delay time.  The time begins when a switch is toggled to its non-initial state.  The switch toggles back to its initial state when the timer expires.  A timer value of zero indicates an untimed switch.  The default is zero.  This may be used to define a door that opens only for a moment before closing, or a func_train that moves along its path in discrete activated steps.</real>
-<boolean key="invisible" name="Invisible" value="0">Determines whether the switch is invisible or not.  "0" is off, "1" is on.  The default is off.</boolean>
-<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the switch (pitch, yaw, and roll).</angles>
-</point>
-
-
-<point name="info_camp" color="0 0.5 0" box="-8 -8 -8 8 8 8">
-Defines a switch.  This entity exists for backward compatibility; game_switch is preferable.
-
 <target key="target" name="Target">Refers to the path that the switch controls.</target>
 <target key="target2" name="Path">Path that the switch will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target3" name="Path (rotation)">An optional second path that controls the orientation of the switch, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
@@ -188,8 +172,10 @@ The ball does not replace your Radiant's entities, but should be a higher-fideli
 
 <!-- END PLAYER START -->
 
-<point name="item_health_large" color="1 0 0" box="-16 -16 -16 16 16 16">
+<point name="item_grow" color="1 0 0" box="-16 -16 -16 16 16 16">
 Defines a grow coin.
+
+It is preferable to use this entity in place of item_health_large.
 
 The grow coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
@@ -200,8 +186,34 @@ The grow coin does not replace your Radiant's entities, but should be a higher-f
 </point>
 
 
-<point name="item_health_small" color="0 1 0" box="-16 -16 -16 16 16 16">
+<point name="item_health_large" color="1 0 0" box="-16 -16 -16 16 16 16">
+Defines a grow coin.  This entity exists for backward compatibility; item_grow is preferable.
+
+The grow coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
+
+<target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
+<target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
+<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the item (pitch, yaw, and roll).</angles>
+</point>
+
+
+<point name="item_shrink" color="0 1 0" box="-16 -16 -16 16 16 16">
 Defines a shrink coin.
+
+It is preferable to use this entity in place of item_health_small.
+
+The shrink coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
+
+<target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
+<target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
+<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the item (pitch, yaw, and roll).</angles>
+</point>
+
+
+<point name="item_health_small" color="0 1 0" box="-16 -16 -16 16 16 16">
+Defines a shrink coin.  This entity exists for backward compatibility; item_shrink is preferable.
 
 The shrink coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
@@ -225,7 +237,6 @@ Defines a clock, adding time to a level.
 <clock key="light" name="Preset bonus" value="0">Value of the clock.  Pink clock (small) = 5, turquoise clock (medium) = 15, orange clock (large) = 30.</clock>
 <target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
-<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the item (pitch, yaw, and roll).</angles>
 </point>
 
 
@@ -238,8 +249,20 @@ Defines a clock, adding time to a level.
   <item name="Orange" value="100"/>
 </list>
 
-<point name="light" color="0.65 0.65 1" box="-16 -16 -16 16 16 16">
+<point name="item_coin" color="0.65 0.65 1" box="-16 -16 -16 16 16 16">
 Defines a coin.
+
+It is preferable to use this entity in place of light.
+
+<coin key="value" name="Value" value="1">Value of the coin.  Yellow coin = 1, red coin = 5, blue coin = 10.</coin>
+<target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
+<target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
+<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the item (pitch, yaw, and roll).</angles>
+</point>
+
+
+<point name="light" color="0.65 0.65 1" box="-16 -16 -16 16 16 16">
+Defines a coin.  This entity exists for backward compatibility; item_coin is preferable.
 
 <coin key="light" name="Value" value="1">Value of the coin.  Yellow coin = 1, red coin = 5, blue coin = 10.</coin>
 <target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
@@ -298,18 +321,6 @@ The teleport does not replace your Radiant's entities, but should be a higher-fi
 <target key="target2" name="Path">Path that the teleporter will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
 <target key="target3" name="Path (rotation)">An optional second path that controls the orientation of the teleporter, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
 <real key="radius" name="Radius" value="0.5">Teleporter radius.  The default is "0.5".  The ball must fall entirely within this radius to trigger the teleport.</real>
-<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the teleporter (pitch, yaw, and roll).</angles>
-</point>
-
-
-<point name="target_teleporter" color="0 0.5 0" box="-8 -8 -8 8 8 8">
-Defines a teleporter.  This entity exists for backward compatibility; game_jump is preferable.
-
-<target key="target" name="Target">Refers to a target_position entity defining the destination of the teleporter.</target>
-<target key="target2" name="Path">Path that the teleporter will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
-<target key="target3" name="Path (rotation)">An optional second path that controls the orientation of the teleporter, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
-<real key="radius" name="Radius" value="0.5">Teleporter radius.  The default is "0.5".  The ball must fall entirely within this radius to trigger the teleport.</real>
-<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the teleporter (pitch, yaw, and roll).</angles>
 </point>
 
 <point name="target_teleporter" color="0 0.5 0" box="-8 -8 -8 8 8 8">

@@ -158,7 +158,7 @@ static int help_action(int tok, int val)
                 help_page_current = 1;
                 return exit_state(&st_help);
             }
-            else return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            else return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 
         case HELP_DEMO:
             progress_reinit(MODE_NONE);
@@ -197,7 +197,7 @@ static int help_action(int tok, int val)
 #else
     switch (tok)
     {
-        case GUI_BACK: return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        case GUI_BACK: return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 
         case HELP_DEMO:
 //#if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -1410,7 +1410,7 @@ static int help_gui(void)
 static int help_enter(struct state *st, struct state *prev, int intent)
 {
 #ifndef SWITCHBALL_HELP
-    if (prev == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
+    if (prev == (struct state *) (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL)))
         page = PAGE_RULES;
 #endif
 

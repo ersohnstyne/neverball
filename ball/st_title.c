@@ -420,9 +420,9 @@ static void title_refresh_packages_done(void *data1, void *data2)
     if (dn->success)
     {
 #if NB_HAVE_PB_BOTH == 1
-        goto_wgcl_addons_login(0, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), 0);
+        goto_wgcl_addons_login(0, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL), 0);
 #else
-        goto_package(0, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        goto_package(0, config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 #endif
     }
     else audio_play("snd/uierror.ogg", 1.0f);
@@ -515,13 +515,13 @@ static int title_action(int tok, int val)
         case TITLE_PLAY:
 #if NB_HAVE_PB_BOTH==1
 #ifdef __EMSCRIPTEN__
-            account_wgcl_autokick_state_prepare(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            account_wgcl_autokick_state_prepare(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
             if (EM_ASM_INT({ return navigator.onLine ? 1 : 0; }))
                 return goto_playgame();
 #else
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 0 &&
                 !account_wgcl_name_read_only())
-                return goto_wgcl_login(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), 0, 0, title_goto_playgame);
+                return goto_wgcl_login(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL), 0, 0, title_goto_playgame);
 #endif
 #endif
 
@@ -532,7 +532,7 @@ static int title_action(int tok, int val)
 #ifdef CONFIG_INCLUDES_ACCOUNT
         case TITLE_SHOP:
 #ifdef __EMSCRIPTEN__
-            account_wgcl_autokick_state_prepare(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            account_wgcl_autokick_state_prepare(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 #endif
             return goto_shop(curr_state(), 0);
             break;
@@ -542,10 +542,10 @@ static int title_action(int tok, int val)
         case TITLE_CONF:
             game_fade(+4.0);
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
-            WGCL_InitGameOptions(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            WGCL_InitGameOptions(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
             return goto_state(&st_null);
 #else
-            return goto_conf(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), 0, 0);
+            return goto_conf(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL), 0, 0);
 #endif
             break;
 #if ENABLE_FETCH
@@ -1923,7 +1923,7 @@ static int title_click(int b, int d)
         title_can_unlock = 0;
 
         title_play_narrator_welcome();
-        return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
     }
 #if NB_HAVE_PB_BOTH!=1 && !defined(__EMSCRIPTEN__)
     else if (!title_lockscreen && config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
@@ -1947,7 +1947,7 @@ static int title_keybd(int c, int d)
         if (c == SDLK_TAB && config_online()) {
             title_swap_help_and_addons = !title_swap_help_and_addons;
             audio_play(title_swap_help_and_addons ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
-            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
         }
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
@@ -1990,7 +1990,7 @@ static int title_buttn(int b, int d)
             title_can_unlock = 0;
 
             title_play_narrator_welcome();
-            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
         }
 
         return 1;
@@ -2005,7 +2005,7 @@ static int title_buttn(int b, int d)
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && config_online()) {
             title_swap_help_and_addons = !title_swap_help_and_addons;
             audio_play(title_swap_help_and_addons ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
-            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
         }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return title_action(gui_token(active), gui_value(active));

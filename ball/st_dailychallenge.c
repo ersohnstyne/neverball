@@ -311,7 +311,7 @@ void WGCL_DailyChallenge_FinishPreparing(int done, int hardcore, int error_state
 void WGCL_DailyChallenge_StartGame(void) {
     if (dailychallenge_lvlindex == 0) {
         dailychallenge_exit();
-        exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
         return;
     }
 
@@ -323,12 +323,12 @@ void WGCL_DailyChallenge_StartGame(void) {
     if (progress_play(&level_v[0])) {
 #if NB_HAVE_PB_BOTH==1
         account_wgcl_autokick_func_prepare(goto_exit);
-        account_wgcl_autokick_state_prepare(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        account_wgcl_autokick_state_prepare(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 #endif
         goto_play_level();
     } else {
         dailychallenge_exit();
-        exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
         return;
     }
 }
@@ -485,7 +485,7 @@ static int dailychallenge_action(int tok, int val)
             dailychallenge_readytofetch = 0;
             dailychallenge_exit();
             progress_exit();
-            exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
             break;
 
         case DAILYCHALLENGE_START:

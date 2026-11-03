@@ -1783,7 +1783,7 @@ static int handle_installed_action(int pi)
             log_errorf("Failure to find level set from package ID: %s / %s\n",
                        package_id, fs_error());
 
-        return index >= 0 ? goto_start(index, &st_package) : 1;
+        if (index >= 0) return goto_start(index, &st_package);
     }
     else if (pi >= 0 && strcmp(package_get_type(pi), "course") == 0)
     {
@@ -1806,14 +1806,13 @@ static int handle_installed_action(int pi)
                 course_goto(index);
                 return goto_state(&st_putt_party);
             }
-
-            return goto_state(&st_putt_title);
         }
     }
 
-    log_errorf("%s: That's not the level set or course!\n", package_get_id(pi));
+    if (pi >= 0)
+        log_errorf("%s: That's not the level set or course!\n", package_get_id(pi));
 
-    return 1;
+    return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL)) ? 1 : -1;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -2654,7 +2653,7 @@ int main_share(int argc, char *argv[])
     int val = config_get_d(CONFIG_GRAPHIC_RESTORE_ID);
 
     if (val == -1)
-        start_state = config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0);
+        start_state = config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL);
     else
         start_state = &st_intro_restore;
 #endif
@@ -2670,7 +2669,7 @@ int main_share(int argc, char *argv[])
 
     /* Screen states. */
 
-    start_state = config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0);
+    start_state = config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL);
 
     init_state(&st_null);
 

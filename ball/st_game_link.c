@@ -135,7 +135,7 @@ static int game_link_launch_target(void)
         }
 
         log_errorf("Game Link: failed to find course %s after installation\n", game_link_ctx.set_file);
-        return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
     }
 
     set_init(0);
@@ -179,7 +179,7 @@ static int game_link_launch_target(void)
         else
         {
             log_errorf("Game Link: Level set is locked due to missing conditions \"game completed\"!\n");
-            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
         }
 #else
         load_title_background();
@@ -188,7 +188,7 @@ static int game_link_launch_target(void)
 #endif
     }
 
-    return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+    return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 }
 
 /*
@@ -237,7 +237,7 @@ static void game_link_download_done(void *data1, void *data2)
     else
     {
         log_errorf("Game Link: download failed for package %d\n", game_link_ctx.package_id);
-        goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
     }
 }
 
@@ -268,7 +268,7 @@ static int game_link_action(int tok, int val)
     switch (tok)
     {
     case GUI_BACK:
-        return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
     }
 
     return 1;

@@ -2156,17 +2156,20 @@ static void make_item(struct mapc_context *ctx,
     {
         if (strcmp(k[i], "classname") == 0)
         {
-            if (strcmp(v[i], "light") == 0)
+            if (strcmp(v[i], "light") == 0 ||
+                strcmp(v[i], "item_coin") == 0)
                 hp->t = ITEM_COIN;
-            else if (strcmp(v[i], "item_health_large") == 0)
+            else if (strcmp(v[i], "item_health_large") == 0 ||
+                     strcmp(v[i], "item_grow") == 0)
                 hp->t = ITEM_GROW;
-            else if (strcmp(v[i], "item_health_small") == 0)
+            else if (strcmp(v[i], "item_health_small") == 0 ||
+                     strcmp(v[i], "item_shrink") == 0)
                 hp->t = ITEM_SHRINK;
             else if (strcmp(v[i], "item_clock") == 0)
                 hp->t = ITEM_CLOCK;
         }
 
-        if (strcmp(k[i], "light") == 0)
+        if (strcmp(k[i], "light") == 0 || strcmp(k[i], "value") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%d", &hp->n);
 #else
@@ -3009,7 +3012,7 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         make_item(ctx, k, v, c);
     }
     if (!strcmp(v[i], "func_train")) {
-        /* Anchors (4) + Movements (9) = 23 */
+        /* Anchors (4) + Movements (9) = Estimated cost (23) */
 #ifndef ENABLE_COMPLEX_SOL_ONLY
         if (ctx->campaign_output)
 #endif
@@ -3025,7 +3028,8 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
     }
 
     /* Others */
-    if (!strcmp(v[i], "light"))                    make_item(ctx, k, v, c);
+    if (!strcmp(v[i], "light") ||
+        !strcmp(v[i], "item_coin"))                make_item(ctx, k, v, c);
     if (!strcmp(v[i], "info_null"))                make_bill(ctx, k, v, c);
     if (!strcmp(v[i], "info_player_intermission")) make_view(ctx, k, v, c);
     if (!strcmp(v[i], "target_position"))          make_targ(ctx, k, v, c);
@@ -4698,7 +4702,18 @@ static void make_parented_path(struct mapc_context *ctx,
     pp->p0 = p0;
     pp->p1 = p0;
     pp->fl |= P_PARENTED | P_ORIENTED;
-    q_cpy(pp->e, e);
+
+    if (p0 >= 0 && (fp->pv[p0].fl & P_ORIENTED))
+    {
+        float inv_p0[4], rel_e[4];
+
+        q_conj(inv_p0, fp->pv[p0].e);
+        q_mul(rel_e, inv_p0, e);
+        q_nrm(pp->e, rel_e);
+    }
+    else
+        q_cpy(pp->e, e);
+
     *p1 = pi;
 
     if (p)
@@ -4722,16 +4737,16 @@ static void check_oriented_path(struct mapc_context *ctx, int p0, int has_angles
 {
     struct s_base *fp = &ctx->file;
 
+    if (has_angles)
+        return;
+
     if (p0 >= 0 && (fp->pv[p0].fl & P_ORIENTED))
     {
         char buf[MAXSTR];
         const char *name = get_sym_name(ctx, SYM_PATH, p0);
 
         SAFECPY(buf, ctx->opt_file ? ctx->opt_file : "mapc");
-        if (has_angles)
-            SAFECAT(buf, ": warning: entity with angles connected to oriented path");
-        else
-            SAFECAT(buf, ": warning: entity connected to path node with initial angles");
+        SAFECAT(buf, ": warning: entity connected to path node with initial angles");
 
         if (name && *name)
         {

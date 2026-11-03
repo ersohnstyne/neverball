@@ -148,8 +148,10 @@ The ball does not replace your Radiant's entities, but should be a higher-fideli
 </point>
 
 
-<point name="item_health_large" color="1 0 0" model="{'path': 'obj/editor/grow.obj', 'scale': 0.125}" box="-16 -16 -16 16 16 16">
+<point name="item_grow" color="1 0 0" model="{'path': 'obj/editor/grow.obj', 'scale': 0.125}" box="-16 -16 -16 16 16 16">
 A grow coin.
+
+It is preferable to use this entity in place of item_health_large.
 
 The grow coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
@@ -160,8 +162,34 @@ The grow coin does not replace your Radiant's entities, but should be a higher-f
 </point>
 
 
-<point name="item_health_small" color="0 1 0" model="{'path': 'obj/editor/shrink.obj', 'scale': 0.125}" box="-16 -16 -16 16 16 16">
+<point name="item_health_large" color="1 0 0" model="{'path': 'obj/editor/grow.obj', 'scale': 0.125}" box="-16 -16 -16 16 16 16">
+A grow coin.  This entity exists for backward compatibility; item_grow is preferable.
+
+The grow coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
+
+<target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
+<target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
+<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the item (pitch, yaw, and roll).</angles>
+</point>
+
+
+<point name="item_shrink" color="0 1 0" model="{'path': 'obj/editor/shrink.obj', 'scale': 0.125}" box="-16 -16 -16 16 16 16">
 A shrink coin.
+
+It is preferable to use this entity in place of item_health_small.
+
+The shrink coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+* Neverball entity design specifications
+
+<target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
+<target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
+<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the item (pitch, yaw, and roll).</angles>
+</point>
+
+
+<point name="item_health_small" color="0 1 0" model="{'path': 'obj/editor/shrink.obj', 'scale': 0.125}" box="-16 -16 -16 16 16 16">
+Defines a shrink coin.  This entity exists for backward compatibility; item_shrink is preferable.
 
 The shrink coin does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
 * Neverball entity design specifications
@@ -199,8 +227,20 @@ A clock. Adds time to a level.
 <item name="Orange" value="100"/>
 </list>
 
-<point name="light" color="1.0 1.0 0" model="{{ light >= 10 -> {'path': 'obj/editor/coin10.obj', 'scale': 1}, light >= 5 -> {'path': 'obj/editor/coin5.obj', 'scale': 1}, {'path': 'obj/editor/coin.obj', 'scale': 1} }}" box="-16 -16 -16 16 16 16">
+<point name="item_coin" color="1.0 1.0 0" model="{{ value >= 10 -> {'path': 'obj/editor/coin10.obj', 'scale': 1}, value >= 5 -> {'path': 'obj/editor/coin5.obj', 'scale': 1}, {'path': 'obj/editor/coin.obj', 'scale': 1} }}" box="-16 -16 -16 16 16 16">
 A coin.
+
+It is preferable to use this entity in place of light.
+
+<coin key="value" name="Value" value="1">Value of the coin.  Yellow coin = 1, red coin = 5, blue coin = 10.</coin>
+<target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
+<target key="target2" name="Path (rotation)">An optional second path that controls the orientation of the item, but has no effect on position. This is useful when you want to control the position and orientation independently of each other.</target>
+<angles key="angles" name="Orientation (pitch, yaw, roll)" value="0 0 0">Defines the orientation of the item (pitch, yaw, and roll).</angles>
+</point>
+
+
+<point name="light" color="1.0 1.0 0" model="{{ light >= 10 -> {'path': 'obj/editor/coin10.obj', 'scale': 1}, light >= 5 -> {'path': 'obj/editor/coin5.obj', 'scale': 1}, {'path': 'obj/editor/coin.obj', 'scale': 1} }}" box="-16 -16 -16 16 16 16">
+A coin.  This entity exists for backward compatibility; item_coin is preferable.
 
 <coin key="light" name="Value" value="1">Value of the coin.  Yellow coin = 1, red coin = 5, blue coin = 10.</coin>
 <target key="target" name="Path">Path that the item will travel along, starting from the linked path_corner. Both position and rotation are controlled by this path.</target>
@@ -263,7 +303,7 @@ The teleport does not replace your Radiant's entities, but should be a higher-fi
 <point name="target_teleporter" color="0 0.5 0" model="{'path': 'obj/editor/jump.obj', 'scale': 1}" box="-32 -32 0 32 32 128">
 A teleporter.  This entity exists for backward compatibility; game_jump is preferable.
 
-The teleport does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:
+The teleport does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * Neverball entity design specifications
 
 <target key="target" name="Target">Refers to a target_position entity defining the destination of the teleporter.</target>

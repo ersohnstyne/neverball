@@ -78,71 +78,61 @@
 #define INTRO_ANIMATION_60_FPS (1 / 60)
 #define MAINTENANCE_HOLD 0 > 0
 
+static struct state *intro_done_state = NULL;
+
 #if NB_HAVE_PB_BOTH==1
 #if defined(SKIP_END_SUPPORT)
 #define RETURN_INTROLOGO_FINISHED \
     do { \
         return networking_connected() == 1 ? \
                goto_state(MAINTENANCE_HOLD ? &st_server_maintenance : \
-                          (CHECK_ACCOUNT_ENABLED ? (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
-                                                   &st_intro_accn_disabled)) : \
+                          (CHECK_ACCOUNT_ENABLED ? intro_done_state : &st_intro_accn_disabled)) : \
                goto_state(networking_connected() == 2 ? \
-                          &st_intro_waitinternet : \
-                          &st_intro_nointernet); \
+                          &st_intro_waitinternet : &st_intro_nointernet); \
     } while (0)
 
 #define RETURN_VOID_INTROLOGO_FINISHED \
     do { \
                networking_connected() == 1 ? \
                goto_state(MAINTENANCE_HOLD ? &st_server_maintenance : \
-                          (CHECK_ACCOUNT_ENABLED ? (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
-                                                   &st_intro_accn_disabled)) : \
+                          (CHECK_ACCOUNT_ENABLED ? intro_done_state : &st_intro_accn_disabled)) : \
                goto_state(networking_connected() == 2 ? \
-                          &st_intro_waitinternet : \
-                          &st_intro_nointernet); \
+                          &st_intro_waitinternet : &st_intro_nointernet); \
     } while (0)
 #else
 #define RETURN_INTROLOGO_FINISHED \
     do { \
         return goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 (CHECK_ACCOUNT_ENABLED ? (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
-                                                          &st_intro_accn_disabled)) : \
+                                 (CHECK_ACCOUNT_ENABLED ? intro_done_state : &st_intro_accn_disabled)) : \
                                 (networking_connected() == 2 ? \
-                                 &st_intro_waitinternet : \
-                                 &st_intro_nointernet)); \
+                                 &st_intro_waitinternet : &st_intro_nointernet)); \
     } while (0)
 
 #define RETURN_VOID_INTROLOGO_FINISHED \
     do { \
                goto_end_support(networking_connected() == 1 ? \
                                 (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 (CHECK_ACCOUNT_ENABLED ? (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
-                                                          &st_intro_accn_disabled)) : \
+                                 (CHECK_ACCOUNT_ENABLED ? intro_done_state : &st_intro_accn_disabled)) : \
                                 (networking_connected() == 2 ? \
-                                 &st_intro_waitinternet : \
-                                 &st_intro_nointernet)); \
+                                 &st_intro_waitinternet : &st_intro_nointernet)); \
     } while (0)
 #endif
 #else
 #define RETURN_INTROLOGO_FINISHED \
     do { \
         return goto_end_support(networking_connected() == 1 ? \
-                                (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
+                                (MAINTENANCE_HOLD ? &st_server_maintenance : intro_done_state) : \
                                 (networking_connected() == 2 ? \
-                                 &st_intro_waitinternet : \
-                                 &st_intro_nointernet)); \
+                                 &st_intro_waitinternet : &st_intro_nointernet)); \
     } while (0)
 
 #define RETURN_VOID_INTROLOGO_FINISHED \
     do { \
                goto_end_support(networking_connected() == 1 ? \
-                                (MAINTENANCE_HOLD ? &st_server_maintenance : \
-                                 config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0)) : \
+                                (MAINTENANCE_HOLD ? &st_server_maintenance : intro_done_state) : \
                                 (networking_connected() == 2 ? \
-                                 &st_intro_waitinternet : \
-                                 &st_intro_nointernet)); \
+                                 &st_intro_waitinternet : &st_intro_nointernet)); \
     } while (0)
 #endif
 
@@ -162,6 +152,7 @@ static int intro_done;
 
 int goto_ball_intro(struct state *s)
 {
+    intro_done_state = s;
     return goto_state(&st_intro);
 }
 
@@ -219,7 +210,7 @@ static int intro_gui(void)
         /* Developer and publisher logos */
 
         int image_id;
-        
+
         const char intro_logo_image_path[2][MAXSTR] = {
             "gui/intro/pg_logo.jpg",
             "gui/intro/ae_logo.jpg"
@@ -239,7 +230,7 @@ static int intro_gui(void)
         int image_height = video.device_w >= video.device_h * 1.7 ? video.device_h       : video.device_w / 1.7;
 
         if ((image_id = gui_image(root_id, video_get_hatsune_miku() && glext_get_hatsune_miku() ?
-                                           intro_logo_image_hatsunemiku_pcset_path :
+                                           intro_logo_image_hatsunemiku_pcset_path[intro_page - 1] :
                                            (video_get_hatsune_miku() || glext_get_hatsune_miku() ?
                                             intro_logo_image_hatsunemiku_path[intro_page - 1] :
                                             intro_logo_image_path[intro_page - 1]),
@@ -273,6 +264,9 @@ static int intro_enter(struct state *st, struct state *prev, int intent)
     }
     else intro_page = 2;
 
+    if (intro_done_state == NULL)
+        intro_done_state = config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL);
+
     return intro_gui();
 }
 
@@ -285,7 +279,7 @@ static int intro_leave(struct state *st, struct state *next, int id, int intent)
     }
 
 #if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
-    if (next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
+    if (next == intro_done_state)
     {
         EM_ASM({ CoreLauncher_EMSDK_RequestAutoSuggest_InputPreset(); });
     }
@@ -410,7 +404,7 @@ static int intro_accn_disabled_action(int tok, int val)
             break;
 
         case ACCOUNT_DISBALED_CANCEL:
-            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return goto_state(intro_done_state);
     }
 
     return 1;
@@ -864,7 +858,7 @@ static void nointernet_timer(int id, float dt)
     if (networking_connected() == 1 && !nointernet_transition_busy)
     {
         nointernet_transition_busy = 1;
-        goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        goto_state(intro_done_state);
     }
 }
 
@@ -892,7 +886,7 @@ static int nointernet_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) &&
             networking_standalone())
-            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return goto_state(intro_done_state);
     }
     return 1;
 }
@@ -929,7 +923,7 @@ static void waitinternet_timer(int id, float dt)
     else if (networking_connected() == 1)
     {
         connect_done = 1;
-        goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        goto_state(intro_done_state);
     }
 }
 
@@ -960,7 +954,7 @@ static int server_maintenance_action(int tok, int val)
             break;
 
         case MAINTENANCE_OFFLINE:
-            return goto_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return goto_state(intro_done_state);
             break;
     }
     return 1;

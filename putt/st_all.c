@@ -406,10 +406,10 @@ static int putt_title_action(int i)
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
             hole_free();
             course_free();
-            WGCL_InitGameOptions(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            WGCL_InitGameOptions(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
             return goto_state(&st_null);
 #else
-            return goto_conf(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0), 0, 0);
+            return goto_conf(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL), 0, 0);
 #endif
         case TITLE_EXIT:
             if (current_platform != PLATFORM_SWITCH)
@@ -887,7 +887,7 @@ static int putt_help_buttn(int b, int d)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
             config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
     }
     return 1;
 }
@@ -950,7 +950,7 @@ static int course_action(int i)
     }
 
     if (i == COURSE_BACK)
-        exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 
     return 1;
 }
@@ -1478,7 +1478,7 @@ static int pause_action(int i)
         return goto_conf(curr_state(), 1, 0);
 
     case PAUSE_CONTINUE:
-        r = exit_state(st_continue ? st_continue : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+        r = exit_state(st_continue ? st_continue : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
         st_continue = NULL;
         return r;
 
@@ -2763,7 +2763,7 @@ static int over_keybd(int c, int d)
         (joy_get_cursor_actions(0) || !party_indiv_controllers))
     {
         if (c == KEY_EXIT)
-            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
     }
     return 1;
 }
@@ -2774,9 +2774,9 @@ static int over_buttn(int b, int d)
         (joy_get_cursor_actions(0) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
-            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
-            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
     }
     return 1;
 }

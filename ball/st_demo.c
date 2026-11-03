@@ -218,7 +218,7 @@ static int demo_action(int tok, int val)
     switch (tok)
     {
         case GUI_BACK:
-            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 
         case GUI_PREV:
             first = MAX(first - DEMO_STEP, 0);
@@ -1130,7 +1130,7 @@ static int demo_gui(void)
             gui_layout(id, 0, 0);
         }
     }
-    else return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+    else return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 
     return id;
 }
@@ -1258,7 +1258,7 @@ static int demo_leave(struct state *st, struct state *next, int id, int intent)
     if (next == &st_null)
         demo_replay_stop(0);
 
-    if (next == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0) ||
+    if (next == (struct state *) (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL)) ||
         next == &st_null)
     {
         demo_dir_free(demo_items);

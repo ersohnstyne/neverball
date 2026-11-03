@@ -1077,12 +1077,12 @@ static int package_manage_action(int tok, int val)
             switch (tok)
             {
                 case PACKAGE_MANAGE_START:
-                    if (package_manage_can_start)
+                    if (package_manage_can_start && package_manage_selected >= 0)
                         return installed_action ? installed_action(package_manage_selected) : 1;
+                    break;
 
                 case PACKAGE_MANAGE_EQUIP:
-                    if (package_manage_can_equip && package_id)
-                    {
+                    if (package_manage_can_equip && package_id) {
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                         account_set_s(ACCOUNT_BALL_FILE, equip_ball_path);
 #else
@@ -1091,7 +1091,7 @@ static int package_manage_action(int tok, int val)
                         ball_free();
                         ball_init();
                         return exit_state(&st_package);
-                    }
+                    } break;
 
                 case PACKAGE_MANAGE_UPDATE:
                     selected = package_manage_selected;

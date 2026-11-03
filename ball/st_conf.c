@@ -3643,7 +3643,7 @@ static int conf_action(int tok, int val)
                 game_fade(+6.0f);
 
             mainmenu_conf = 1;
-            return exit_state(conf_back ? conf_back : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0));
+            return exit_state(conf_back ? conf_back : config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
 
 #if ENABLE_GAME_TRANSFER==1 && \
     !defined(__NDS__) && !defined(__3DS__) && \
@@ -3989,7 +3989,7 @@ static int conf_enter(struct state *st, struct state *prev, int intent)
 
     if (!game_server_state() && !demo_state())
     {
-        if (mainmenu_conf && prev == config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : 0))
+        if (mainmenu_conf && prev == (struct state *) (config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL)))
             game_fade(-6.0f);
 
         back_push("back/gui.png");

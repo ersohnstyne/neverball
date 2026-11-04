@@ -1277,9 +1277,13 @@ static void read_v(struct mapc_context *ctx, const char *line)
     sscanf(line, "%f %f %f", &x, &y, &z);
 #endif
 
-    vp->p[0] = +z / SCALE;
-    vp->p[1] = +y / SCALE;
-    vp->p[2] = -x / SCALE;
+    //vp->p[0] = +z / SCALE;
+    //vp->p[1] = +y / SCALE;
+    //vp->p[2] = -x / SCALE;
+
+    vp->p[0] = +z;
+    vp->p[1] = +y;
+    vp->p[2] = -x;
 }
 
 static int parse_triplet(const char *token, int *vi, int *ti, int *si)
@@ -1358,7 +1362,7 @@ static void read_f(struct mapc_context *ctx, const char *name, const char *line,
 #endif
         return;
     }
-
+    
     for (i = 1; i + 1 < c; i++)
     {
         struct b_geom *gp = fp->gv + incg(ctx);
@@ -2202,7 +2206,11 @@ static void make_model(struct mapc_context *ctx,
             {
                 static const float Y[3] = { 0.0f, 1.0f, 0.0f };
                 float yaw = 0.0f;
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sscanf_s(v[i], "%f", &yaw);
+#else
                 sscanf(v[i], "%f", &yaw);
+#endif
                 q_by_axisangle(e, Y, V_RAD(+yaw));
                 has_e = 1;
             }
@@ -2907,9 +2915,9 @@ static void make_chkp(struct mapc_context *ctx,
 
 #ifdef SPECIFICATION_LEGACY_MODE
 static void make_legacy(struct mapc_context *ctx,
-    char k[][MAXSTR],
-    char v[][MAXSTR], int c, int l0,
-    const char *modelname, const char *materialname, int is_legacy)
+                        char k[][MAXSTR],
+                        char v[][MAXSTR], int c, int l0,
+                        const char *modelname, const char *materialname, int is_legacy)
 {
     struct s_base *fp = &ctx->file;
     int leg;
@@ -2948,59 +2956,136 @@ static void make_legacy(struct mapc_context *ctx,
     SAFECAT(buf, ")\n");
     MAPC_LOG_WARNING(ctx, buf);
 
-    int i, mi = 0, bi = incb(ctx);
+    int i, mi = 0;// , bi = incb(ctx);
 
-    int g0 = fp->gc;
     int v0 = fp->vc;
+    int s0 = fp->sc;
+    int g0 = fp->gc;
 
     float p[3];
+    float e[4];
+    int has_e = 0;
+    int has_angles = 0;
+
+    int has_target = 0;
+    int has_target2 = 0;
+    char target[MAXSTR] = "";
+    char target2[MAXSTR] = "";
+    char model[MAXSTR] = "";
 
     float x = 0.f;
     float y = 0.f;
     float z = 0.f;
 
-    struct b_body *bp = fp->bv + bi;
-
-    bp->p0 = -1;
-    bp->p1 = -1;
-    bp->ni = -1;
-
-    mi = read_mtrl(ctx, materialname);
-    read_obj(ctx, modelname, mi);
-
     for (i = 0; i < c; i++)
     {
-        if (strcmp(k[i], "origin") == 0)
+        if (strcmp(k[i], "target") == 0 || strcmp(k[i], "target1") == 0)
+        {
+            SAFECPY(target, v[i]);
+            has_target = 1;
+        }
+        else if (strcmp(k[i], "target2") == 0)
+        {
+            SAFECPY(target, v[i]);
+            has_target2 = 1;
+        }
+
+        else if (strncmp(k[i], "origin", 6) == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sscanf_s(v[i], "%f %f %f", &x, &y, &z);
 #else
             sscanf(v[i], "%f %f %f", &x, &y, &z);
 #endif
-
-        else if (ctx->read_dict_entries && strcmp(k[i], "classname") != 0)
-            make_dict(ctx, k[i], v[i]);
+        else if (strcmp(k[i], "angle") == 0)
+        {
+            if (!has_angles)
+            {
+                static const float Y[3] = { 0.0f, 1.0f, 0.0f };
+                float yaw = 0.0f;
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                sscanf_s(v[i], "%f", &yaw);
+#else
+                sscanf(v[i], "%f", &yaw);
+#endif
+                q_by_axisangle(e, Y, V_RAD(+yaw));
+                has_e = 1;
+            }
+        }
+        else if (strcmp(k[i], "angles") == 0)
+        {
+            parse_angles(v[i], e);
+            has_e = 1;
+            has_angles = 1;
+        }
     }
 
-    bp->l0 = l0;
-    bp->lc = fp->lc - l0;
-    bp->g0 = fp->ic;
-    bp->gc = fp->gc - g0;
-
-    for (i = 0; i < bp->gc; i++)
-        fp->iv[inci(ctx)] = g0++;
+    mi = read_mtrl(ctx, materialname);
+    read_obj(ctx, modelname, mi);
 
     p[0] = +x / SCALE;
     p[1] = +z / SCALE;
     p[2] = -y / SCALE;
 
     if (strcmp(specification_type, "ball") == 0
-        || strcmp(specification_type, "goal") == 0)
+     || strcmp(specification_type, "goal") == 0)
         p[1] = +(is_legacy ? z - 24 : z) / SCALE;
 
-    for (i = v0; i < fp->vc; i++)
-        v_add(fp->vv[i].p, fp->vv[i].p, p);
+    if (has_target)
+    {
+        int bi = incb(ctx);
+        struct b_body *bp = fp->bv + bi;
 
-    ctx->read_dict_entries = 0;
+        bp->p0 = -1;
+        bp->p1 = -1;
+        bp->ni = -1;
+        bp->l0 = 0;
+        bp->lc = 0;
+        bp->g0 = fp->ic;
+        bp->gc = fp->gc - g0;
+
+        make_ref(ctx, SYM_PATH, target, &bp->p0);
+        if (has_target2)
+            make_ref(ctx, SYM_PATH, target2, &bp->p1);
+
+        for (i = 0; i < bp->gc; i++)
+            fp->iv[inci(ctx)] = g0++;
+
+        for (i = v0; i < fp->vc; i++)
+            v_add(fp->vv[i].p, fp->vv[i].p, p);
+
+        if (has_e)
+        {
+            q_cpy(ctx->body_e[bi], e);
+            ctx->body_has_e[bi] = 1;
+        }
+        else
+        {
+            ctx->body_has_e[bi] = 0;
+        }
+    }
+    else
+    {
+        for (i = v0; i < fp->vc; i++)
+        {
+            if (has_e)
+                q_rot(fp->vv[i].p, e, fp->vv[i].p);
+            v_add(fp->vv[i].p, fp->vv[i].p, p);
+        }
+
+        if (has_e)
+        {
+            for (i = s0; i < fp->sc; i++)
+                q_rot(fp->sv[i].n, e, fp->sv[i].n);
+        }
+
+        for (i = g0; i < fp->gc; i++)
+        {
+            if (ctx->static_geom_count < MAXG)
+                ctx->static_geom[ctx->static_geom_count++] = i;
+            else
+                overflow(ctx, "static geometry");
+        }
+    }
 }
 #endif
 
@@ -4935,7 +5020,7 @@ static void make_stationary_path(struct mapc_context *ctx,
  * rotation path (p1) was already assigned.
  */
 static void turn_entity(struct mapc_context *ctx,
-    const float p[3], int *p0, int *p1, const float e[4])
+                        float p[3], int *p0, int *p1, const float e[4])
 {
     if (*p0 >= 0 && *p1 < 0)
         make_parented_path(ctx, p, *p0, p1, e);

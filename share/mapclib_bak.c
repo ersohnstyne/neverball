@@ -1443,8 +1443,8 @@ static void make_plane_geom(struct mapc_context *ctx, int pi,
                             double x2, double y2, double z2,
                             int fl)
 {
-    float p0[3], p1[3], p2[3];
-    float u[3], v[3];
+    double p0[3], p1[3], p2[3];
+    double u[3], v[3];
 
     ctx->plane_f[pi] = fl ? L_DETAIL : 0;
 
@@ -1465,6 +1465,8 @@ static void make_plane_geom(struct mapc_context *ctx, int pi,
 
     v_crs(ctx->plane_n[pi], u, v);
     v_nrm_d(ctx->plane_n[pi], ctx->plane_n[pi]);
+
+    ctx->plane_d[pi] = v_dot(ctx->plane_n[pi], p1);
 }
 
 static void make_plane(struct mapc_context *ctx, int   pi, double x0, double y0, double z0,
@@ -1512,7 +1514,7 @@ static void make_plane(struct mapc_context *ctx, int   pi, double x0, double y0,
     v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 1.f / sv);
 
     ctx->plane_o[pi][0] = (w > 0) ? (+tu / (float) w) : 0.0f;
-    ctx->plane_o[pi][1] = (h > 0) ? (+tv / (float) h) : 0.0f;
+    ctx->plane_o[pi][1] = (h > 0) ? (-tv / (float) h) : 0.0f;
 }
 
 static void make_plane_valve(struct mapc_context *ctx, int   pi,
@@ -1550,11 +1552,11 @@ static void make_plane_valve(struct mapc_context *ctx, int   pi,
     v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 64.f / w);
     v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 64.f / h);
 
-    v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 64.f / w);
-    v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 64.f / h);
+    v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 1.f / su);
+    v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 1.f / sv);
 
-    ctx->plane_o[pi][0] = (w > 0) ? (+tu / (float) w) : 0.0f;
-    ctx->plane_o[pi][1] = (h > 0) ? (+tv / (float) h) : 0.0f;
+    ctx->plane_o[pi][0] = (w > 0) ? (+tu / (float)w) : 0.0f;
+    ctx->plane_o[pi][1] = (h > 0) ? (-tv / (float)h) : 0.0f;
 }
 
 /*---------------------------------------------------------------------------*/

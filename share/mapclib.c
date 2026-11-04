@@ -1462,13 +1462,8 @@ static void make_plane_geom(struct mapc_context *ctx, int pi,
                             double x2, double y2, double z2,
                             int fl)
 {
-<<<<<<< HEAD
-    float p0[3], p1[3], p2[3];
-    float u[3], v[3];
-=======
     double p0[3], p1[3], p2[3];
     double u[3], v[3];
->>>>>>> 2821e1e47de84cc9a743277dcd4152be3766a374
 
     ctx->plane_f[pi] = fl ? L_DETAIL : 0;
 
@@ -1489,14 +1484,10 @@ static void make_plane_geom(struct mapc_context *ctx, int pi,
 
     v_crs(ctx->plane_n[pi], u, v);
     v_nrm_d(ctx->plane_n[pi], ctx->plane_n[pi]);
-}
 
-<<<<<<< HEAD
-=======
     ctx->plane_d[pi] = v_dot(ctx->plane_n[pi], p1);
 }
 
->>>>>>> 2821e1e47de84cc9a743277dcd4152be3766a374
 static void make_plane(struct mapc_context *ctx, int   pi, double x0, double y0, double z0,
                        double x1, double y1, double z1,
                        double x2, double y2, double z2,
@@ -1542,11 +1533,7 @@ static void make_plane(struct mapc_context *ctx, int   pi, double x0, double y0,
     v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 1.f / sv);
 
     ctx->plane_o[pi][0] = (w > 0) ? (+tu / (float) w) : 0.0f;
-<<<<<<< HEAD
-    ctx->plane_o[pi][1] = (h > 0) ? (+tv / (float) h) : 0.0f;
-=======
     ctx->plane_o[pi][1] = (h > 0) ? (-tv / (float) h) : 0.0f;
->>>>>>> 2821e1e47de84cc9a743277dcd4152be3766a374
 }
 
 static void make_plane_valve(struct mapc_context *ctx, int   pi,
@@ -1572,10 +1559,7 @@ static void make_plane_valve(struct mapc_context *ctx, int   pi,
      * downward. To match TrenchBroom's visual orientation, the V axis and V offset
      * are negated.
      */
-<<<<<<< HEAD
 
-=======
->>>>>>> 2821e1e47de84cc9a743277dcd4152be3766a374
     ctx->plane_u[pi][0] = +ux;
     ctx->plane_u[pi][1] = +uz;
     ctx->plane_u[pi][2] = -uy;
@@ -1587,19 +1571,11 @@ static void make_plane_valve(struct mapc_context *ctx, int   pi,
     v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 64.f / w);
     v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 64.f / h);
 
-<<<<<<< HEAD
-    v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 64.f / w);
-    v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 64.f / h);
-
-    ctx->plane_o[pi][0] = (w > 0) ? (+tu / (float) w) : 0.0f;
-    ctx->plane_o[pi][1] = (h > 0) ? (+tv / (float) h) : 0.0f;
-=======
     v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 1.f / su);
     v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 1.f / sv);
 
     ctx->plane_o[pi][0] = (w > 0) ? (+tu / (float) w) : 0.0f;
     ctx->plane_o[pi][1] = (h > 0) ? (-tv / (float) h) : 0.0f;
->>>>>>> 2821e1e47de84cc9a743277dcd4152be3766a374
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1703,7 +1679,6 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
             }
 
-<<<<<<< HEAD
             if (ctx->bracket_linenum[1][ctx->bracket_stack[1]] == 0)
                 ctx->bracket_linenum[1][ctx->bracket_stack[1]] = ctx->linenum;
             ctx->bracket_stack[1] += 1;*/
@@ -1743,32 +1718,10 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                                     &vx, &vy, &vz, &tv,
                                     &r, &su, &sv, &fl) >= 21)
 #endif
-=======
-        if (strchr(buf, '['))
-        {
-            float ux, uy, uz, vx, vy, vz;
-
-            if (sscanf(buf,
-                       "( %lf %lf %lf ) "
-                       "( %lf %lf %lf ) "
-                       "( %lf %lf %lf ) "
-                       "%s "
-                       "[ %f %f %f %f ] "
-                       "[ %f %f %f %f ] "
-                       "%f %f %f %d",
-                       &x0, &y0, &z0,
-                       &x1, &y1, &z1,
-                       &x2, &y2, &z2,
-                       key,
-                       &ux, &uy, &uz, &tu,
-                       &vx, &vy, &vz, &tv,
-                       &r, &su, &sv, &fl) >= 21)
->>>>>>> 2821e1e47de84cc9a743277dcd4152be3766a374
             {
                 if (key[0] == '\"')
                 {
                     size_t len = strlen(key);
-<<<<<<< HEAD
                     if (len > 1 && key[len] == '\"')
                     {
                         key[len - 1] = '\0';
@@ -1777,12 +1730,6 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 #else
                         memmove(key, key + 1, len);
 #endif
-=======
-                    if (len > 1 && key[len - 1] == '\"')
-                    {
-                        key[len - 1] = '\0';
-                        memmove(key, key + 1, len);
->>>>>>> 2821e1e47de84cc9a743277dcd4152be3766a374
                     }
                 }
 
@@ -1792,7 +1739,6 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                                  ux, uy, uz, tu,
                                  vx, vy, vz, tv,
                                  su, sv, fl, key);
-<<<<<<< HEAD
                 doit = 0;
                 return T_CLP;
             }
@@ -1821,16 +1767,6 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                    "( %f %f %f ) "
                    "( %f %f %f ) "
                    "( %f %f %f ) "
-=======
-                return T_CLP;
-            }
-        }
-
-        if (sscanf(buf,
-                   "( %lf %lf %lf ) "
-                   "( %lf %lf %lf ) "
-                   "( %lf %lf %lf ) "
->>>>>>> 2821e1e47de84cc9a743277dcd4152be3766a374
                    "%s %f %f %f %f %f %d",
                    &x0, &y0, &z0,
                    &x1, &y1, &z1,

@@ -200,8 +200,8 @@ struct mapc_context
     int campaign_use_author_encrypt;
 
     int linenum;
-    int bracket_linenum[256];
-    int bracket_stack;
+    int bracket_linenum[3][256];
+    int bracket_stack[3];
 
     STRBUF src_path;
     STRBUF dst_path;
@@ -258,7 +258,7 @@ struct mapc_context
 
     double plane_d[MAXS];
     double plane_n[MAXS][3];
-    float plane_p[MAXS][3];
+    float plane_o[MAXS][2];
     float plane_u[MAXS][3];
     float plane_v[MAXS][3];
     int plane_f[MAXS];
@@ -1437,9 +1437,39 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
 
 /*---------------------------------------------------------------------------*/
 
-static void make_plane(struct mapc_context *ctx, int   pi, float x0, float y0, float      z0,
-                       float x1, float y1, float z1,
-                       float x2, float y2, float z2,
+static void make_plane_geom(struct mapc_context *ctx, int pi,
+                            double x0, double y0, double z0,
+                            double x1, double y1, double z1,
+                            double x2, double y2, double z2,
+                            int fl)
+{
+    float p0[3], p1[3], p2[3];
+    float u[3], v[3];
+
+    ctx->plane_f[pi] = fl ? L_DETAIL : 0;
+
+    p0[0] = +x0 / (double) SCALE;
+    p0[1] = +z0 / (double) SCALE;
+    p0[2] = -y0 / (double) SCALE;
+
+    p1[0] = +x1 / (double) SCALE;
+    p1[1] = +z1 / (double) SCALE;
+    p1[2] = -y1 / (double) SCALE;
+
+    p2[0] = +x2 / (double) SCALE;
+    p2[1] = +z2 / (double) SCALE;
+    p2[2] = -y2 / (double) SCALE;
+
+    v_sub(u, p0, p1);
+    v_sub(v, p2, p1);
+
+    v_crs(ctx->plane_n[pi], u, v);
+    v_nrm_d(ctx->plane_n[pi], ctx->plane_n[pi]);
+}
+
+static void make_plane(struct mapc_context *ctx, int   pi, double x0, double y0, double z0,
+                       double x1, double y1, double z1,
+                       double x2, double y2, double z2,
                        float tu, float tv, float r,
                        float su, float sv, int   fl, const char *s)
 {
@@ -1453,65 +1483,78 @@ static void make_plane(struct mapc_context *ctx, int   pi, float x0, float y0, f
     };
 
     float R[16];
-    float p0[3], p1[3], p2[3];
-    float u[3],  v[3],  p[3];
     float k, d = 0.0f;
     int   i, n = 0;
     int   w, h;
 
+    make_plane_geom(ctx, pi, x0, y0, z0, x1, y1, z1, x2, y2, z2, fl);
+
     size_image(ctx, s, &w, &h);
 
-    ctx->plane_f[pi] = fl ? L_DETAIL : 0;
-
-    p0[0] = +x0 / SCALE;
-    p0[1] = +z0 / SCALE;
-    p0[2] = -y0 / SCALE;
-
-    p1[0] = +x1 / SCALE;
-    p1[1] = +z1 / SCALE;
-    p1[2] = -y1 / SCALE;
-
-    p2[0] = +x2 / SCALE;
-    p2[1] = +z2 / SCALE;
-    p2[2] = -y2 / SCALE;
-
-    v_sub(u, p0, p1);
-    v_sub(v, p2, p1);
-
-    v_crs(ctx->plane_n[pi], u, v);
-    v_nrm_d(ctx->plane_n[pi], ctx->plane_n[pi]);
-
-    ctx->plane_d[pi] = v_dot(ctx->plane_n[pi], p1);
-
     for (i = 0; i < 6; i++)
-        if (base) {
-            if ((k = v_dot(ctx->plane_n[pi], base[i][0])) >= d)
-            {
-                d = k;
-                n = i;
-            }
-        } else MAPC_LOG_ERROR(ctx, "base returned NULL!\n");
-
-    p[0] = 0.f;
-    p[1] = 0.f;
-    p[2] = 0.f;
+        if ((k = v_dot(ctx->plane_n[pi], base[i][0])) >= d)
+        {
+            d = k;
+            n = i;
+        }
 
     /* Always rotate around the positive axis */
 
     m_rot(R, base[n - (n % 2)][0], V_RAD(r));
 
-    v_mad(p, p, base[n][1], +su * tu / SCALE);
-    v_mad(p, p, base[n][2], -sv * tv / SCALE);
-
     m_vxfm(ctx->plane_u[pi], R, base[n][1]);
     m_vxfm(ctx->plane_v[pi], R, base[n][2]);
-    m_vxfm(ctx->plane_p[pi], R, p);
 
     v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 64.f / w);
     v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 64.f / h);
 
     v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 1.f / su);
     v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 1.f / sv);
+
+    ctx->plane_o[pi][0] = (w > 0) ? (+tu / (float) w) : 0.0f;
+    ctx->plane_o[pi][1] = (h > 0) ? (+tv / (float) h) : 0.0f;
+}
+
+static void make_plane_valve(struct mapc_context *ctx, int   pi,
+                             double x0, double y0, double z0,
+                             double x1, double y1, double z1,
+                             double x2, double y2, double z2,
+                             float ux, float uy, float uz, float tu,
+                             float vx, float vy, float vz, float tv,
+                             float su, float sv, int   fl, const char *s)
+{
+    int w, h;
+
+    make_plane_geom(ctx, pi, x0, y0, z0, x1, y1, z1, x2, y2, z2, fl);
+
+    size_image(ctx, s, &w, &h);
+
+    /*
+     * Transform TrenchBroom/Quake texture projection axes to Neverball coordinates:
+     *   (x_nb, y_nb, z_nb) = (+x_tb, +z_tb, -y_tb)
+     *
+     * Neverball texture images are flipped vertically on load (row 0 is bottom in
+     * OpenGL, so V increases upward), whereas Quake/TrenchBroom has V increasing
+     * downward. To match TrenchBroom's visual orientation, the V axis and V offset
+     * are negated.
+     */
+
+    ctx->plane_u[pi][0] = +ux;
+    ctx->plane_u[pi][1] = +uz;
+    ctx->plane_u[pi][2] = -uy;
+
+    ctx->plane_v[pi][0] = -vx;
+    ctx->plane_v[pi][1] = -vz;
+    ctx->plane_v[pi][2] = +vy;
+
+    v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 64.f / w);
+    v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 64.f / h);
+
+    v_scl(ctx->plane_u[pi], ctx->plane_u[pi], 64.f / w);
+    v_scl(ctx->plane_v[pi], ctx->plane_v[pi], 64.f / h);
+
+    ctx->plane_o[pi][0] = (w > 0) ? (+tu / (float) w) : 0.0f;
+    ctx->plane_o[pi][1] = (h > 0) ? (+tv / (float) h) : 0.0f;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -1543,7 +1586,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 
         if (doit == 1 && buf[0] == '{')
         {
-            if (ctx->bracket_stack > 10)
+            if (ctx->bracket_stack[0] > 10)
             {
                 sprintf(stderr_buf, "Stack overflow!\n\t%s / Line: %d\n", buf, ctx->linenum);
 #if _MSC_VER
@@ -1555,15 +1598,15 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
             }
 
-            if (ctx->bracket_linenum[ctx->bracket_stack] == 0)
-                ctx->bracket_linenum[ctx->bracket_stack] = ctx->linenum;
-            ctx->bracket_stack += 1;
+            if (ctx->bracket_linenum[0][ctx->bracket_stack[0]] == 0)
+                ctx->bracket_linenum[0][ctx->bracket_stack[0]] = ctx->linenum;
+            ctx->bracket_stack[0] += 1;
             doit = 0;
             return T_BEG;
         }
         if (doit == 1 && buf[0] == '}')
         {
-            if (ctx->bracket_stack - 1 < 0)
+            if (ctx->bracket_stack[0] - 1 < 0)
             {
                 sprintf(stderr_buf, "Expected: {\n\t%s / Line: %d\n", buf, ctx->linenum);
 #if _MSC_VER
@@ -1574,9 +1617,9 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 #endif
                 longjmp(ctx->jmpbuf, MAPC_ERROR);
             }
-            if (ctx->bracket_linenum[ctx->bracket_stack - 1] != 0)
-                ctx->bracket_linenum[ctx->bracket_stack - 1] = 0;
-            ctx->bracket_stack -= 1;
+            if (ctx->bracket_linenum[0][ctx->bracket_stack[0] - 1] != 0)
+                ctx->bracket_linenum[0][ctx->bracket_stack[0] - 1] = 0;
+            ctx->bracket_stack[0] -= 1;
             doit = 0;
             return T_END;
         }
@@ -1600,6 +1643,103 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
         }
 
         /* Scan a plane. */
+
+        if (strchr(buf, '['))
+        {
+            /*if (ctx->bracket_stack[1] > 10)
+            {
+                sprintf(stderr_buf, "Stack overflow!\n\t%s / Line: %d\n", buf, ctx->linenum);
+#if _MSC_VER
+                fprintf_s(stderr, "%s(%d): error MAPCE: Stack overflow!: %s\n",
+                                  ctx->src_path.buf, ctx->linenum, buf);
+#else
+                MAPC_LOG_ERROR(ctx, stderr_buf);
+#endif
+                longjmp(ctx->jmpbuf, MAPC_ERROR);
+            }
+
+            if (ctx->bracket_linenum[1][ctx->bracket_stack[1]] == 0)
+                ctx->bracket_linenum[1][ctx->bracket_stack[1]] = ctx->linenum;
+            ctx->bracket_stack[1] += 1;*/
+
+            float ux, uy, uz, vx, vy, vz;
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+            if (doit == 1 && sscanf_s(buf,
+                                      "( %f %f %f ) "
+                                      "( %f %f %f ) "
+                                      "( %f %f %f ) "
+                                      "%s "
+                                      "[ %f %f %f %f ] "
+                                      "[ %f %f %f %f ] "
+                                      "%f %f %f %d",
+                                      &x0, &y0, &z0,
+                                      &x1, &y1, &z1,
+                                      &x2, &y2, &z2,
+                                      key,
+                                      &ux, &uy, &uz, &tu,
+                                      &vx, &vy, &vz, &tv,
+                                      &r, &su, &sv, &fl) >= 21)
+#else
+            if (doit == 1 && sscanf(buf,
+                                    "( %f %f %f ) "
+                                    "( %f %f %f ) "
+                                    "( %f %f %f ) "
+                                    "%s "
+                                    "[ %f %f %f %f ] "
+                                    "[ %f %f %f %f ] "
+                                    "%f %f %f %d",
+                                    &x0, &y0, &z0,
+                                    &x1, &y1, &z1,
+                                    &x2, &y2, &z2,
+                                    key,
+                                    &ux, &uy, &uz, &tu,
+                                    &vx, &vy, &vz, &tv,
+                                    &r, &su, &sv, &fl) >= 21)
+#endif
+            {
+                if (key[0] == '\"')
+                {
+                    size_t len = strlen(key);
+                    if (len > 1 && key[len] == '\"')
+                    {
+                        key[len - 1] = '\0';
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        memmove_s(key, sizeof (key), key + 1, len);
+#else
+                        memmove(key, key + 1, len);
+#endif
+                    }
+                }
+
+                make_plane_valve(ctx, pi, x0, y0, z0,
+                                 x1, y1, z1,
+                                 x2, y2, z2,
+                                 ux, uy, uz, tu,
+                                 vx, vy, vz, tv,
+                                 su, sv, fl, key);
+                doit = 0;
+                return T_CLP;
+            }
+        }
+        if (strchr(buf, ']'))
+        {
+            /*if (ctx->bracket_stack[1] - 1 < 0)
+            {
+                sprintf(stderr_buf, "Expected: [\n\t%s / Line: %d\n", buf, ctx->linenum);
+#if _MSC_VER
+                fprintf_s(stderr, "%s(%d): error MAPCE: Expected: [\n",
+                    ctx->src_path.buf, ctx->linenum);
+#else
+                MAPC_LOG_ERROR(ctx, stderr_buf);
+#endif
+                longjmp(ctx->jmpbuf, MAPC_ERROR);
+            }
+
+            if (ctx->bracket_linenum[1][ctx->bracket_stack[1] - 1] != 0)
+                ctx->bracket_linenum[1][ctx->bracket_stack[1] - 1] = 0;
+            ctx->bracket_stack[1] -= 1;*/
+        }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         if (doit == 1 && sscanf_s(buf,
@@ -2190,6 +2330,9 @@ static void make_item(struct mapc_context *ctx,
             ctx->item_has_e[hi] = 1;
         }
     }
+
+    if (hp->t == ITEM_COIN && hp->n == 0)
+        hp->n = 1;
 }
 
 static void make_bill(struct mapc_context *ctx,
@@ -3236,10 +3379,8 @@ static void clip_geom(struct mapc_context *ctx,
             m[n] = vi;
             t[n] = inct(ctx);
 
-            v_add(v, fp->vv[vi].p, ctx->plane_p[si]);
-
-            fp->tv[t[n]].u[0] = v_dot(v, ctx->plane_u[si]);
-            fp->tv[t[n]].u[1] = v_dot(v, ctx->plane_v[si]);
+            fp->tv[t[n]].u[0] = v_dot(fp->vv[vi].p, ctx->plane_u[si]) + ctx->plane_o[si][0];
+            fp->tv[t[n]].u[1] = v_dot(fp->vv[vi].p, ctx->plane_v[si]) + ctx->plane_o[si][1];
 
             if (++n >= ARRAYSIZE(m))
             {
@@ -5114,7 +5255,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
             return 0;
         }
 
-        if (ctx->bracket_stack != 0)
+        if (ctx->bracket_stack[0] != 0)
         {
             char stderr_buf[MAXSTR];
 
@@ -5127,6 +5268,20 @@ static int mapc_compile_internal(struct mapc_context *ctx)
             longjmp(ctx->jmpbuf, MAPC_ERROR);
             return 0;
         }
+
+        /*if (ctx->bracket_stack[1] != 0)
+        {
+            char stderr_buf[MAXSTR];
+
+            sprintf(stderr_buf, "Expected: ]\n\t[ / Line: %d\n", ctx->linenum);
+#if _MSC_VER
+            fprintf_s(stderr, "%s(%d): error MAPCE: Expected: ]\n", src, ctx->linenum);
+#else
+            MAPC_LOG_ERROR(ctx, stderr_buf);
+#endif
+            longjmp(ctx->jmpbuf, MAPC_ERROR);
+            return 0;
+        }*/
 
         if (ctx->campaign_output)
         {
@@ -5333,4 +5488,4 @@ int mapc_compile(struct mapc_context *ctx)
 
 #endif
 
-/*--------------------------------------------------------------------
+/*---------------------------------------------------------------------------*/

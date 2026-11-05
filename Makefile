@@ -936,6 +936,21 @@ WEBSITE_DIR ?= ../neverball-website
 bg-install: bg-web
 	$(MAKE) -f emscripten/bg.mk install WEBSITE_DIR="$(WEBSITE_DIR)"
 
+BG_MAPS := data/geom/back/back.map $(wildcard data/map-back/*.map)
+BG_SOLS := $(BG_MAPS:%.map=%.sol)
+
+bg-data : $(BG_SOLS)
+	$(MAKE) -f mk/package-bg-data.mk bg-data
+
+bg-web : bg-data
+	docker build -t neverball-emscripten emscripten
+	docker run --rm -v "$(CURDIR):/src" -w /src neverball-emscripten make -j$$(nproc) -f emscripten/bg.mk BUILD=$(BUILD)
+
+WEBSITE_DIR ?= ../neverball-website
+
+bg-install : bg-web
+	$(MAKE) -f emscripten/bg.mk install WEBSITE_DIR="$(WEBSITE_DIR)"
+
 HOST ?= 0.0.0.0
 PORT ?= 0
 
@@ -944,8 +959,12 @@ web-serve : web
 
 #------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 .PHONY : ball putt mapc publish test sols csols locales desktops clean-src \
 	clean-sols clean test web-web-serve
+=======
+.PHONY : all sols locales desktops clean-src clean test web web-serve bg-data bg-web bg-install
+>>>>>>> 2b8f0fe12190fed0f6514a25c33cca007f497f87
 
 -include $(BALL_DEPS) $(PUTT_DEPS) $(MAPC_DEPS) $(wildcard tests/*.d)
 

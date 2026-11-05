@@ -78,4 +78,8 @@ install:
 install-website: install
 
 clean:
+<<<<<<< HEAD
 	$(RM) $(BG_OBJS) $(JSDIR)/neverball-bg-engine.js $(JSDIR)/neverball-bg-engine.wasm
+=======
+	$(RM) $(BG_OBJS) $(JSDIR)/neverball-bg-engine.js $(JSDIR)/neverball-bg-engine.wasm
+>>>>>>> 2b8f0fe12190fed0f6514a25c33cca007f497f87

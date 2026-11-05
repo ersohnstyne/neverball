@@ -3,7 +3,6 @@
 #ifndef SDL_TTF_H
 #define SDL_TTF_H
 
-<<<<<<< HEAD
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
 #include <SDL3/SDL.h>
 #elif _WIN32 && __MINGW32__
@@ -15,17 +14,10 @@
 #else
 #include <SDL.h>
 #endif
-=======
-#include <SDL.h>
->>>>>>> 2b8f0fe12190fed0f6514a25c33cca007f497f87
 
 typedef struct TTF_Font TTF_Font;
 
 SDL_Surface *TTF_RenderUTF8_Blended(TTF_Font *font, const char *text, SDL_Color fg);
 int TTF_SizeUTF8(TTF_Font *font, const char *text, int *w, int *h);
 
-<<<<<<< HEAD
 #endif
-=======
-#endif
->>>>>>> 2b8f0fe12190fed0f6514a25c33cca007f497f87

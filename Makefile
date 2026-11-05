@@ -959,12 +959,7 @@ web-serve : web
 
 #------------------------------------------------------------------------------
 
-<<<<<<< HEAD
-.PHONY : ball putt mapc publish test sols csols locales desktops clean-src \
-	clean-sols clean test web-web-serve
-=======
-.PHONY : all sols locales desktops clean-src clean test web web-serve bg-data bg-web bg-install
->>>>>>> 2b8f0fe12190fed0f6514a25c33cca007f497f87
+.PHONY : ball putt mapc publish test sols csols locales desktops clean-src clean-sols clean test web-web-serve bg-data bg-web bg-install
 
 -include $(BALL_DEPS) $(PUTT_DEPS) $(MAPC_DEPS) $(wildcard tests/*.d)
 

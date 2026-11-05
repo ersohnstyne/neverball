@@ -20,6 +20,10 @@
 #include <execinfo.h>
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 /*
  * HACK: Used with console version
  */
@@ -419,6 +423,10 @@ int st_click(int b, int d)
     console_gui_toggle(0);
 #endif
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (d) EM_ASM({ CoreLauncher_ChargeBatteryUI_HideUI(); });
+#endif
+
     return (state && state->click) ? state->click(b, d) : 1;
 }
 
@@ -428,11 +436,19 @@ int st_keybd(int c, int d)
     console_gui_toggle(0);
 #endif
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (d) EM_ASM({ CoreLauncher_ChargeBatteryUI_HideUI(); });
+#endif
+
     return (state && state->keybd) ? state->keybd(c, d) : 1;
 }
 
 int st_buttn(int b, int d)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (d) EM_ASM({ CoreLauncher_ChargeBatteryUI_HideUI(); });
+#endif
+
     return (state && state->buttn) ? state->buttn(b, d) : 1;
 }
 
@@ -442,6 +458,10 @@ int st_touch(const SDL_TouchFingerEvent *event)
 {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_toggle(0);
+#endif
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    EM_ASM({ CoreLauncher_ChargeBatteryUI_HideUI(); });
 #endif
 
     int d = 1;
@@ -470,6 +490,10 @@ int st_dpad(int b, int d, int *p)
 {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     console_gui_toggle(0);
+#endif
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (d) EM_ASM({ CoreLauncher_ChargeBatteryUI_HideUI(); });
 #endif
 
     /* If the state can handle it, do it. */

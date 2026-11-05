@@ -1902,16 +1902,35 @@ static void step(void *data)
         Uint32 now = (SDL_GetTicks() - mainloop->start_time);
         Uint32 dt  = (now - mainloop->now);
 #endif
-
+        
         if (mainloop->powerstate_prev != mainloop->powerstate_curr &&
             mainloop->powerstate_curr != SDL_POWERSTATE_UNKNOWN &&
             mainloop->now > 500 && dt >= 0 && dt < 1000) {
             if (mainloop->powerstate_curr == SDL_POWERSTATE_CHARGED ||
                 mainloop->powerstate_curr == SDL_POWERSTATE_CHARGING)
+            {
                 audio_play("snd/miui_charge_10.ogg", 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+                EM_ASM({
+                    CoreLauncher_ChargeBatteryUI_ShowUI();
+                    chargebatteryui_timeout_handle = setTimeout(CoreLauncher_ChargeBatteryUI_HideUI, 3000);
+                });
+#endif
+            }
             else if (mainloop->powerstate_curr == SDL_POWERSTATE_ON_BATTERY)
+            {
                 audio_play("snd/miui_disconnect_10.ogg", 1.0f);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+                EM_ASM({ CoreLauncher_ChargeBatteryUI_HideUI(); });
+#endif
+            }
         }
+
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        if (mainloop->powerstate_curr == SDL_POWERSTATE_CHARGED ||
+            mainloop->powerstate_curr == SDL_POWERSTATE_CHARGING)
+            EM_ASM({ CoreLauncher_ChargeBatteryUI_UpdatePercent($0); }, mainloop->powerstate_pct);
+#endif
 
         mainloop->powerstate_prev = mainloop->powerstate_curr;
 

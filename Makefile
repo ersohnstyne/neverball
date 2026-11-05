@@ -920,6 +920,21 @@ clean : clean-src clean-sols
 web : sols
 	docker build -t neverball-emscripten emscripten
 	docker run --rm -v "$(CURDIR):/src" -w /src neverball-emscripten make -j$$(nproc) -f emscripten/ball.mk BUILD=$(BUILD) $(if $(PACKAGE_BASE_URL),PACKAGE_BASE_URL=$(PACKAGE_BASE_URL))
+	
+BG_MAPS := data/geom/back/back.map $(wildcard data/map-back/*.map)
+BG_SOLS := $(BG_MAPS:%.map=%.sol)
+
+bg-data : $(BG_SOLS)
+	$(MAKE) -f mk/package-bg-data.mk bg-data
+
+bg-web : bg-data
+	docker build -t neverball-emscripten emscripten
+	docker run --rm -v "$(CURRDIR):/src" -w /src neverball-emscripten make -j$$(nproc) -f emscripten/bg.mk BUILD=$(BUILD)
+
+WEBSITE_DIR ?= ../neverball-website
+
+bg-install: bg-web
+	$(MAKE) -f emscripten/bg.mk install WEBSITE_DIR="$(WEBSITE_DIR)"
 
 HOST ?= 0.0.0.0
 PORT ?= 0

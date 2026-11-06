@@ -207,11 +207,7 @@ The shrink coin does not replace your Radiant's entities, but should be a higher
 <item name="Large" value="30"/>
 </list>
 
-<<<<<<< HEAD
-<point name="item_clock" color="0.5 0.25 1" model="{{ value >= 30 -> {'path': 'obj/editor/clock30.obj', 'scale': 1}, value >= 15 -> {'path': 'obj/editor/clock15.obj', 'scale': 1}, value >= 5 -> {'path': 'obj/editor/clock5.obj', 'scale': 1} }}">
-=======
 <point name="item_clock" color="0.5 0.25 1" model="{{ value >= 30 -> {'path': 'obj/editor/clock30.obj', 'scale': 1}, value >= 15 -> {'path': 'obj/editor/clock15.obj', 'scale': 1}, {'path': 'obj/editor/clock5.obj', 'scale': 1} }}" box="-16 -16 -16 16 16 16">
->>>>>>> 7575a63cb2e76e8ea61df0bc28c41328385f89dd
 A clock. Adds time to a level.
 
 <clock key="value" name="Preset bonus" value="0">Value of the clock.  Pink clock (small) = 5, turquoise clock (medium) = 15, orange clock (large) = 30.</clock>

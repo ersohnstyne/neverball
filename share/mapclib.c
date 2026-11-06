@@ -4803,7 +4803,7 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
             {
                 ctx->opt_modelscale = atoi(argv[argi]);
 
-                if (ctx->opt_modelscale > 0)
+                if (ctx->opt_modelscale <= 0)
                 {
                     fprintf(stderr, "Invalid value!: Min: 1\n");
                     return 1;

@@ -193,6 +193,7 @@ struct mapc_context
     int opt_debug;
     int opt_csv;
     int opt_debug_paths;
+    int opt_modelscale;
 
     int campaign_output;
     int campaign_cost;
@@ -464,7 +465,7 @@ int mapc_init(struct mapc_context **ctx_ptr)
     if (!ctx_ptr)
         return 0;
 
-    ctx = malloc(sizeof (*ctx));
+    ctx = (struct mapc_context *) malloc(sizeof (*ctx));
 
     if (!ctx)
         return 0;
@@ -476,6 +477,7 @@ int mapc_init(struct mapc_context **ctx_ptr)
     ctx->opt_file = NULL;
     ctx->opt_data = NULL;
     ctx->opt_debug_paths = 0;
+    ctx->opt_modelscale = 1;
 
 #if ENABLE_RADIANT_CONSOLE
     ctx->bcast_socket = NULL;
@@ -1171,7 +1173,11 @@ static void move_file(struct mapc_context *ctx)
 
     if (fp->pc > 0)
     {
-        float (*posv)[3] = calloc(fp->pc, sizeof (float[3]));
+        float (*posv)[3] = (float (*)[3]) calloc(fp->pc, sizeof (float[3]));
+
+#if _MSC_VER
+        static_assert(sizeof (*posv) == sizeof (float[3]), "posv mismatched!");
+#endif
 
         if (posv)
         {
@@ -1258,13 +1264,9 @@ static void read_v(struct mapc_context *ctx, const char *line)
     sscanf(line, "%f %f %f", &x, &y, &z);
 #endif
 
-    //vp->p[0] = +z / SCALE;
-    //vp->p[1] = +y / SCALE;
-    //vp->p[2] = -x / SCALE;
-
-    vp->p[0] = +z;
-    vp->p[1] = +y;
-    vp->p[2] = -x;
+    vp->p[0] = (+z / SCALE) * ctx->opt_modelscale;
+    vp->p[1] = (+y / SCALE) * ctx->opt_modelscale;
+    vp->p[2] = (-x / SCALE) * ctx->opt_modelscale;
 }
 
 static int parse_triplet(const char *token, int *vi, int *ti, int *si)
@@ -4729,6 +4731,7 @@ static void print_usage(const char *name)
         "--bcast",
 #endif
         "--data <dir>",
+        "--modelscale <value>",
 #ifdef MAPC_INCLUDES_CHKP
         "--campaign",
 #endif
@@ -4774,6 +4777,27 @@ int mapc_opts(struct mapc_context *ctx, int argc, char *argv[])
                     ctx->opt_data = argv[argi];
 
                 fs_add_path_with_archives(argv[argi]);
+            }
+        }
+
+        else if (strcmp(argv[argi], "--modelscale") == 0)
+        {
+            ++argi;
+
+            if (argi < argc)
+            {
+                ctx->opt_modelscale = atoi(argv[argi]);
+
+                if (ctx->opt_modelscale > 0)
+                {
+                    fprintf(stderr, "Invalid value!: Min: 1\n");
+                    return 1;
+                }
+            }
+            else
+            {
+                fprintf(stderr, "Option --modelscale requires second value!\n");
+                return 1;
             }
         }
 

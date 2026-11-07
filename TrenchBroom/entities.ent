@@ -12,7 +12,6 @@ The moving object does not replace your Radiant's entities, but should be a high
 </group>
 
 
-<<<<<<< HEAD
 <point name="game_checkpoint" color="0 0 0.5" model="{'path': 'obj/editor/chkp.obj', 'scale': {{ radius != '' -> radius + ' '  + radius + ' 1', '0.5 0.5 1' }}}" box="-32 -32 -32 32 32 32">
 A checkpoint.
 
@@ -46,9 +45,6 @@ The checkpoint does not replace your Radiant's entities, but should be a higher-
 
 
 <point name="game_switch" color="0 0.5 0" model="{{ state == 1 -> {'path': 'obj/editor/switch3.obj', 'scale': {{ radius != '' -> radius + ' '  + radius + ' 1', '0.5 0.5 1' }} }, {'path': 'obj/editor/switch2.obj', 'scale': {{ radius != '' -> radius + ' '  + radius + ' 1', '0.5 0.5 1' }} } }}" box="-32 -32 -32 32 32 32">
-=======
-<point name="game_switch" color="0 0.5 0" model="{{ state == 1 -> {'path': 'obj/editor/switch3.obj', 'scale': {{ radius != '' -> radius + ' ' + radius + ' 1', '0.5 0.5 1' }} }, {'path': 'obj/editor/switch2.obj', 'scale': {{ radius != '' -> radius + ' ' + radius + ' 1', '0.5 0.5 1' }} } }}" box="-32 -32 -32 32 32 32">
->>>>>>> 9e7e477a792e3a2dbe2a928c632a9b5b520ddbc3
 A switch.
 
 It is preferable to use this entity in place of info_camp.
@@ -93,11 +89,7 @@ A billboard.
 </point>
 
 
-<<<<<<< HEAD
 <point name="game_goal" color="0.75 0.75 0" model="{'path': 'obj/editor/goal2.obj', 'scale': {{ radius != '' -> radius + ' '  + radius + ' 1', '0.75 0.75 1' }}}" box="-48 -48 -48 48 48 48">
-=======
-<point name="game_goal" color="0.75 0.75 0" model="{'path': 'obj/editor/goal2.obj', 'scale': {{ radius != '' -> radius + ' ' + radius + ' 1', '0.75 0.75 1' }}}" box="-48 -48 -48 48 48 48">
->>>>>>> 9e7e477a792e3a2dbe2a928c632a9b5b520ddbc3
 A goal.
 
 It is preferable to use this entity in place of info_player_deathmatch.
@@ -292,11 +284,7 @@ Defines the initial view direction of a level fly-in, as well as the destination
 </point>
 
 
-<<<<<<< HEAD
 <point name="game_jump" color="0 0.5 0" model="{'path': 'obj/editor/jump2.obj', 'scale': {{ radius != '' -> radius + ' '  + radius + ' 1', '0.5 0.5 1' }}}" box="-32 -32 -32 32 32 32">
-=======
-<point name="game_jump" color="0 0.5 0" model="{'path': 'obj/editor/jump2.obj', 'scale': {{ radius != '' -> radius + ' ' + radius + ' 1', '0.5 0.5 1' }}}" box="-32 -32 -32 32 32 32">
->>>>>>> 9e7e477a792e3a2dbe2a928c632a9b5b520ddbc3
 A teleporter.
 
 It is preferable to use this entity in place of target_teleporter.

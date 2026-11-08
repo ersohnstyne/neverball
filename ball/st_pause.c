@@ -348,7 +348,7 @@ static void pause_btns_horizontal_gui(int jd, const char *quit_btn_text)
 
 #ifdef MAPC_INCLUDES_CHKP
     if (last_active)
-        btn_ids[1] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_vio : gui_gry, _("Reset Puzzle"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0, progress_same_avail(), 0);
+        btn_ids[1] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_vio : gui_gry, _("Reset Puzzle"), GUI_SML, progress_same_avail() ? PAUSE_RESPAWN : GUI_NONE, 0, progress_same_avail(), 0);
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
@@ -368,7 +368,7 @@ static void pause_btns_vertical_gui(int jd, const char *quit_btn_text)
 
 #ifdef MAPC_INCLUDES_CHKP
     if (last_active)
-        btn_ids[1] = gui_state_icon(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_vio : gui_gry, _("Reset Puzzle"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0);
+        btn_ids[1] = gui_state_icon(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_vio : gui_gry, _("Reset Puzzle"), GUI_SML, progress_same_avail() ? PAUSE_RESPAWN : GUI_NONE, 0);
 
     if (!progress_same_avail() && btn_ids[1])
         gui_set_color(btn_ids[1], GUI_COLOR_GRY);

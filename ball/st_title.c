@@ -341,6 +341,7 @@ static int   mode      = TITLE_MODE_NONE;
 static int   builtin_demo_count = 0;
 static int   builtin_demo_used = 0;
 static int   builtin_demo_left_handed = 1;
+static int   builtin_demo_allcoins = 0;
 
 static Array items;
 
@@ -1634,6 +1635,16 @@ static int title_enter(struct state *st, struct state *prev, int intent)
         mode = TITLE_MODE_LEVEL;
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
     else if (title_check_balls_shown() &&
+             progress_replay_full("gui/title/title-allcoins.nbr", 0, 0, 0, 0, 0, 0))
+#else
+    else if (progress_replay_full("gui/title/title-allcoins.nbr", 0, 0, 0, 0, 0, 0))
+#endif
+    {
+        builtin_demo_used = 1;
+        TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
+    }
+#if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
+    else if (title_check_balls_shown() &&
              progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
 #else
     else if (progress_replay_full("gui/title/title-l.nbr", 0, 0, 0, 0, 0, 0))
@@ -1785,6 +1796,10 @@ static void title_timer(int id, float dt)
                 {
                     if (progress_replay_full(demo, 0, 0, 0, 0, 0, 0) && game_compat_map)
                         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
+                    else if (progress_replay_full("gui/title/title-allcoins.nbr", 0, 0, 0, 0, 0, 0)) {
+                        builtin_demo_used = 1;
+                        TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
+                    }
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                     else if (title_check_balls_shown() &&
                              !config_get_d(CONFIG_MAINMENU_PANONLY) &&
@@ -1800,6 +1815,10 @@ static void title_timer(int id, float dt)
                         TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
                     } else if (load_title_background())
                         mode = TITLE_MODE_LEVEL;
+                }
+                else if (progress_replay_full("gui/title/title-allcoins.nbr", 0, 0, 0, 0, 0, 0)) {
+                    builtin_demo_used = 1;
+                    TITLE_BG_DEMO_INIT(TITLE_MODE_DEMO, 1);
                 }
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
                 else if (title_check_balls_shown() &&
@@ -1834,7 +1853,13 @@ static void title_timer(int id, float dt)
             {
                 if (builtin_demo_used == 1) {
                     builtin_demo_used = 2;
-                    builtin_demo_left_handed = !builtin_demo_left_handed;
+
+                    if (!builtin_demo_left_handed && !builtin_demo_allcoins) {
+                        builtin_demo_allcoins = 1;
+                    } else {
+                        builtin_demo_allcoins = 0;
+                        builtin_demo_left_handed = !builtin_demo_left_handed;
+                    }
                 }
 
                 if (title_demo_shiftbeforefade <= 0.0f) {

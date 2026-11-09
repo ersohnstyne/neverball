@@ -209,6 +209,29 @@ enum
     DEMO_DELETE
 };
 
+#if _WIN32 && _MSC_VER
+static int win32_demo_is_video_file(const char *filename)
+{
+    return /* Audio Visual Interleave */
+        str_ends_with(filename, ".avi") ||
+
+        /* MP4 Video file */
+        str_ends_with(filename, ".mp4")  ||
+        str_ends_with(filename, ".m4v")  ||
+        str_ends_with(filename, ".mp4v") ||
+        str_ends_with(filename, ".3g2")  ||
+        str_ends_with(filename, ".3gp2") ||
+        str_ends_with(filename, ".3gp")  ||
+        str_ends_with(filename, ".3gpp") ||
+
+        /* QuickTime Movie file */
+        str_ends_with(filename, ".mov") ||
+
+        /* WEBM */
+        str_ends_with(filename, ".webm");
+}
+#endif
+
 static void demo_select(int i);
 
 static int demo_action(int tok, int val)
@@ -258,7 +281,26 @@ static int demo_action(int tok, int val)
 
             struct demo *df;
 
-            if (!DEMO_CHECK_GET(df, demo_items, selected < total ? selected : 0)) return 1;
+            if (!DEMO_CHECK_GET(df, demo_items, selected < total ? selected : 0))
+#if (_WIN32 && _MSC_VER)
+            {
+                if (selected >= total) return 1;
+
+                /* Windows 11 Exclusive! */
+
+                const char *demo_path = DIR_ITEM_GET(demo_items, selected)->path;
+
+                char out_cmd_buf[MAXSTR];
+                sprintf_s(out_cmd_buf, MAXSTR, "explorer %s\\Replays\\%s", fs_get_write_dir(), base_name(demo_path));
+
+                if (win32_demo_is_video_file(demo_path))
+                    system(out_cmd_buf);
+
+                return 1;
+            }
+#else
+                return 1;
+#endif
 
             stat_limit_busy = 1;
 
@@ -272,11 +314,10 @@ static int demo_action(int tok, int val)
             time_max_minutes = df->timer / 6000;
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-            if (df->mode == MODE_CAMPAIGN)
-                time_limit_minutes = 60;
-            else
+            time_limit_minutes = df->mode == MODE_CAMPAIGN ? 60 : 10;
+#else
+            time_limit_minutes = 10;
 #endif
-                time_limit_minutes = 10;
 
             stat_limit_busy = 0;
 
@@ -312,7 +353,15 @@ static int demo_action(int tok, int val)
                     localtime_s(&date_curr, &date_curr_time);
 
                     if (date_curr.tm_year != date_expected.tm_year ||
-                        date_curr.tm_mon  != date_expected.tm_mon) return 1;
+                        date_curr.tm_mon  != date_expected.tm_mon)
+                    {
+                        if (date_curr.tm_year != date_expected.tm_year)
+                            log_errorf("%s: Replay file in emergency management center (WGCL Operator) is invalid with the current year!: Current: %d; Expected: %d\n", demo_path, date_curr.tm_year + 1, date_expected.tm_year + 1);
+                        else if (date_curr.tm_mon != date_expected.tm_mon)
+                            log_errorf("%s: Replay file in emergency management center (WGCL Operator) is invalid with the current month!: Current: %d; Expected: %d\n", demo_path, date_curr.tm_mon + 1, date_expected.tm_mon + 1);
+
+                        return 1;
+                    }
 
                     if (df->status != GAME_GOAL &&
                         df->status != GAME_TIME &&
@@ -573,6 +622,14 @@ static void gui_demo_update_thumbs(void)
                     gui_set_image(thumbs[i].shot_id, "gui/filters/challenge.jpg");
             }
         }
+#if (_WIN32 && _MSC_VER)
+        else if (win32_demo_is_video_file(base_name(item->path)))
+        {
+            /* Windows 11 Exclusive! */
+            gui_set_image(thumbs[i].shot_id, "gui/filters/video_file.jpg");
+            gui_set_color(thumbs[i].name_id, gui_wht, gui_cya);
+        }
+#endif
         else
         {
             gui_set_image(thumbs[i].shot_id, "gui/filters/invalid.jpg");
@@ -697,20 +754,39 @@ static void gui_demo_update_status(int i)
         return;
 
     /* They must be selected into the replay */
-
+    
     if (!DEMO_CHECK_GET(d, demo_items, i < total ? i : 0))
     {
-        gui_set_label(name_id,   " ");
+#if (_WIN32 && _MSC_VER)
+        /* Windows 11 Exclusive! */
+
+        const char *demo_path = DIR_ITEM_GET(demo_items, i)->path;
+        if (win32_demo_is_video_file(demo_path))
+        {
+            gui_set_label(name_id,   base_name(demo_path));
+            gui_set_label(status_id, "External");
+
+            gui_set_color(name_id,   gui_wht, gui_cya);
+            gui_set_color(status_id, gui_wht, gui_cya);
+        }
+        else
+#endif
+        {
+            gui_set_label(name_id,   " ");
+            gui_set_label(status_id, status_to_str(GAME_MAX));
+
+            gui_set_color(status_id, GUI_COLOR_RED);
+            gui_set_color(name_id,   gui_gry, gui_red);
+        }
+
+        gui_set_clock(time_id,   -1);
         gui_set_label(date_id,   "--.--.---- --:--:--");
         gui_set_label(player_id, " ");
-        gui_set_label(status_id, status_to_str(GAME_MAX));
         gui_set_label(coin_id,   "-----");
-        gui_set_clock(time_id,   -1);
 
-        gui_set_color(name_id,   gui_gry, gui_red);
         gui_set_color(date_id,   gui_gry, gui_red);
         gui_set_color(player_id, gui_gry, gui_red);
-        gui_set_color(status_id, GUI_COLOR_RED);
+
         return;
     }
 
@@ -1209,6 +1285,15 @@ static int demo_enter(struct state *st, struct state *prev, int intent)
                 if (get_max_game_stat() <= get_limit_game_stat())
                     availibility += 1;
             }
+#if (_WIN32 && _MSC_VER)
+            else {
+                /* Windows 11 Exclusive! */
+
+                const char *demo_path = DIR_ITEM_GET(quarantined_demo_items, quarantined_index)->path;
+                if (win32_demo_is_video_file(demo_path))
+                    availibility += 1;
+            }
+#endif
 
             quarantined_index++;
         }

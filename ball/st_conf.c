@@ -1163,7 +1163,7 @@ static int conf_gameplay_gui(void)
     {
         conf_header(id, _("Gameplay"), GUI_BACK);
 
-        if (game_server_state() &&
+        if (config_ball() && game_server_state() &&
             (curr_mode() == MODE_CHALLENGE ||
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              curr_mode() == MODE_HARDCORE ||
@@ -1180,9 +1180,9 @@ static int conf_gameplay_gui(void)
         }
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (!game_server_state() || (curr_mode() != MODE_HARDCORE && curr_balls() > 0))
+        if ((!game_server_state() || (curr_mode() != MODE_HARDCORE && curr_balls() > 0)) && config_ball())
 #else
-        if (!game_server_state() || curr_balls() > 0)
+        if ((!game_server_state() || curr_balls() > 0) && config_ball())
 #endif
         {
 #if NB_HAVE_PB_BOTH==1
@@ -1203,22 +1203,24 @@ static int conf_gameplay_gui(void)
 
             gui_space(id);
         }
-
+        
+        if (config_ball())
+        {
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
-                               config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
-        conf_toggle_simple(id, _("Show Hint"), GAMEPLAY_HINT,
-                               config_get_d(CONFIG_ACCOUNT_HINT), 1, 0);
+            conf_toggle_simple(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
+                                   config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
+            conf_toggle_simple(id, _("Show Hint"), GAMEPLAY_HINT,
+                                   config_get_d(CONFIG_ACCOUNT_HINT), 1, 0);
 #else
-        conf_toggle(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
-                        config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Show Hint"), GAMEPLAY_HINT,
-                        config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
+            conf_toggle(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
+                            config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
+            conf_toggle(id, _("Show Hint"), GAMEPLAY_HINT,
+                            config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
 #endif
+            gui_space(id);
+        }
 
-        gui_space(id);
-
-        if (game_switchball_installed())
+        if (game_switchball_installed() && config_ball())
         {
 #if NB_HAVE_PB_BOTH==1
             conf_toggle_simple(id, _("Drop Speeding Alert"), GAMEPLAY_SWITCHBALL_DROPSPEEDING,
@@ -1229,8 +1231,8 @@ static int conf_gameplay_gui(void)
 #endif
             gui_space(id);
         }
-
-        if (!game_server_state() ||
+        
+        if ((!game_server_state() ||
             (curr_mode() != MODE_CHALLENGE &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
              curr_mode() != MODE_HARDCORE &&
@@ -1239,7 +1241,7 @@ static int conf_gameplay_gui(void)
 #endif
              curr_mode() != MODE_BOOST_RUSH &&
              curr_mode() != MODE_DAILY
-             ))
+             )) && config_ball())
         {
 #if NB_HAVE_PB_BOTH==1
             conf_toggle_simple(id, _("Completed Levels"), GAMEPLAY_LOCK_GOALS,
@@ -3827,15 +3829,15 @@ static int conf_gui(void)
                     conf_state_icon(id, _("Account"), GUI_TRIANGLE_RIGHT, _("Manage"), CONF_ACCOUNT);
 #endif
                 conf_state_icon(id, _("Notifications"), GUI_TRIANGLE_RIGHT, _("Manage"), CONF_NOTIFICATIONS);
-                gui_space(id);
 #endif
+                gui_space(id);
             }
 
 #if NB_HAVE_PB_BOTH==1
             conf_state_icon(id, _("Gameplay"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_GAMEPLAY);
-            gui_space(id);
 
             if (mainmenu_conf && !game_server_state() && !demo_state() && config_ball()) {
+                gui_space(id);
                 conf_state_icon(id, _("Controls"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_CONTROLS);
                 conf_state_icon(id, _("Graphics"), GUI_TRIANGLE_RIGHT, _("Configure"), CONF_VIDEO);
             }
@@ -3925,7 +3927,7 @@ static int conf_gui(void)
             }
 #endif
 
-            if (config_ball() && mainmenu_conf && !game_server_state() && !demo_state()) {
+            if (mainmenu_conf && !game_server_state() && !demo_state()) {
 #if ENABLE_NLS==1 || _WIN32
                 gui_space(id);
 

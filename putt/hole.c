@@ -417,9 +417,9 @@ int hole_move(void)
     return 0;
 }
 
-void hole_goal(void)
+void hole_goal(int split)
 {
-    score_v[hole][player]++;
+    if (!split) score_v[hole][player]++;
 
     if (score_v[hole][player] == 1)
         audio_narrator_play(AUD_ONE);

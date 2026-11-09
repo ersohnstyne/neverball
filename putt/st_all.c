@@ -406,10 +406,10 @@ static int putt_title_action(int i)
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_WGCL_GAME_OPTIONS)
             hole_free();
             course_free();
-            WGCL_InitGameOptions(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
+            WGCL_InitGameOptions(config_ball() ? &st_title : (config_putt() ? &st_putt_title : NULL));
             return goto_state(&st_null);
 #else
-            return goto_conf(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL), 0, 0);
+            return goto_conf(config_ball() ? &st_title : (config_putt() ? &st_putt_title : NULL), 0, 0);
 #endif
         case TITLE_EXIT:
             if (current_platform != PLATFORM_SWITCH)
@@ -422,7 +422,7 @@ static int putt_title_action(int i)
             hole_free();
             course_free();
             config_set_d(CONFIG_GAME, GAME_BALL);
-            return exit_state(&st_ball_title);
+            return exit_state(&st_title);
     }
     return 1;
 }
@@ -435,6 +435,7 @@ static int putt_title_action(int i)
 #define title_action putt_title_action
 
 static int party_indiv_controllers = 0;
+static int putt_title_vstack_id;
 
 /*static int gamepadinfo_controller_ids[4];*/
 
@@ -443,6 +444,8 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
     /*for (int i = 0; i < 4; i++)
         gamepadinfo_controller_ids[i] = 0;*/
 
+    putt_title_vstack_id = 0;
+
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)
     support_exit = (current_platform != PLATFORM_PS &&
                     current_platform != PLATFORM_STEAMDECK &&
@@ -450,13 +453,10 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
                    (current_platform == PLATFORM_PC);
 #endif
 
-    if (party_indiv_controllers)
-    {
-        joy_active_cursor(0, 1);
-        joy_active_cursor(1, 0);
-        joy_active_cursor(2, 0);
-        joy_active_cursor(3, 0);
-    }
+    joy_active_cursor(0, 1);
+    joy_active_cursor(1, 0);
+    joy_active_cursor(2, 0);
+    joy_active_cursor(3, 0);
 
     int root_id, id, jd, kd;
 
@@ -514,6 +514,8 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
                 gui_filler(jd);
             }
             gui_layout(id, 0, 0);
+
+            putt_title_vstack_id = id;
         }
 
 #if ENABLE_VERSION
@@ -723,6 +725,19 @@ static void putt_title_timer(int id, float dt)
  */
 #define title_timer putt_title_timer
 
+static void putt_title_stick(int id, int a, float v, int bump)
+{
+    if (joy_get_active_cursor(0))
+        shared_stick_basic(putt_title_vstack_id ? putt_title_vstack_id : id, a, v, bump);
+}
+
+/*
+ * This function name will be redirected to putt_title_stick() for modern WGCL source project.
+ * To continue with legacy source project Neverball,
+ * please change from `putt_title_stick()` to `title_stick()`.
+ */
+#define title_stick putt_title_stick
+
 static int putt_title_click(int b, int d)
 {
     //if (config_tst_d(CONFIG_MOUSE_CANCEL_MENU, b))
@@ -755,8 +770,14 @@ static int putt_title_keybd(int c, int d)
 
 static int putt_title_buttn(int b, int d)
 {
-    if (d && joy_get_cursor_actions(0))
+    if (d && (joy_get_cursor_actions(0) || joy_get_active_cursor(0)))
     {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b)) {
+            hole_free();
+            course_free();
+            config_set_d(CONFIG_GAME, GAME_BALL);
+            return exit_state(&st_title);
+        }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return title_action(gui_token(gui_active()));
         //if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
@@ -883,7 +904,7 @@ static int putt_help_keybd(int c, int d)
 
 static int putt_help_buttn(int b, int d)
 {
-    if (d && joy_get_cursor_actions(0))
+    if (d && (joy_get_cursor_actions(0) || joy_get_active_cursor(0)))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b) ||
             config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
@@ -1146,7 +1167,7 @@ static int course_keybd(int c, int d)
 
 static int course_buttn(int b, int d)
 {
-    if (d && joy_get_cursor_actions(0))
+    if (d && (joy_get_cursor_actions(0) || joy_get_active_cursor(0)))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return course_action(gui_token(gui_active()));
@@ -1174,6 +1195,7 @@ static int party_action(int i)
     switch (i)
     {
         case PARTY_1:
+            party_indiv_controllers = 0;
             if (hole_goto(1, 1))
                 goto_state(&st_putt_next);
             break;
@@ -1274,7 +1296,7 @@ static int party_keybd(int c, int d)
 
 static int party_buttn(int b, int d)
 {
-    if (d && joy_get_cursor_actions(0))
+    if (d && (joy_get_cursor_actions(0) || joy_get_active_cursor(0)))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return party_action(gui_token(gui_active()));
@@ -1295,16 +1317,18 @@ static int ctrltype_name_id = 0, ctrltype_desc_id = 0;
 
 static int controltype_action(int i)
 {
-    int ji, indiv_ctrltype_ready = 1;
     PUTT_GAMEMENU_ACTION(CONTROLTYPE_B);
+
+    if (i == CONTROLTYPE_1) party_indiv_controllers = 0;
 
     switch (i)
     {
         case CONTROLTYPE_M:
-            for (ji = 0; ji < holdage_player_count && indiv_ctrltype_ready; ji++)
-            {
-                if (!joy_connected(ji, 0, 0))
+            for (int ji = 0; ji < holdage_player_count; ji++) {
+                if (!joy_connected(ji, 0, 0)) {
+                    audio_play("snd/uierror.ogg", 1.0f);
                     return 1;
+                }
             }
             party_indiv_controllers = 1;
         case CONTROLTYPE_1:
@@ -1419,7 +1443,7 @@ static int controltype_keybd(int c, int d)
 
 static int controltype_buttn(int b, int d)
 {
-    if (d && joy_get_cursor_actions(0))
+    if (d && (joy_get_cursor_actions(0) || joy_get_active_cursor(0)))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return controltype_action(gui_token(gui_active()));
@@ -1616,7 +1640,7 @@ static int pause_keybd(int c, int d)
 static int pause_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(paused_indiv_ctrl_index) || !party_indiv_controllers))
+        (joy_get_cursor_actions(paused_indiv_ctrl_index) || joy_get_active_cursor(paused_indiv_ctrl_index) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return pause_action(gui_token(gui_active()));
@@ -1697,6 +1721,7 @@ static int next_enter(struct state *st, struct state *prev, int intent)
             {
                 gui_space(id);
                 gui_label(id, _("Pass the controller to another player"), GUI_SML, 0, 0);
+                joy_active_cursor(0, 1);
             }
             else
             {
@@ -1774,7 +1799,7 @@ static int next_keybd(int c, int d)
 static int next_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers))
+        (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
@@ -1838,7 +1863,7 @@ static int poser_keybd(int c, int d)
 static int poser_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers))
+        (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b)
          || config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
@@ -1859,7 +1884,7 @@ static int flyby_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(curr_player() - 1, curr_player() == 2);
         joy_active_cursor(curr_player() - 1, curr_player() == 3);
         joy_active_cursor(curr_player() - 1, curr_player() == 4);
-    }
+    } else joy_active_cursor(0, 1);
 
     if (paused)
         paused = 0;
@@ -1910,7 +1935,7 @@ static void flyby_timer(int id, float dt)
 static int flyby_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers))
+        (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
@@ -1956,7 +1981,10 @@ static int stroke_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(curr_player() - 1, curr_player() == 2);
         joy_active_cursor(curr_player() - 1, curr_player() == 3);
         joy_active_cursor(curr_player() - 1, curr_player() == 4);
-    }
+    } else joy_active_cursor(0, 1);
+
+    if (config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS))
+        st_autocalibrate_stick();
 
     stroke_allowed = 1;
     putt_clr_mag();
@@ -2012,20 +2040,21 @@ static void stroke_timer(int id, float dt)
     float k;
 
     if (SDL_GetModState() & KMOD_SHIFT || stroke_rotate_alt)
-        k = (dt * (1.0f / 60.0f)) / 4.0f;
+        k = dt / 4.0f;
     else
-        k = dt * (1.0f / 60.0f);
+        k = dt;
 
     if (dt <= 0.f) return;
 
-    putt_set_rot(stroke_rotate * k);
-    putt_set_mag(stroke_mag * k);
+    putt_set_rot_rate(stroke_rotate * k, dt);
+    putt_set_mag_rate(stroke_mag * k, dt);
 
     putt_update_view(dt);
 
     switch (putt_step(g, dt))
     {
-        case PUTT_FALL: goto_state(&st_putt_fall); break;
+        case PUTT_GOAL: hole_goal(1); goto_state(&st_putt_goal); break;
+        case PUTT_FALL: hole_fall(1); goto_state(&st_putt_fall); break;
     }
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -2046,7 +2075,7 @@ static void stroke_point(int id, int x, int y, int dx, int dy)
 
 static void stroke_stick(int id, int a, float v, int bump)
 {
-    if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
+    if (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers)
     {
         if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
             stroke_rotate = 6 * v;
@@ -2082,7 +2111,7 @@ static int stroke_keybd(int c, int d)
 static int stroke_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers))
+        (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
             stroke_rotate_alt = 1;
@@ -2092,14 +2121,14 @@ static int stroke_buttn(int b, int d)
             return goto_state(&st_putt_roll);
         }
 
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b) && stroke_type < 3)
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b) && stroke_type < 3)
         {
             stroke_type++;
             stroke_set_type(stroke_type);
             putt_set_mag(0);
             putt_hud_update_type();
         }
-        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L2, b) && stroke_type > 0)
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b) && stroke_type > 0)
         {
             stroke_type--;
             stroke_set_type(stroke_type);
@@ -2107,7 +2136,7 @@ static int stroke_buttn(int b, int d)
             putt_hud_update_type();
         }
     }
-    else if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
+    else if (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers)
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b))
             stroke_rotate_alt = 0;
@@ -2127,7 +2156,7 @@ static void stroke_fade(float alpha)
 
 static void stroke_wheel(int x, int y)
 {
-    if (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers)
+    if (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers)
     {
         if (y > 0 && stroke_type < 3)
         {
@@ -2189,7 +2218,7 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
             stroke_mag = 0;
 
             putt_hud_joystick_set(1, stroke_touch_ox, stroke_touch_oy,
-                                     stroke_touch_kx, stroke_touch_ky, 
+                                     stroke_touch_kx, stroke_touch_ky,
                                      stroke_touch_rb, stroke_touch_rk);
         }
     }
@@ -2262,7 +2291,7 @@ static int roll_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(curr_player() - 1, curr_player() == 2);
         joy_active_cursor(curr_player() - 1, curr_player() == 3);
         joy_active_cursor(curr_player() - 1, curr_player() == 4);
-    }
+    } else joy_active_cursor(0, 1);
 
     stroke_allowed = 0;
     video_hide_cursor();
@@ -2306,9 +2335,9 @@ static void roll_timer(int id, float dt)
 
     switch (putt_step(g, dt))
     {
-        case PUTT_STOP: goto_state(&st_putt_stop); break;
-        case PUTT_GOAL: goto_state(&st_putt_goal); break;
-        case PUTT_FALL: goto_state(&st_putt_fall); break;
+        case PUTT_STOP: hole_stop();  goto_state(&st_putt_stop); break;
+        case PUTT_GOAL: hole_goal(0); goto_state(&st_putt_goal); break;
+        case PUTT_FALL: hole_fall(0); goto_state(&st_putt_fall); break;
     }
 
     putt_step_fade(dt);
@@ -2342,7 +2371,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(curr_player() - 1, curr_player() == 2);
         joy_active_cursor(curr_player() - 1, curr_player() == 3);
         joy_active_cursor(curr_player() - 1, curr_player() == 4);
-    }
+    } else joy_active_cursor(0, 1);
 
     int id;
 
@@ -2402,8 +2431,6 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 
     if (paused)
         paused = 0;
-    else
-        hole_goal();
 
     putt_hud_hide();
     putt_hud_free();
@@ -2434,7 +2461,7 @@ static void goal_timer(int id, float dt)
 static int goal_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers))
+        (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
@@ -2461,12 +2488,10 @@ static int stop_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(curr_player() - 1, curr_player() == 2);
         joy_active_cursor(curr_player() - 1, curr_player() == 3);
         joy_active_cursor(curr_player() - 1, curr_player() == 4);
-    }
+    } else joy_active_cursor(0, 1);
 
     if (paused)
         paused = 0;
-    else
-        hole_stop();
 
     putt_hud_hide();
     putt_hud_free();
@@ -2510,7 +2535,7 @@ static void stop_timer(int id, float dt)
 static int stop_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers))
+        (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
@@ -2537,7 +2562,7 @@ static int fall_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(curr_player() - 1, curr_player() == 2);
         joy_active_cursor(curr_player() - 1, curr_player() == 3);
         joy_active_cursor(curr_player() - 1, curr_player() == 4);
-    }
+    } else joy_active_cursor(0, 1);
 
     int id;
 
@@ -2550,8 +2575,6 @@ static int fall_enter(struct state *st, struct state *prev, int intent)
 
     if (paused)
         paused = 0;
-    else
-        hole_fall(stroke_allowed);
 
     stroke_allowed = 1;
 
@@ -2597,7 +2620,7 @@ static void fall_timer(int id, float dt)
 static int fall_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(curr_player() - 1) || !party_indiv_controllers))
+        (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
@@ -2626,7 +2649,7 @@ static int retry_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(curr_player() - 1, curr_player() == 2);
         joy_active_cursor(curr_player() - 1, curr_player() == 3);
         joy_active_cursor(curr_player() - 1, curr_player() == 4);
-    }
+    } else joy_active_cursor(0, 1);
 
     if ((id = gui_title_header(0, _("Retry"), GUI_MED, gui_blk, gui_red)))
     {
@@ -2636,7 +2659,8 @@ static int retry_enter(struct state *st, struct state *prev, int intent)
 
     if (paused)
         paused = 0;
-    else
+
+    if (!stroke_allowed)
         hole_retry(stroke_allowed);
 
     stroke_allowed = 1;
@@ -2674,7 +2698,7 @@ static int score_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(1, 0);
         joy_active_cursor(2, 0);
         joy_active_cursor(3, 0);
-    }
+    } else joy_active_cursor(0, 1);
 
     audio_music_fade_out(2.f);
 
@@ -2697,7 +2721,7 @@ static void score_paint(int id, float t)
 static int score_keybd(int c, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(0) || !party_indiv_controllers))
+        (joy_get_cursor_actions(0) || joy_get_active_cursor(0) || !party_indiv_controllers))
     {
         if (KEY_IS_PAUSE(c))
             return goto_putt_pause(&st_putt_over, 1);
@@ -2708,7 +2732,7 @@ static int score_keybd(int c, int d)
 static int score_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(0) || !party_indiv_controllers))
+        (joy_get_cursor_actions(0) || joy_get_active_cursor(0) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             goto_state(hole_move() ? &st_putt_next : &st_putt_over);
@@ -2730,7 +2754,7 @@ static int over_enter(struct state *st, struct state *prev, int intent)
         joy_active_cursor(1, 0);
         joy_active_cursor(2, 0);
         joy_active_cursor(3, 0);
-    }
+    } else joy_active_cursor(0, 1);
 
     audio_music_fade_out(2.f);
     return transition_slide(score_card(_("Final Scores"), GUI_COLOR_DEFAULT, 1), 1, intent);
@@ -2760,7 +2784,7 @@ static void over_paint(int id, float t)
 static int over_keybd(int c, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(0) || !party_indiv_controllers))
+        (joy_get_cursor_actions(0) || joy_get_active_cursor(0) || !party_indiv_controllers))
     {
         if (c == KEY_EXIT)
             return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
@@ -2771,7 +2795,7 @@ static int over_keybd(int c, int d)
 static int over_buttn(int b, int d)
 {
     if (d &&
-        (joy_get_cursor_actions(0) || !party_indiv_controllers))
+        (joy_get_cursor_actions(0) || joy_get_active_cursor(0) || !party_indiv_controllers))
     {
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
             return exit_state(config_ball() ? &st_ball_title : (config_putt() ? &st_putt_title : NULL));
@@ -2789,7 +2813,7 @@ struct state st_putt_title = {
     title_paint,
     title_timer,
     shared_point,
-    shared_stick,
+    title_stick,
     NULL,
     title_click,
     title_keybd,

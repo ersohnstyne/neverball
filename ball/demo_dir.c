@@ -63,9 +63,36 @@ static void load_item(struct dir_item *item)
 
 static int scan_item(struct dir_item *item)
 {
+#if (_WIN32 && _MSC_VER)
+    /* Windows 11 Exclusive! */
+    return
+        /* Audio Visual Interleave */
+        str_ends_with(item->path, ".avi") ||
+
+        /* MP4 Video file */
+        str_ends_with(item->path, ".mp4")  ||
+        str_ends_with(item->path, ".m4v")  ||
+        str_ends_with(item->path, ".mp4v") ||
+        str_ends_with(item->path, ".3g2")  ||
+        str_ends_with(item->path, ".3gp2") ||
+        str_ends_with(item->path, ".3gp")  ||
+        str_ends_with(item->path, ".3gpp") ||
+
+        /* QuickTime Movie file */
+        str_ends_with(item->path, ".mov") ||
+
+        /* WEBM */
+        str_ends_with(item->path, ".webm") ||
+
+        /* WGCL Replay Files */
+        str_ends_with(item->path,
+                      str_ends_with(item->path, ".nbrx") ?
+                      ".nbrx" : ".nbr");
+#else
     return str_ends_with(item->path,
                          str_ends_with(item->path, ".nbrx") ?
                          ".nbrx" : ".nbr");
+#endif
 }
 
 static int cmp_items(const void *A, const void *B)

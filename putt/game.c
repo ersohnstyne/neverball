@@ -58,11 +58,9 @@ static float idle_t;                    /* Idling timeout                    */
 
 static int   fast_timescale;            /* Whether fast-timescale mode is on */
 
-static int enable_force_timeout;
-
 /*
  * Move timeout after stop.
- * Maximum move timeout is up to 70 seconds.
+ * Maximum move timeout is up to 30 seconds.
  */
 static float roll_force_timeout;
 
@@ -105,6 +103,8 @@ static void view_init(void)
 
 int putt_init(const char *s)
 {
+    if (state) putt_free();
+
     int i;
 
     jump_e = 1;
@@ -151,6 +151,7 @@ void putt_free(void)
     personal_respawnable = 0;
 
     sol_free_full(&file);
+    state = 0;
 }
 
 void putt_free_objects(void)
@@ -544,8 +545,7 @@ static int putt_update_state(float dt)
         t += dt;
         roll_force_timeout += dt;
     }
-    else
-        t = 0.f;
+    else t = 0.f;
 
     /* Test for a switch. */
 
@@ -592,7 +592,7 @@ static int putt_update_state(float dt)
         return PUTT_GOAL;
     }
 
-    if (t > idle_t && roll_force_timeout > 70.0f)
+    if (t > idle_t && roll_force_timeout > 30.0f)
     {
         roll_force_timeout = 0.f;
         t = 0.f;
@@ -641,6 +641,11 @@ int putt_step(const float g[3], float dt)
         }
     }
 
+    /*if (fp->uv[ball].v[0] <= 0.01f && fp->uv[ball].v[0] >= -0.01f &&
+        fp->uv[ball].v[2] <= 0.01f && fp->uv[ball].v[2] >= -0.01f)
+        s += dt;
+    else s = (7.f * s + dt) / 8.f;*/
+
     s = (7.f * s + dt) / 8.f;
     t = s;
 
@@ -685,16 +690,15 @@ int putt_step(const float g[3], float dt)
             audio_play(AUD_BUMP, (b - 0.5f) * 2.0f);
     }
 
-    if (fp->uv[ball].v[0] == 0.0f && fp->uv[ball].v[2] == 0.0f)
-        enable_force_timeout = 1;
-
     putt_update_view(dt);
     return putt_update_state(st);
 }
 
 void putt_putt(void)
 {
-    enable_force_timeout = 1;
+    if (!state)
+        return;
+
     roll_force_timeout = 0;
 
     /*
@@ -725,16 +729,25 @@ void putt_putt(void)
 
 void putt_set_rot(int d)
 {
+    if (!state)
+        return;
+
     view_a += (float) (30.f * d) / config_get_d(CONFIG_MOUSE_SENSE);
 }
 
 void putt_clr_mag(void)
 {
+    if (!state)
+        return;
+
     view_m = 1.f;
 }
 
 void putt_set_mag(int d)
 {
+    if (!state)
+        return;
+
     view_m -= (float) (1.f * d) / config_get_d(CONFIG_MOUSE_SENSE);
 
     switch (curr_stroke_type())
@@ -837,9 +850,38 @@ void putt_set_fly(float k)
     view_a = V_DEG(fatan2f(view_e[2][0], view_e[2][2]));
 }
 
+void putt_set_rot_rate(int d, float dt)
+{
+    if (!state)
+        return;
+
+    view_a -= (float) (1.f * d) * dt * (fast_timescale ? 3.0f : 1.0f);
+}
+
+void putt_set_mag_rate(int d, float dt)
+{
+    if (!state)
+        return;
+
+    view_m -= (float) (1.f * d) / dt * (fast_timescale ? 3.0f : 1.0f);
+
+    switch (curr_stroke_type())
+    {
+        case 3:
+            view_m = CLAMP(.25f, view_m, 2.25f); break;
+        case 2:
+            view_m = CLAMP(.25f, view_m, 2.f);   break;
+        case 1:
+            view_m = CLAMP(.25f, view_m, 1.75f); break;
+        default:
+            view_m = CLAMP(.25f, view_m, 1.5f);
+    }
+}
+
 void putt_ball(int i)
 {
-    enable_force_timeout = 1;
+    if (!state)
+        return;
 
     int ui;
 
@@ -862,6 +904,8 @@ void putt_ball(int i)
 
 void putt_get_pos(float p[3], float e[3][3])
 {
+    if (!state) return;
+
     v_cpy(p,    file.vary.uv[ball].p);
     v_cpy(e[0], file.vary.uv[ball].e[0]);
     v_cpy(e[1], file.vary.uv[ball].e[1]);
@@ -870,6 +914,8 @@ void putt_get_pos(float p[3], float e[3][3])
 
 void putt_set_pos(float p[3], float e[3][3])
 {
+    if (!state) return;
+
     v_cpy(file.vary.uv[ball].p,    p);
     v_cpy(file.vary.uv[ball].e[0], e[0]);
     v_cpy(file.vary.uv[ball].e[1], e[1]);
@@ -878,6 +924,9 @@ void putt_set_pos(float p[3], float e[3][3])
 
 void putt_set_fast(int d)
 {
+    if (!state)
+        return;
+
     if (!config_cheat())
     {
         fast_timescale = 0;

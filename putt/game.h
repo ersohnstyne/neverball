@@ -51,7 +51,7 @@
 
 /*---------------------------------------------------------------------------*/
 
-#define MAX_DT  (1.0f / 90.0f)         /* Maximum physics update cycle       */
+#define MAX_DT  (1.0f / 60.0f)         /* Maximum physics update cycle       */
 #define MAX_DN  16                     /* Maximum subdivisions of dt         */
 #define FOV     50.00f                 /* Field of view                      */
 #define RESPONSE 0.05f                 /* Input smoothing time               */
@@ -82,6 +82,9 @@ void putt_set_rot(int);
 void putt_clr_mag(void);
 void putt_set_mag(int);
 void putt_set_fly(float);
+
+void putt_set_rot_rate(int, float);
+void putt_set_mag_rate(int, float);
 
 void putt_ball(int);
 void putt_set_pos(float[3], float[3][3]);

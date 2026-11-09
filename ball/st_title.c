@@ -1934,6 +1934,27 @@ static void title_point(int id, int x, int y, int dx, int dy)
 
 static void title_stick(int id, int a, float v, int bump)
 {
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    if (!title_lockscreen && title_gui_wgcl_version_enabled)
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_AXIS_X0, a))
+        {
+            if (v < 0.2f)
+                EM_ASM({
+                    try {
+                        CoreLauncher_WGCLGame_MainMenu_RingPad_RotateLeft();
+                    } catch (e) {}
+                });
+            if (v > 0.2f)
+                EM_ASM({
+                    try {
+                        CoreLauncher_WGCLGame_MainMenu_RingPad_RotateRight();
+                    } catch (e) {}
+                });
+        }
+    }
+#endif
+
     if (!title_lockscreen && !title_gui_wgcl_version_enabled)
         gui_pulse(gui_stick(vbuttons_id ? vbuttons_id : id, a, v, bump), 1.2f);
 }
@@ -1965,7 +1986,15 @@ static int title_keybd(int c, int d)
     if (time_state() < 0.05f ||
         (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
-    if (title_lockscreen || title_gui_wgcl_version_enabled) return 1;
+    if (title_lockscreen || title_gui_wgcl_version_enabled)
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    {
+        if (d && c == KEY_EXIT) EM_ASM({ try { CoreLauncher_WGCLGame_MainMenu_RingPad_PerformBackBtnClicked(); } catch (e) {} });
+        return 1;
+    }
+#else
+        return 1;
+#endif
 
     if (d)
     {
@@ -2006,7 +2035,28 @@ static int title_buttn(int b, int d)
     if (time_state() < 0.05f ||
         (title_intro_animation && time_state() < 2.0f && config_get_d(CONFIG_SCREEN_ANIMATIONS))) return 1;
 
-    if (title_gui_wgcl_version_enabled) return 1;
+    if (title_gui_wgcl_version_enabled && d)
+    {
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b)) {
+            config_set_d(CONFIG_GAME, GAME_PUTT);
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+            EM_ASM({ try { CoreLauncher_WGCLGame_MainMenu_RingPad_Destroy(); } catch (e) {} });
+#endif
+            return goto_state(&st_putt_title);
+        }
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
+            EM_ASM({ try { CoreLauncher_WGCLGame_MainMenu_RingPad_PerformAction(wgclgame_hud_gamemenu_ringpad_menu_state, wgclgame_hud_gamemenu_ringpad_menubtn_index); } catch (e) {} });
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_B, b))
+            EM_ASM({ try { CoreLauncher_WGCLGame_MainMenu_RingPad_PerformBackBtnClicked(); } catch (e) {} });
+
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_L1, b))
+            EM_ASM({ try { CoreLauncher_WGCLGame_MainMenu_RingPad_RotateLeft(); } catch (e) {} });
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
+            EM_ASM({ try { CoreLauncher_WGCLGame_MainMenu_RingPad_RotateRight(); } catch (e) {} });
+#endif
+        return 1;
+    }
 
     /* Lock screen menu */
 
@@ -2027,6 +2077,10 @@ static int title_buttn(int b, int d)
     {
         int active = gui_active();
 
+        if (config_tst_d(CONFIG_JOYSTICK_BUTTON_Y, b)) {
+            config_set_d(CONFIG_GAME, GAME_PUTT);
+            return goto_state(&st_putt_title);
+        }
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_X, b) && config_online()) {
             title_swap_help_and_addons = !title_swap_help_and_addons;
             audio_play(title_swap_help_and_addons ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);

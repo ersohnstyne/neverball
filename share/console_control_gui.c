@@ -1757,6 +1757,14 @@ static void init_xbox_title(void)
 
             create_controller_spacer(xbox_control_title_id);
         }*/
+        
+        gui_label(xbox_control_title_id, _("Switch Game"),
+                  GUI_SML, gui_wht, gui_wht);
+
+        console_gui_create_a_button(xbox_control_title_id,
+                        config_get_d(CONFIG_JOYSTICK_BUTTON_Y), 1);
+
+        create_controller_spacer(xbox_control_title_id);
 
         if (config_online())
         {
@@ -2182,16 +2190,7 @@ static void init_xbox_model(void)
 #if !defined(DISABLE_ONLINE_DATA) && NB_HAVE_PB_BOTH==1
         if (account_get_d(ACCOUNT_PRODUCT_BALLS) == 1)
         {
-#if NB_STEAM_API==1 || NB_EOS_SDK==1
-            const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) == -1 ?
-                                          "Upgrade to Home edition!" :
-                                          "Go to Workshop!";
-#else
-            const char *more_balls_text = server_policy_get_d(SERVER_POLICY_EDITION) == -1 ?
-                                          "Upgrade to Home edition!" :
-                                          "Get more Balls!";
-#endif
-            gui_label(xbox_control_model_id, _(more_balls_text),
+            gui_label(xbox_control_model_id, _("Get more Balls!"),
                       GUI_SML, gui_wht, gui_wht);
             console_gui_create_y_button(xbox_control_model_id,
                             config_get_d(CONFIG_JOYSTICK_BUTTON_Y), 1);
@@ -2270,7 +2269,7 @@ static void init_xbox_putt_stroke()
                   GUI_SML, gui_wht, gui_wht);
 
         console_gui_create_lt_button(xbox_control_putt_stroke_id,
-                         config_get_d(CONFIG_JOYSTICK_BUTTON_L2), 1);
+                         config_get_d(CONFIG_JOYSTICK_BUTTON_R1), 1);
         console_gui_create_lb_button(xbox_control_putt_stroke_id,
                          config_get_d(CONFIG_JOYSTICK_BUTTON_L1), 1);
 
@@ -2341,7 +2340,7 @@ void console_gui_toggle(int active)
     show_control_gui = active;
 #endif
 
-    console_gui_slide(GUI_S | GUI_EASE_ELASTIC | (active ? 0 : GUI_BACKWARD));
+    console_gui_slide(GUI_S | GUI_FLING | GUI_EASE_BACK | (active ? 0 : GUI_BACKWARD));
 }
 
 void console_gui_init(void)

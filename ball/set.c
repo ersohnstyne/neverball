@@ -568,7 +568,6 @@ static void set_load_hs(void)
 
 int set_cmp_available_packages(const void *A, const void *B)
 {
-    
     const struct package *a = (const struct package *) A;
     const struct package *b = (const struct package *) B;
 

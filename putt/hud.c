@@ -165,7 +165,11 @@ int putt_hud_touch(const SDL_TouchFingerEvent *e)
     int hit_pause = gui_search(touch_pause_id, x, y);
     if (hit_pause)
     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if (e->type == SDL_EVENT_FINGER_UP)
+#else
         if (e->type == SDL_FINGERUP)
+#endif
         {
             gui_focus(0);
             return PUTT_TOUCH_PAUSE;

@@ -771,13 +771,13 @@ static float tilt_y;
 
 static SDL_FingerID tilt_finger   = -1;
 static SDL_FingerID rotate_finger = -1;
-static float rotate = 0.0f;
+static float rotate = 0.0f; /* Filtered input. */
 
 static void play_loop_touch_reset(void)
 {
     tilt_finger   = -1;
     rotate_finger = -1;
-    rotate = 0.0f;
+    rotate        = 0.0f;
     rot_clr(DIR_R | DIR_L);
 }
 
@@ -1478,12 +1478,6 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 
     devicemotion_timer_tilt = 0;
 
-#if NB_HAVE_PB_BOTH!=1
-    static SDL_FingerID rotate_finger = -1;
-
-    static float rotate = 0.0f; /* Filtered input. */
-#endif
-
     /*
      * Make sure not to exceed rotate_fast rotation speed.
      *
@@ -1506,8 +1500,12 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     int id;
 
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+#ifndef fingerId
 #define fingerId fingerID
-#define touchId  touchID
+#endif
+#ifndef touchID
+#define touchId touchID
+#endif
 #endif
 
     if ((id = hud_touch(e)))
@@ -1518,6 +1516,7 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
 
         if (token == GUI_BACK)
         {
+            play_loop_touch_reset();
             touch_arrow_enabled = 0;
             game_client_maxspeed(0.0f, touch_arrow_enabled);
             goto_ball_pause(curr_state());
@@ -1529,9 +1528,13 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     }
     else if (mode == TOUCH_MODE_DYNAMIC)
     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if (e->type == SDL_EVENT_FINGER_DOWN)
+#else
         if (e->type == SDL_FINGERDOWN)
+#endif
         {
-#if NB_PB_SDL3==1
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
             int *len_finger;
             SDL_Finger *finger, **fingers;
 
@@ -1551,7 +1554,11 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
                 rotate = 0.0f;
             }
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        else if (e->type == SDL_EVENT_FINGER_UP)
+#else
         else if (e->type == SDL_FINGERUP)
+#endif
         {
             if (e->fingerId == rotate_finger)
             {
@@ -1560,7 +1567,11 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
                 rotate = 0.0f;
             }
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        else if (e->type == SDL_EVENT_FINGER_MOTION)
+#else
         else if (e->type == SDL_FINGERMOTION)
+#endif
         {
             if (e->fingerId == rotate_finger)
                 play_loop_touch_rotate(e, rmax);
@@ -1572,19 +1583,25 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
     {
         int is_tilt_side = (mode == TOUCH_MODE_LR) ? (e->x < 0.5f) : (e->x >= 0.5f);
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        if (e->type == SDL_EVENT_FINGER_DOWN)
+#else
         if (e->type == SDL_FINGERDOWN)
+#endif
         {
             if (is_tilt_side)
-            {
                 tilt_finger = e->fingerId;
-            }
             else
             {
                 rotate_finger = e->fingerId;
                 rotate = 0.0f;
             }
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        else if (e->type == SDL_EVENT_FINGER_UP)
+#else
         else if (e->type == SDL_FINGERUP)
+#endif
         {
             if (e->fingerId == rotate_finger)
             {
@@ -1593,20 +1610,18 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
                 rotate = 0.0f;
             }
             else if (e->fingerId == tilt_finger)
-            {
                 tilt_finger = -1;
-            }
         }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        else if (e->type == SDL_EVENT_FINGER_MOTION)
+#else
         else if (e->type == SDL_FINGERMOTION)
+#endif
         {
             if (e->fingerId == rotate_finger)
-            {
                 play_loop_touch_rotate(e, rmax);
-            }
             else if (e->fingerId == tilt_finger)
-            {
                 play_loop_touch_tilt(e);
-            }
             else
             {
                 if (is_tilt_side && tilt_finger == -1)
@@ -1654,6 +1669,9 @@ static void play_loop_wheel(int x, int y)
 
 void wgcl_play_touch_pause(void)
 {
+    play_loop_touch_reset();
+    touch_arrow_enabled = 0;
+    game_client_maxspeed(0.0f, touch_arrow_enabled);
     goto_ball_pause(curr_state());
 }
 

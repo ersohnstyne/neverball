@@ -126,8 +126,7 @@ void course_score_init_hs(struct course_score *s)
 #endif
                           _("%s (%d)"),
                           config_get_s(CONFIG_PLAYER), i - 1);
-        else
-            SAFECPY(name, config_get_s(CONFIG_PLAYER));
+        else SAFECPY(name, config_get_s(CONFIG_PLAYER));
 
         s->player_id[i] = i;
 

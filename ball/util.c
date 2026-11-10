@@ -153,7 +153,7 @@ static void gui_stats(int id)
     stats_labels.fallout    = 0;
     stats_labels.clear_rate = 0;
 
-    if ((float) ((float) video.device_w / 
+    if ((float) ((float) video.device_w /
                  (float) video.device_h) < (4.0f / 3.0f))
         return;
 
@@ -362,7 +362,7 @@ void gui_set_stats(const struct level *l)
 
 void gui_levelgroup_stats(const struct level *l)
 {
-    if ((float) ((float) video.device_w / 
+    if ((float) ((float) video.device_w /
                  (float) video.device_h) < (4.0f / 3.0f))
         return;
 
@@ -384,9 +384,9 @@ void gui_levelgroup_stats(const struct level *l)
                                ((total_attempts_cleared / total_attempts) * 10000.0f) / 100.0f :
                                100.0f;
 
-    sprintf_s(buffer[0], 12, "%d", l->stats.completed);
-    sprintf_s(buffer[1], 12, "%d", l->stats.timeout + mapmarker_count_xt);
-    sprintf_s(buffer[2], 12, "%d", l->stats.fallout + mapmarker_count_xf);
+    sprintf_s(buffer[0], 12, "%d",     l->stats.completed);
+    sprintf_s(buffer[1], 12, "%d",     l->stats.timeout + mapmarker_count_xt);
+    sprintf_s(buffer[2], 12, "%d",     l->stats.fallout + mapmarker_count_xf);
     sprintf_s(buffer[3], 12, "%.2f%%", CLAMP(0, clr_rate_val, 100));
 #else
     /* Calculate the clear rate per levels (Internal only) */
@@ -396,17 +396,17 @@ void gui_levelgroup_stats(const struct level *l)
 
     const float clr_rate_val = total_attempts >= 1 ?
                                ((total_attempts_cleared / total_attempts) * 10000.0f) / 100.0f :
-                               100.0f;
+                               0.0f;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(buffer[0], 12, "%d",   l->stats.completed);
-    sprintf_s(buffer[1], 12, "%d",   l->stats.timeout);
-    sprintf_s(buffer[2], 12, "%d",   l->stats.fallout);
+    sprintf_s(buffer[0], 12, "%d",     l->stats.completed);
+    sprintf_s(buffer[1], 12, "%d",     l->stats.timeout);
+    sprintf_s(buffer[2], 12, "%d",     l->stats.fallout);
     sprintf_s(buffer[3], 12, "%.2f%%", CLAMP(0, clr_rate_val, 100));
 #else
-    sprintf(buffer[0], "%d",   l->stats.completed);
-    sprintf(buffer[1], "%d",   l->stats.timeout);
-    sprintf(buffer[2], "%d",   l->stats.fallout);
+    sprintf(buffer[0], "%d",    l->stats.completed);
+    sprintf(buffer[1], "%d",    l->stats.timeout);
+    sprintf(buffer[2], "%d",    l->stats.fallout);
     sprintf(buffer[3], "%.2f%%", CLAMP(0, clr_rate_val, 100));
 #endif
 #endif
@@ -433,14 +433,11 @@ void gui_levelgroup_stats(const struct level *l)
             gui_set_color(stats_labels.clear_rate, GUI_COLOR_CYA);
         else
             gui_set_color(stats_labels.clear_rate, gui_wht, gui_cya);
-
+        
         if (l->stats.completed == 0 &&
             l->stats.timeout   == 0 &&
             l->stats.fallout   == 0)
-        {
             gui_set_label(stats_labels.clear_rate, "---.-- %");
-            gui_set_color(stats_labels.clear_rate, gui_red, gui_blk);
-        }
         else gui_set_label(stats_labels.clear_rate, buffer[3]);
     }
 }
@@ -450,7 +447,7 @@ void gui_levelgroup_stats(const struct level *l)
 static int lock = 1;
 static int keyd[127];
 static int keyd_en[127];
-static int keyd_de[256];
+static int keyd_de[65535];
 
 /* Generic Keyboards */
 void gui_keyboard(int id)
@@ -730,8 +727,8 @@ void gui_keyboard_de(int id)
             {
                 gui_filler(ld);
                 const int bksp_id = gui_state(ld, GUI_TRIANGLE_LEFT, GUI_SML, GUI_BS, 0);
-                keyd_de[(unsigned char) '´'] = gui_state(ld, "`", GUI_SML, GUI_CHAR, '`');
-                keyd_de[(unsigned char) 'ß'] = gui_state(ld, "?", GUI_SML, GUI_CHAR, '?');
+                keyd_de[(unsigned int) '´'] = gui_state(ld, "`", GUI_SML, GUI_CHAR, '`');
+                keyd_de[(unsigned int) 'ß'] = gui_state(ld, "?", GUI_SML, GUI_CHAR, '?');
                 keyd_de['0'] = gui_state(ld, "=", GUI_SML, GUI_CHAR, '=');
                 keyd_de['9'] = gui_state(ld, ")", GUI_SML, GUI_CHAR, ')');
                 keyd_de['8'] = gui_state(ld, "(", GUI_SML, GUI_CHAR, '(');
@@ -752,7 +749,7 @@ void gui_keyboard_de(int id)
                 gui_filler(ld);
                 keyd_de['\''] = gui_state(ld, "'", GUI_SML, GUI_CHAR, '\'');
                 keyd_de['*'] = gui_state(ld, "*", GUI_SML, GUI_CHAR, '*');
-                keyd_de[(unsigned char) 'Ü'] = gui_state(ld, "Ü", GUI_SML, GUI_CHAR, 'Ü');
+                keyd_de[(unsigned int) 'Ü'] = gui_state(ld, "Ü", GUI_SML, GUI_CHAR, 'Ü');
                 keyd_de['P'] = gui_state(ld, "P", GUI_SML, GUI_CHAR, 'P');
                 keyd_de['O'] = gui_state(ld, "O", GUI_SML, GUI_CHAR, 'O');
                 keyd_de['I'] = gui_state(ld, "I", GUI_SML, GUI_CHAR, 'I');
@@ -768,8 +765,8 @@ void gui_keyboard_de(int id)
             if ((ld = gui_hstack(kd)))
             {
                 gui_filler(ld);
-                keyd_de[(unsigned char) 'Ä'] = gui_state(ld, "Ä", GUI_SML, GUI_CHAR, 'Ä');
-                keyd_de[(unsigned char) 'Ö'] = gui_state(ld, "Ö", GUI_SML, GUI_CHAR, 'Ö');
+                keyd_de[(unsigned int) 'Ä'] = gui_state(ld, "Ä", GUI_SML, GUI_CHAR, 'Ä');
+                keyd_de[(unsigned int) 'Ö'] = gui_state(ld, "Ö", GUI_SML, GUI_CHAR, 'Ö');
                 keyd_de['L'] = gui_state(ld, "L", GUI_SML, GUI_CHAR, 'L');
                 keyd_de['K'] = gui_state(ld, "K", GUI_SML, GUI_CHAR, 'K');
                 keyd_de['J'] = gui_state(ld, "J", GUI_SML, GUI_CHAR, 'J');
@@ -816,8 +813,8 @@ void gui_keyboard_lock_de(void)
     gui_set_label(keyd_de['8'], lock ? "(" : "8");
     gui_set_label(keyd_de['9'], lock ? ")" : "9");
     gui_set_label(keyd_de['0'], lock ? "=" : "0");
-    gui_set_label(keyd_de[(unsigned char) 'ß'], lock ? "?" : "ß");
-    gui_set_label(keyd_de[(unsigned char) '´'], lock ? "`" : "´");
+    gui_set_label(keyd_de[(unsigned int) 'ß'], lock ? "?" : "ß");
+    gui_set_label(keyd_de[(unsigned int) '´'], lock ? "`" : "´");
     gui_set_label(keyd_de['*'], lock ? "*" : "+");
     gui_set_label(keyd_de['\''], lock ? "'" : "#");
     gui_set_label(keyd_de[';'], lock ? ";" : ",");
@@ -849,9 +846,9 @@ void gui_keyboard_lock_de(void)
     gui_set_label(keyd_de['X'], lock ? "X" : "x");
     gui_set_label(keyd_de['Y'], lock ? "Y" : "y");
     gui_set_label(keyd_de['Z'], lock ? "Z" : "z");
-    gui_set_label(keyd_de[(unsigned char) 'Ä'], lock ? "Ä" : "ä");
-    gui_set_label(keyd_de[(unsigned char) 'Ö'], lock ? "Ö" : "ö");
-    gui_set_label(keyd_de[(unsigned char) 'Ü'], lock ? "Ü" : "ü");
+    gui_set_label(keyd_de[(unsigned int) 'Ä'], lock ? "Ä" : "ä");
+    gui_set_label(keyd_de[(unsigned int) 'Ö'], lock ? "Ö" : "ö");
+    gui_set_label(keyd_de[(unsigned int) 'Ü'], lock ? "Ü" : "ü");
 }
 
 #endif

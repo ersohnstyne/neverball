@@ -400,7 +400,7 @@ static int set_gui(void)
     desc_id = 0;
 
     int i = 0;
-    
+
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
     if (campaign_used())
     {

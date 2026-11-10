@@ -1755,7 +1755,6 @@ static int abandon_gui(void)
 
         gui_space(id);
 
-        
         if ((jd = gui_harray(id)))
         {
 #if NB_HAVE_PB_BOTH==1 && !defined(__EMSCRIPTEN__)

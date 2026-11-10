@@ -2201,7 +2201,11 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
     const float x = (float) video.device_w * e->x;
     const float y = (float) video.device_h * (1.0f - e->y);
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    if (e->type == SDL_EVENT_FINGER_DOWN)
+#else
     if (e->type == SDL_FINGERDOWN)
+#endif
     {
         if (stroke_touch_finger == -1)
         {
@@ -2222,7 +2226,11 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
                                      stroke_touch_rb, stroke_touch_rk);
         }
     }
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    else if (e->type == SDL_EVENT_FINGER_MOTION)
+#else
     else if (e->type == SDL_FINGERMOTION)
+#endif
     {
         if (e->fingerId == stroke_touch_finger)
         {
@@ -2259,7 +2267,11 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
                                      stroke_touch_rb, stroke_touch_rk);
         }
     }
+#if NB_HAVE_PB_BOTH == 1 && NB_PB_SDL3 == 1
+    else if (e->type == SDL_EVENT_FINGER_UP)
+#else
     else if (e->type == SDL_FINGERUP)
+#endif
     {
         if (e->fingerId == stroke_touch_finger)
         {

@@ -884,7 +884,11 @@ int hud_touch(const SDL_TouchFingerEvent *e)
 
     touch_timer = 5.0f;
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    if (e->type == SDL_EVENT_FINGER_UP)
+#else
     if (e->type == SDL_FINGERUP)
+#endif
     {
         const int x = (int) ((float) video.device_w * e->x);
         const int y = (int) ((float) video.device_h * (1.0f - e->y));

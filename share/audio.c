@@ -67,6 +67,10 @@
 
 /*---------------------------------------------------------------------------*/
 
+#if NB_HAVE_PB_BOTH==1
+#define NB_PB_AUDIO_HIGH_PERF 1
+#endif
+
 #if defined(__WII__)
 #define AUDIO_RATE 32000
 #else
@@ -121,7 +125,7 @@ static SDL_AudioSpec spec;
 static SDL_AudioSpec device_spec;
 
 #if defined(__WII__)
-#define VOICE_CACHE_COUNT 8 /* Was: 16 */
+#define VOICE_CACHE_COUNT 16
 
 #define SDL_OpenAudioDevice(_name, _capture, _req, _res, _changes) \
         SDL_OpenAudio(_req, _res)
@@ -132,6 +136,9 @@ static SDL_AudioSpec device_spec;
 #define SDL_CloseAudioDevice(_devid) \
         SDL_CloseAudio()
 
+static struct voice *voice_cache[VOICE_CACHE_COUNT];
+#elif NB_PB_AUDIO_HIGH_PERF==1
+#define VOICE_CACHE_COUNT 16
 static struct voice *voice_cache[VOICE_CACHE_COUNT];
 #endif
 
@@ -392,7 +399,7 @@ static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
     return 0;
 }
 
-#if defined(__WII__)
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
 void voice_free(struct voice *V);
 #endif
 static struct voice *voice_init(const char *filename, float a)
@@ -403,7 +410,7 @@ static struct voice *voice_init(const char *filename, float a)
     if (!filename || !*filename)
         return NULL;
 
-#if defined(__WII__)
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
     int i;
 
     /* Search cache for voice */
@@ -458,18 +465,20 @@ static struct voice *voice_init(const char *filename, float a)
                 if (V->amp < 0.0f) V->amp = 0.0;
 
                 /* The file will be closed when the Ogg is cleared. */
-                return V;
+                goto audio_voice_init_fs_open_read_done;
             }
             else fs_close(fp);
         }
     }
 
-#if defined(__WII__)
+audio_voice_init_fs_open_read_done:
+
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
     /* Put it in the cache */
 
     for (i = 0; i < VOICE_CACHE_COUNT; i++)
     {
-        if (voice_cache[i] == NULL)
+        if (voice_cache[i] == NULL && V)
         {
             voice_cache[i] = V;
             return V;
@@ -480,7 +489,7 @@ static struct voice *voice_init(const char *filename, float a)
 
     for (i = 0; i < VOICE_CACHE_COUNT; i++)
     {
-        if (voice_cache[i] != NULL && !voice_cache[i]->play)
+        if (voice_cache[i] != NULL && V && !voice_cache[i]->play)
         {
             voice_free(voice_cache[i]);
             voice_cache[i] = V;
@@ -489,13 +498,14 @@ static struct voice *voice_init(const char *filename, float a)
     }
 #endif
 
-    return NULL;
+    return V;
 }
 
 void voice_free(struct voice *V)
 {
     if (V)
     {
+        V->play = 0;
         ov_clear(&V->vf);
 
         free(V->name); V->name = NULL;
@@ -553,7 +563,7 @@ static void audio_step(void *data, Uint8 *stream, int length)
         if (voices_music->play &&
             voice_step(voices_music, music_vol * incomecall_amp, stream, length))
         {
-#if defined(__WII__)
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
             voices_music->play = 0;
 #else
             voice_free(voices_music);
@@ -561,17 +571,22 @@ static void audio_step(void *data, Uint8 *stream, int length)
 
             if (voices_queue)
             {
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
+                voice_free(voices_music);
+#endif
                 voices_music = voices_queue;
                 voices_queue = NULL;
             }
+#if !defined(__WII__) && NB_PB_AUDIO_HIGH_PERF!=1
             else voices_music = NULL;
+#endif
         }
 
         /* If the track has faded out, move to a queued track. */
 
         if (voices_music && voices_music->amp <= 0.0f && voices_music->damp < 0.0f && voices_queue)
         {
-#if defined(__WII__)
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
             voices_music->play = 0;
 #else
             voice_free(voices_music);
@@ -579,10 +594,21 @@ static void audio_step(void *data, Uint8 *stream, int length)
 
             if (voices_queue)
             {
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
+                voice_free(voices_music);
+#endif
                 voices_music = voices_queue;
                 voices_queue = NULL;
             }
         }
+    }
+
+    /* Track is not playing, so move to a queued track. */
+
+    else if (voices_queue)
+    {
+        voices_music = voices_queue;
+        voices_queue = NULL;
     }
 
     /* Mix the background ambient. */
@@ -590,12 +616,12 @@ static void audio_step(void *data, Uint8 *stream, int length)
     if (voices_ambient)
     {
         if (voices_ambient->play &&
-            voice_step(voices_ambient, (1.0f - music_vol) * sound_vol, stream, length))
-        {
-#if defined(__WII__)
+            voice_step(voices_ambient, (1.0f - music_vol) * sound_vol, stream, length)) {
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
             voices_ambient->play = 0;
 #else
             voice_free(voices_ambient);
+            voices_ambient = NULL;
 #endif
         }
     }
@@ -621,12 +647,12 @@ static void audio_step(void *data, Uint8 *stream, int length)
                     case 1: Vs[i] = voices_narrators = Vs[i]->next; break;
                 }
 
-#if defined(__WII__)
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
                 VT->play = 0;
 #else
                 voice_free(VT);
-#endif
                 VT = NULL;
+#endif
             }
             else
             {
@@ -766,8 +792,17 @@ void audio_free(void)
     }
 
     /* Free the voices. */
-
-#if !defined(__WII__)
+    
+#if !defined(__WII__) && NB_PB_AUDIO_HIGH_PERF==1
+    for (int i = 0; i < VOICE_CACHE_COUNT; i++)
+    {
+        if (voice_cache[i])
+        {
+            voice_quit(voice_cache[i]);
+            voice_cache[i] = NULL;
+        }
+    }
+#else
     if (voices_queue)
     {
         voice_quit(voices_queue);
@@ -833,9 +868,7 @@ void audio_free(void)
     }
 
     voices_narrators = NULL;
-
 #endif
-
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
     audio_state = 0;
@@ -1108,12 +1141,9 @@ void audio_music_stop(void)
 {
     if (audio_state)
     {
-#if defined(__WII__)
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
         if (voices_music)
-        {
-            voices_music->play = 0;
-            voices_music = NULL;
-        }
+            voice_free(voices_music);
 #else
         while (lock_hold) {}
         lock_hold = 1;
@@ -1188,11 +1218,7 @@ void audio_music_fade_to(float t, const char *filename, int loop)
 
             if (voices_queue)
             {
-#if defined(__WII__)
-                voices_queue->play = 0;
-#else
                 voice_free(voices_queue);
-#endif
                 voices_queue = NULL;
             }
 
@@ -1293,12 +1319,9 @@ void audio_ambient_stop(void)
 {
     if (audio_state)
     {
-#if defined(__WII__)
+#if defined(__WII__) || NB_PB_AUDIO_HIGH_PERF==1
         if (voices_ambient)
-        {
-            voices_ambient->play = 0;
-            voices_ambient = NULL;
-        }
+            voice_free(voices_ambient);
 #else
         while (lock_hold) {}
         lock_hold = 1;

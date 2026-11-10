@@ -2548,6 +2548,8 @@ static void main_quit(void)
     game_server_free(NULL);
     game_proxy_clr();
 
+    course_free();
+
     if (fetch_packages_offline)
         config_set_d(CONFIG_ONLINE, 1);
 
@@ -2745,7 +2747,7 @@ int main_share(int argc, char *argv[])
 
     /* Run the main game loop. */
 
-#if _WIN64
+#if _WIN64 && !(NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1)
     mainloop.start_time = SDL_GetTicks64();
 #else
     mainloop.start_time = SDL_GetTicks();

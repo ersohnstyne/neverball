@@ -292,7 +292,7 @@ static int start_action(int tok, int val)
     GAMEPAD_GAMEMENU_ACTION_SCROLL(GUI_PREV, GUI_NEXT, LEVEL_STEP);
 
     int have_online_session_data = 0;
-    
+
 #if NB_HAVE_PB_BOTH==1
     const int challenge_playable = accessibility_get_d(ACCESSIBILITY_SLOWDOWN) >= 100
 #if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)

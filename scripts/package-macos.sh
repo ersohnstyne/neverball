@@ -260,21 +260,13 @@ done
 # -----------------------------------------------------------------------------
 
 if [[ "$STATIC" -eq 1 ]]; then
-<<<<<<< HEAD
     echo "==> Static build: skipping dynamic library building"
-=======
-    echo "==> Static build: skipping dynamic library bundling."
->>>>>>> 2ef935c1a593ebfb80149e0e4333f03b3da96a79
     rm -rf "$FRAMEWORKS_DIR"
 else
     echo "==> Resolving, copying, and relinking dynamic libraries into Frameworks..."
     python3 "$REPO_ROOT/scripts/bundle-dylibs.py" \
         --frameworks-dir "$FRAMEWORKS_DIR" \
         "$MACOS_DIR/neverball" \
-<<<<<<< HEAD
-=======
-        "$MACOS_DIR/neverputt" \
->>>>>>> 2ef935c1a593ebfb80149e0e4333f03b3da96a79
         "$MACOS_DIR/mapc"
 fi
 

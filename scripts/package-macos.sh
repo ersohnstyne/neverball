@@ -72,8 +72,13 @@ while [[ $# -gt 0 ]]; do
             STATIC=1
             shift
             ;;
+<<<<<<< HEAD
         --no-static)
             STATIC=1
+=======
+        --no-static|--dynamic)
+            STATIC=0
+>>>>>>> 2ef935c1a593ebfb80149e0e4333f03b3da96a79
             shift
             ;;
         --skip-build)
@@ -156,6 +161,7 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
 
     echo "==> Compiling neverball and mapc for bundle (${ARCH})..."
     make clean-src
+<<<<<<< HEAD
     make -j"$NCPU" \
         BUILD="$BUILD_TYPE" \
         PLATFORM=darwin \
@@ -165,6 +171,25 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
         CXXFLAGS="-arch $ARCH -O2" \
         LDFLAGS="-arch $ARCH" \
         neverball mapc
+=======
+    MAKE_ARGS=(
+        -j"$NCPU"
+        BUILD="$BUILD_TYPE"
+        PLATFORM=darwin
+        DATADIR="../Resources/data"
+        LOCALEDIR="../Resources/locale"
+        CFLAGS="-arch $ARCH -O2"
+        CXXFLAGS="-arch $ARCH -O2"
+        LDFLAGS="-arch $ARCH"
+    )
+    if [[ "$STATIC" -eq 1 ]]; then
+        MAKE_ARGS+=(
+            STATIC=1
+            TTF_STATIC_LIB="$TTF_STATIC_LIB"
+        )
+    fi
+    make "${MAKE_ARGS[@]}" neverball neverputt mapc
+>>>>>>> 2ef935c1a593ebfb80149e0e4333f03b3da96a79
 fi
 
 for bin in neverball mapc; do
@@ -235,13 +260,21 @@ done
 # -----------------------------------------------------------------------------
 
 if [[ "$STATIC" -eq 1 ]]; then
+<<<<<<< HEAD
     echo "==> Static build: skipping dynamic library building"
+=======
+    echo "==> Static build: skipping dynamic library bundling."
+>>>>>>> 2ef935c1a593ebfb80149e0e4333f03b3da96a79
     rm -rf "$FRAMEWORKS_DIR"
 else
     echo "==> Resolving, copying, and relinking dynamic libraries into Frameworks..."
     python3 "$REPO_ROOT/scripts/bundle-dylibs.py" \
         --frameworks-dir "$FRAMEWORKS_DIR" \
         "$MACOS_DIR/neverball" \
+<<<<<<< HEAD
+=======
+        "$MACOS_DIR/neverputt" \
+>>>>>>> 2ef935c1a593ebfb80149e0e4333f03b3da96a79
         "$MACOS_DIR/mapc"
 fi
 

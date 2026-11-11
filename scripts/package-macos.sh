@@ -161,17 +161,6 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
 
     echo "==> Compiling neverball and mapc for bundle (${ARCH})..."
     make clean-src
-<<<<<<< HEAD
-    make -j"$NCPU" \
-        BUILD="$BUILD_TYPE" \
-        PLATFORM=darwin \
-        DATADIR="../Resources/data" \
-        LOCALEDIR="../Resources/locale" \
-        CFLAGS="-arch $ARCH -O2" \
-        CXXFLAGS="-arch $ARCH -O2" \
-        LDFLAGS="-arch $ARCH" \
-        neverball mapc
-=======
     MAKE_ARGS=(
         -j"$NCPU"
         BUILD="$BUILD_TYPE"
@@ -189,10 +178,9 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
         )
     fi
     make "${MAKE_ARGS[@]}" neverball neverputt mapc
->>>>>>> 2ef935c1a593ebfb80149e0e4333f03b3da96a79
 fi
 
-for bin in neverball mapc; do
+for bin in neverball neverputt mapc; do
     if [[ ! -f "$REPO_ROOT/$bin" ]]; then
         echo "Error: Expected compiled binary '$bin' was not found." >&2
         exit 1
@@ -267,6 +255,7 @@ else
     python3 "$REPO_ROOT/scripts/bundle-dylibs.py" \
         --frameworks-dir "$FRAMEWORKS_DIR" \
         "$MACOS_DIR/neverball" \
+        "$MACOS_DIR/neverputt" \
         "$MACOS_DIR/mapc"
 fi
 

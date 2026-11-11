@@ -68,7 +68,7 @@
 /*---------------------------------------------------------------------------*/
 
 #if NB_HAVE_PB_BOTH==1
-#define NB_PB_AUDIO_HIGH_PERF 1
+//#define NB_PB_AUDIO_HIGH_PERF 1
 #endif
 
 #if defined(__WII__)

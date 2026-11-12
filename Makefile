@@ -495,8 +495,10 @@ ifeq ($(STATIC),1)
 	ifneq ($(ENABLE_NLS),0)
 		INTL_LIBS := $(BREW_PREFIX)/opt/gettext/lib/libintl.a -liconv
 	endif
+	
+	SDL_STATIC_LIB := $(BREW_PREFIX)/opt/sdl2/lib/libSDL2.a
 
-	SDL_LIBS := $(BREW_PREFIX)/opt/sdl2/lib/libSDL2.a \
+	SDL_LIBS := $(SDL_STATIC_LIB) \
 	            -Wl,-framework,Cocoa \
 	            -Wl,-framework,IOKit \
 	            -Wl,-framework,CoreAudio \

@@ -22,7 +22,6 @@ SIGN_IDENTITY="-"
 OUT_DIR="build/macos"
 CREATE_DMG=1
 SKIP_BUILD=0
-STATIC=1
 
 usage() {
     cat <<EOF
@@ -34,7 +33,6 @@ Options:
   --identity <id>       Code signing identity (default: "-" for ad-hoc signing)
   --out-dir <dir>       Output directory for .app and .dmg (default: build/macos)
   --no-dmg              Skip creating the .dmg disk image
-  --no-static           Build with dynamically bundled dylibs instead of static linking
   --skip-build          Skip compilation and assemble bundle from existing binaries
   -h, --help            Show this help message
 EOF

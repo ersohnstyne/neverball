@@ -498,6 +498,11 @@ ifeq ($(STATIC),1)
 	
 	SDL_STATIC_LIB := $(BREW_PREFIX)/opt/sdl2/lib/libSDL2.a
 
+<<<<<<< HEAD
+=======
+	SDL_STATIC_LIB ?= $(BREW_PREFIX)/opt/sdl2/lib/libSDL2.a
+
+>>>>>>> 325778e6851faf0969940f176e46761860a788e9
 	SDL_LIBS := $(SDL_STATIC_LIB) \
 	            -Wl,-framework,Cocoa \
 	            -Wl,-framework,IOKit \

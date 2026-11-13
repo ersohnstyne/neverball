@@ -231,7 +231,6 @@ endif
 endif
 endif
 
-<<<<<<< HEAD
 # Preprocessor...
 # New: Game Transfer
 ifeq ($(ENABLE_GAME_TRANSFER_SOURCE),1)
@@ -262,12 +261,6 @@ ifneq ($(FRAMEWORK_DIR),)
 	SDL_CPPFLAGS := -F$(FRAMEWORK_DIR) \
 	                -I$(FRAMEWORK_DIR)/SDL2.framework/headers \
 	                -I$(FRAMEWORK_DIR)/SDL2_ttf.framework/headers \
-=======
-ifneq ($(FRAMEWORK_DIR),)
-	SDL_CPPFLAGS := -F$(FRAMEWORK_DIR) \
-	                -I$(FRAMEWORK_DIR)/SDL2.framework/Headers \
-	                -I$(FRAMEWORK_DIR)/SDL2_ttf.framework/Headers
->>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
 else
 	SDL_CPPFLAGS := $(shell sdl2-config --cflags)
 endif
@@ -508,19 +501,11 @@ ifeq ($(STATIC),1)
 	ifneq ($(ENABLE_NLS),0)
 		INTL_LIBS := $(BREW_PREFIX)/opt/gettext/lib/libintl.a -liconv -Wl,-framework,CoreFoundation
 	endif
-<<<<<<< HEAD
 	
-ifneq ($(FRAMEWORK_DIR),)
-	SDL_LIBS := -F$(FRAMEWORK_DIR) -framework SDL2 -Wl,-rpath,@executable_path/..Frameworks
-	TTF_LIBS := -framework SDL2_ttf
-	LDFLAGS  += -F$(FRAMEWORK_DIR) -Wl,-rpath,@executable_path/..Frameworks
-=======
-
 ifneq ($(FRAMEWORK_DIR),)
 	SDL_LIBS := -F$(FRAMEWORK_DIR) -framework SDL2 -Wl,-rpath,@executable_path/../Frameworks
 	TTF_LIBS := -framework SDL2_ttf
 	LDFLAGS  += -F$(FRAMEWORK_DIR) -Wl,-rpath,@executable_path/../Frameworks
->>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
 else
 	SDL_STATIC_LIB ?= $(BREW_PREFIX)/opt/sdl2/lib/libSDL2.a
 

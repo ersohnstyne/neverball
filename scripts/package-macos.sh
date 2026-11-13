@@ -131,6 +131,7 @@ download_framework() {
     local name="$1"
     local ver="$2"
     local dmg_url="$3"
+<<<<<<< HEAD
     local fw_name="$4"
 
     if [[ ! -d "$FRAMEWORK_DIR/$fw_name" ]]; then
@@ -139,6 +140,16 @@ download_framework() {
         local dmg_file="$OUT_DIR/${name}-${ver}.dmg"
         if [[ ! -f "$dmg_file" ]]; then
             curl -sSfl "$dmg_url" -o "$dmg_file"
+=======
+    local fw_name="${name}.framework"
+
+    if [[ ! -d "$FRAMEWORKS_DIR/$fw_name" ]]; then
+        echo "==> Fetching official $name $ver framework..."
+        mkdir -p "$FRAMEWORKS_DIR"
+        local dmg_file="$OUT_DIR/${name}-${ver}.dmg"
+        if [[ ! -f "$dmg_file" ]]; then
+            curl -sSfL "$dmg_url" -o "$dmg_file"
+>>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
         fi
         local mnt
         mnt="$(mktemp -d -t "${name}_mnt")"
@@ -148,14 +159,18 @@ download_framework() {
         rm -rf "$mnt"
     fi
 }
+<<<<<<< HEAD
 
 TTF_STATIC_LIB="$OUT_DIR/libSDL2_ttf_${ARCH}.a"
+=======
+>>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
 
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
     download_framework "SDL2" "$SDL2_VERSION" \
         "https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_VERSION}/SDL2-${SDL2_VERSION}.dmg"
     download_framework "SDL2_ttf" "$SDL2_TTF_VERSION" \
         "https://github.com/libsdl-org/SDL_ttf/releases/download/release-${SDL2_TTF_VERSION}/SDL2_ttf-${SDL2_TTF_VERSION}.dmg"
+<<<<<<< HEAD
 
     echo "==> Compiling minimal SDL2_ttf for ${ARCH}..."
     SDL_TTF_SRC="$OUT_DIR/SDL_ttf.c"
@@ -168,6 +183,8 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
         -I"$BREW_PREFIX/include/freetype2"
     ar rcs "$TTF_STATIC_LIB" "$OUT_DIR/SDL_ttf_${ARCH}.o"
     rm -f "$OUT_DIR/SDL_ttf_${ARCH}.o"
+=======
+>>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
 
     echo "==> Compiling mapc, sols, and locales..."
     make clean-src
@@ -205,6 +222,7 @@ APP_NAME="Neverball"
 APP_DIR="$OUT_DIR/${APP_NAME}.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
+FRAMEWORKS_DEST_DIR="$CONTENTS_DIR/Frameworks"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 FRAMEWORKS_DEST_DIR="$CONTENTS_DIR/Frameworks"
 DATA_DIR="$RESOURCES_DIR/data"
@@ -220,7 +238,11 @@ cp -R "$FRAMEWORKS_DIR/SDL2.framework" "$FRAMEWORKS_DEST_DIR/"
 cp -R "$FRAMEWORKS_DIR/SDL2_ttf.framework" "$FRAMEWORKS_DEST_DIR/"
 
 # 2. Copy executables
+<<<<<<< HEAD
 echo "==> Copying binaries (neverball, mapc)..."
+=======
+echo "==> Copying binaries (neverball, neverputt, mapc)..."
+>>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
 cp "$REPO_ROOT/neverball" "$MACOS_DIR/neverball"
 cp "$REPO_ROOT/mapc" "$MACOS_DIR/mapc"
 chmod 755 "$MACOS_DIR"/*
@@ -263,12 +285,20 @@ done
 # -----------------------------------------------------------------------------
 
 echo "==> Code signing bundle (identity: '${SIGN_IDENTITY}')..."
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
 CODESIGN_CMD=(codesign --force --sign "${SIGN_IDENTITY}")
 if [[ "$SIGN_IDENTITY" != "-" ]]; then
     CODESIGN_CMD+=(--options runtime)
 fi
 
+<<<<<<< HEAD
 # 1. Sign embeeded frameworks
+=======
+# 1. Sign embedded frameworks
+>>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
 for fw in "$FRAMEWORKS_DEST_DIR"/*.framework; do
     if [[ -d "$fw" ]]; then
         "${CODESIGN_CMD[@]}" "$fw"

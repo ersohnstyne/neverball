@@ -384,6 +384,7 @@ static void opt_init(int argc, char **argv)
                 opt_error(argv[i]);
                 exit(EXIT_FAILURE);
             }
+<<<<<<< HEAD
 
             if (!opt_data)
                 opt_data = argv[++i];
@@ -393,6 +394,13 @@ static void opt_init(int argc, char **argv)
 #else
                 fs_add_path(argv[++i]);
 #endif
+=======
+            if (!opt_data)
+                opt_data = argv[++i];
+            else
+                fs_add_path(argv[++i]);
+            continue;
+>>>>>>> 3c9f2dd98eafdd1ef3d325b73796128bd820e410
         }
 
         if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--replay")  == 0)

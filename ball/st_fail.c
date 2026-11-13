@@ -74,6 +74,8 @@
 #include "game_sha256.h"
 #endif
 
+#include "package_superwaifu.h"
+
 #include "st_common.h"
 #include "st_play.h"
 #include "st_shop.h"
@@ -619,7 +621,8 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
 
 static int fail_gui_wgcl(void)
 {
-    if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY)) return 0;
+    if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY) &&
+        game_common_superwaifu_game_installed()) return 0;
 
 #if NB_HAVE_PB_BOTH==1
     if (server_policy_get_d(SERVER_POLICY_EDITION) <= 0) return 0;
@@ -961,8 +964,10 @@ static int fail_enter(struct state *st, struct state *prev, int intent)
 {
     /* HACK: Auto-Retry and Faster Reset. */
 
-    const int advancedconfig_autoretry   = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY),
-              advancedconfig_fasterreset = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET);
+    const int advancedconfig_autoretry   = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY) &&
+                                           game_common_superwaifu_game_installed(),
+              advancedconfig_fasterreset = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET) &&
+                                           game_common_superwaifu_game_installed();
 
     if (curr_mode() != MODE_CHALLENGE  &&
         curr_mode() != MODE_BOOST_RUSH &&
@@ -1080,7 +1085,8 @@ static void fail_paint(int id, float t)
 
 static void fail_timer(int id, float dt)
 {
-    const int advancedconfig_autoretry = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY);
+    const int advancedconfig_autoretry = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY) &&
+                                         game_common_superwaifu_game_installed();
     const float fail_time_state = time_state();
 
     if (fail_intro_animation_phase == 1)
@@ -1202,7 +1208,8 @@ static int fail_buttn(int b, int d)
      * HACK: Auto-Retry only.
      */
 
-    const int advancedconfig_autoretry = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY);
+    const int advancedconfig_autoretry = config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY) &&
+                                         game_common_superwaifu_game_installed();
 
     if (d)
     {

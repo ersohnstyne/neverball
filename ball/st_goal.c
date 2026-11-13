@@ -742,7 +742,13 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
     if (!resume)
     {
         if (goal_intro_animation_phase == 1)
+        {
+#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
+            if (campaign_used())
+                audio_play(AUD_GOAL_CAMPAIGN, 1.0f);
+#endif
             challenge_has_active_chkp = 0;
+        }
 
 #ifdef MAPC_INCLUDES_CHKP
         if ((curr_mode() == MODE_CHALLENGE ||
@@ -752,7 +758,10 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 #endif
           || curr_mode() == MODE_DAILY
             ) && goal_intro_animation_phase == 1)
+        {
             challenge_has_active_chkp = last_active;
+            checkpoints_stop();
+        }
 #endif
 
         goal_intro_speedmultiplier = 1.0f;
@@ -760,13 +769,6 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
 #if NB_HAVE_PB_BOTH==1 && \
     defined(CONFIG_INCLUDES_ACCOUNT) && defined(ENABLE_POWERUP)
         powerup_stop();
-#endif
-#ifdef MAPC_INCLUDES_CHKP
-        checkpoints_stop();
-#endif
-#ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-        if (campaign_used())
-            audio_play(AUD_GOAL_CAMPAIGN, 1.0f);
 #endif
     }
 

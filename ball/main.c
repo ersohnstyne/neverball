@@ -74,8 +74,8 @@
 
 #elif _WIN32 && (!_MSC_VER || defined(__MINGW__))
 #error Security compilation error: MinGW not supported! Use Visual Studio for Windows instead!
-#elif _WIN64 && _MSC_VER < 1950
-#error Security compilation error: Visual Studio 2026 requires MSVC 14.50.x and later version!
+#elif _WIN64 && _MSC_VER < 1952
+#error Security compilation error: Visual Studio 2026 requires MSVC 14.52.x and later version!
 #elif _WIN32 && !_WIN64
 #error Security compilation error: Game source code compilation requires x64 and not Win32!
 #endif

@@ -237,7 +237,7 @@ const char ICON[] = GAME_ICON;
 static_assert(GAME_DEFAULT == 0, "Mismatch game product!: GAME_DEFAULT == GAME_BALL");
 #endif
 
-static List opt_data_multi = NULL;
+static char *opt_data;
 static List opt_level_multi = NULL;
 
 static char *opt_replay;
@@ -384,9 +384,15 @@ static void opt_init(int argc, char **argv)
                 opt_error(argv[i]);
                 exit(EXIT_FAILURE);
             }
-            opt_data_multi = list_cons(strdup(argv[i + 1]), opt_data_multi);
-            log_printf("Added data path to opt_data_multi: %s\n", argv[i + 1]);
-            i++;
+
+            if (!opt_data)
+                opt_data = argv[++i];
+            else
+#if NB_HAVE_PB_BOTH==1
+                fs_add_path_with_archives(argv[++i]);
+#else
+                fs_add_path(argv[++i]);
+#endif
         }
 
         if (strcmp(argv[i], "-r") == 0 || strcmp(argv[i], "--replay")  == 0)
@@ -504,20 +510,13 @@ static void opt_init(int argc, char **argv)
 
 static void opt_quit(void)
 {
-    while (opt_data_multi)
-    {
-        free(opt_data_multi->data);
-        opt_data_multi->data = NULL;
-        opt_data_multi = list_rest(opt_data_multi);
-    }
-
     opt_replay = NULL;
 
     while (opt_level_multi)
     {
         free(opt_level_multi->data);
         opt_level_multi->data = NULL;
-        opt_level_multi = list_rest(opt_data_multi);
+        opt_level_multi = list_rest(opt_level_multi);
     }
 
     opt_link   = NULL;
@@ -2138,10 +2137,6 @@ static int main_init(int argc, char *argv[])
     srand((unsigned int) time(NULL));
 
     opt_init(argc, argv);
-
-    if (opt_data_multi)
-        for (List p = opt_data_multi; p; p = p->next)
-            fs_add_path_with_archives((const char *) p->data);
 
     config_paths(NULL);
 

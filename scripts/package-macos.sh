@@ -23,6 +23,9 @@ OUT_DIR="build/macos"
 CREATE_DMG=1
 SKIP_BUILD=0
 
+SDL2_VERSION="2.32.8"
+SDL2_TTF_VERSION="2.24.0"
+
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [options]
@@ -122,35 +125,37 @@ echo "=== Packaging Neverball ${VERSION} (macOS ${ARCH}) ==="
 export MACOSX_DEPLOYMENT_TARGET="11.0"
 NCPU="$(sysctl -n hw.ncpu 2>/dev/null || echo 4)"
 BREW_PREFIX="$(brew --prefix 2>/dev/null || echo /opt/homebrew)"
+FRAMEWORKS_DIR="$OUT_DIR/Frameworks"
+
+download_framework() {
+    local name="$1"
+    local ver="$2"
+    local dmg_url="$3"
+    local fw_name="$4"
+
+    if [[ ! -d "$FRAMEWORK_DIR/$fw_name" ]]; then
+        echo "==> Fetching oficial $name $ver framework"
+        mkdir -p "$FRAMEWORK_DIR"
+        local dmg_file="$OUT_DIR/${name}-${ver}.dmg"
+        if [[ ! -f "$dmg_file" ]]; then
+            curl -sSfl "$dmg_url" -o "$dmg_file"
+        fi
+        local mnt
+        mnt="$(mktemp -d -t "${name}_mnt")"
+        hdiutil attach "$dmg_file" -mountpoint "$mnt" -nobrowse -quiet
+        cp -R "$mnt/$fw_name" "$FRAMEWORKS_DIR/"
+        hdiutil detach "$mnt" -quiet
+        rm -rf "$mnt"
+    fi
+}
+
 TTF_STATIC_LIB="$OUT_DIR/libSDL2_ttf_${ARCH}.a"
 
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
-    SDL_STATIC_LIB_DEFAULT="$BREW_PREFIX/opt/sdl2/lib/libSDL2.a"
-    if [[ -z "${SDL_STATIC_LIB:-}" ]]; then
-        if [[ -f "$SDL_STATIC_LIB_DEFAULT" ]]; then
-            SDL_STATIC_LIB="$SDL_STATIC_LIB_DEFAULT"
-        else
-            SDL_STATIC_LIB="$OUT_DIR/libSDL2_${ARCH}.a"
-        fi
-    fi
-
-    if [[ ! -f "$SDL_STATIC_LIB" ]]; then
-        echo "==> Compiling SDL2 static library for ${ARCH}..."
-        SDL2_VER="2.32.8"
-        SDL2_SRC_DIR="$OUT_DIR/SDL2-${SDL2_VER}"
-        if [[ ! -d "$SDL2_SRC_DIR" ]]; then
-            curl -sSfL "https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_VER}/SDL2-${SDL2_VER}.tar.gz" | tar -xz -C "$OUT_DIR"
-        fi
-        cmake -S "$SDL2_SRC_DIR" -B "$SDL2_SRC_DIR/build-${ARCH}" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET="$MACOSX_DEPLOYMENT_TARGET" \
-            -DSDL_SHARED=OFF \
-            -DSDL_STATIC=ON \
-            -DSDL_TEST=OFF
-        cmake --build "$SDL2_SRC_DIR/build-${ARCH}" -j"$NCPU"
-        cp "$SDL2_SRC_DIR/build-${ARCH}/libSDL2.a" "$SDL_STATIC_LIB"
-    fi
+    download_framework "SDL2" "$SDL2_VERSION" \
+        "https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_VERSION}/SDL2-${SDL2_VERSION}.dmg"
+    download_framework "SDL2_ttf" "$SDL2_TTF_VERSION" \
+        "https://github.com/libsdl-org/SDL_ttf/releases/download/release-${SDL2_TTF_VERSION}/SDL2_ttf-${SDL2_TTF_VERSION}.dmg"
 
     echo "==> Compiling minimal SDL2_ttf for ${ARCH}..."
     SDL_TTF_SRC="$OUT_DIR/SDL_ttf.c"
@@ -175,13 +180,12 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
         BUILD="$BUILD_TYPE"
         PLATFORM=darwin
         STATIC=1
-        SDL_STATIC_LIB="$SDL_STATIC_LIB"
-        TTF_STATIC_LIB="$TTF_STATIC_LIB"
+        FRAMEWORK_DIR="$FRAMEWORKS_DIR"
         DATADIR="../Resources/data"
         LOCALEDIR="../Resources/locale"
         CFLAGS="-arch $ARCH -O2"
         CXXFLAGS="-arch $ARCH -O2"
-        LDFLAGS="-arch $ARCH"
+        LDFLAGS="-arch $ARCH -Wl,-rpath,@executable_path/../Frameworks"
     )
     make "${MAKE_ARGS[@]}" neverball neverputt mapc
 fi
@@ -202,20 +206,26 @@ APP_DIR="$OUT_DIR/${APP_NAME}.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
+FRAMEWORKS_DEST_DIR="$CONTENTS_DIR/Frameworks"
 DATA_DIR="$RESOURCES_DIR/data"
 LOCALE_DIR="$RESOURCES_DIR/locale"
 
 echo "==> Assembling bundle structure at ${APP_DIR}..."
 rm -rf "$APP_DIR"
-mkdir -p "$MACOS_DIR" "$RESOURCES_DIR" "$DATA_DIR" "$LOCALE_DIR"
+mkdir -p "$MACOS_DIR" "$FRAMEWORKS_DEST_DIR" "$RESOURCES_DIR" "$DATA_DIR" "$LOCALE_DIR"
 
-# 1. Copy executables
+# 1. Copy frameworks
+echo "==> Installing frameworks into bundle..."
+cp -R "$FRAMEWORKS_DIR/SDL2.framework" "$FRAMEWORKS_DEST_DIR/"
+cp -R "$FRAMEWORKS_DIR/SDL2_ttf.framework" "$FRAMEWORKS_DEST_DIR/"
+
+# 2. Copy executables
 echo "==> Copying binaries (neverball, mapc)..."
 cp "$REPO_ROOT/neverball" "$MACOS_DIR/neverball"
 cp "$REPO_ROOT/mapc" "$MACOS_DIR/mapc"
 chmod 755 "$MACOS_DIR"/*
 
-# 2. Package game data into base-neverball.zip
+# 3. Package game data into base-neverball.zip
 ZIP_TARGET="$DATA_DIR/base-neverball.zip"
 echo "==> Packaging data into ${ZIP_TARGET}..."
 (
@@ -224,22 +234,22 @@ echo "==> Packaging data into ${ZIP_TARGET}..."
         -x "*.autosave.map" "*.zip" "*.pk3" ".DS_Store" "*/.DS_Store"
 )
 
-# 3. Copy locale catalogs
+# 4. Copy locale catalogs
 if [[ -d "$REPO_ROOT/locale" ]]; then
     echo "==> Copying localization catalogs..."
     cp -R "$REPO_ROOT/locale"/* "$LOCALE_DIR/" 2>/dev/null || true
 fi
 
-# 4. Copy Application Icon
+# 5. Copy Application Icon
 echo "==> Installing application icon..."
 cp "$REPO_ROOT/dist/macos/neverball.icns" "$RESOURCES_DIR/neverball.icns"
 
-# 5. Write Info.plist and PkgInfo
+# 6. Write Info.plist and PkgInfo
 echo "==> Configuring Info.plist and PkgInfo..."
 sed "s/@VERSION@/${VERSION}/g" "$REPO_ROOT/dist/macos/Info.plist.in" > "$CONTENTS_DIR/Info.plist"
 printf "APPLball" > "$CONTENTS_DIR/PkgInfo"
 
-# 6. Copy level editor gamepacks into Resources
+# 7. Copy level editor gamepacks into Resources
 for tool_dir in TrenchBroom Radiant; do
     if [[ -d "$REPO_ROOT/$tool_dir" ]]; then
         echo "==> Copying $tool_dir gamepack into Resources..."
@@ -253,13 +263,19 @@ done
 # -----------------------------------------------------------------------------
 
 echo "==> Code signing bundle (identity: '${SIGN_IDENTITY}')..."
-
-# 1. Sign auxiliary executables in MacOS (must be signed before the main bundle)
 CODESIGN_CMD=(codesign --force --sign "${SIGN_IDENTITY}")
 if [[ "$SIGN_IDENTITY" != "-" ]]; then
     CODESIGN_CMD+=(--options runtime)
 fi
 
+# 1. Sign embeeded frameworks
+for fw in "$FRAMEWORKS_DEST_DIR"/*.framework; do
+    if [[ -d "$fw" ]]; then
+        "${CODESIGN_CMD[@]}" "$fw"
+    fi
+done
+
+# 2. Sign auxiliary executables in MacOS (must be signed before the main bundle)
 MAIN_BIN="$MACOS_DIR/neverball"
 for bin in "$MACOS_DIR"/*; do
     if [[ -f "$bin" && -x "$bin" && ! -L "$bin" && "$bin" != "$MAIN_BIN" ]]; then
@@ -267,10 +283,10 @@ for bin in "$MACOS_DIR"/*; do
     fi
 done
 
-# 2. Sign the application bundle (signs the main executable and seals the bundle)
+# 3. Sign the application bundle (signs the main executable and seals the bundle)
 "${CODESIGN_CMD[@]}" "$APP_DIR"
 
-# 3. Strictly verify bundle signature
+# 4. Strictly verify bundle signature
 echo "==> Verifying code signature..."
 codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 echo "    Code signature verified successfully."

@@ -257,10 +257,10 @@ ifeq ($(ENABLE_RFD),1)
 endif
 
 # Basically used
-ifneq ($(FRAMEWORK_DIR),)
+fneq ($(FRAMEWORK_DIR),)
 	SDL_CPPFLAGS := -F$(FRAMEWORK_DIR) \
-	                -I$(FRAMEWORK_DIR)/SDL2.framework/headers \
-	                -I$(FRAMEWORK_DIR)/SDL2_ttf.framework/headers \
+	                -I$(FRAMEWORK_DIR)/SDL2.framework/Headers \
+	                -I$(FRAMEWORK_DIR)/SDL2_ttf.framework/Headers
 else
 	SDL_CPPFLAGS := $(shell sdl2-config --cflags)
 endif

@@ -54,7 +54,7 @@ int font_load(struct font *ft, const char *path, int sizes[FONT_SIZE_MAX])
                     for (i = 0; i < ARRAYSIZE(ft->ttf); i++)
                     {
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-                        SDL_IOseek(ft->rwops, 0, SEEK_SET);
+                        SDL_SeekIO(ft->rwops, 0, SEEK_SET);
                         if ((ft->ttf[i] = TTF_OpenFontIO(ft->rwops, 0, sizes[i])))
 #else
                         SDL_RWseek(ft->rwops, 0, SEEK_SET);

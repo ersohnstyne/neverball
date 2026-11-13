@@ -17,6 +17,11 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_oldnames.h>
 #include <SDL3_ttf/SDL_ttf.h>
+
+#ifndef TTF_SizeUTF8
+#define TTF_SizeUTF8(_font, _text, _w, _h) TTF_GetStringSize(_font, _text, strlen(_text), _w, _h)
+#endif
+
 #elif _WIN32 && __MINGW32__
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>

@@ -153,7 +153,7 @@ const char *video_get_display_name(int id, int *dpy_count)
     displayDeviceA.cb = sizeof (DISPLAY_DEVICEA);
     displayDeviceB.cb = sizeof (DISPLAY_DEVICEA);
 
-    while (EnumDisplayDevicesA(NULL, deviceIndex, &displayDeviceA, 0)) {
+    while (EnumDisplayDevices(NULL, deviceIndex, &displayDeviceA, 0)) {
         UINT monitorIndex = 0;
         while (EnumDisplayDevices(displayDeviceA.DeviceName, monitorIndex, &displayDeviceB, 0)) {
             LONG rc = 0;
@@ -523,19 +523,30 @@ void video_set_display(int dpy)
     !defined(__SWITCH__)
     SDL_DisplayMode ddm;
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-    const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
-    assert(_tmp_ddm); ddm = *_tmp_ddm;
+    SDL_DisplayID *_dpys = SDL_GetDisplays(NULL);
+    const SDL_DisplayMode *_tmp_ddm = SDL_GetCurrentDisplayMode(dpy);
     if (_tmp_ddm == 0)
 #else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
 #endif
     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_free(_dpys);
+#endif
         log_errorf("No display connected!: %d\n", dpy);
         return;
     }
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    ddm = *_tmp_ddm;
+#endif
+
     SDL_Rect monitor_area_location;
     SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_free(_dpys);
+#endif
 
     int X = monitor_area_location.x + (ddm.w / 2) - (video.window_w / 2);
     int Y = monitor_area_location.y + (ddm.h / 2) - (video.window_h / 2);
@@ -708,19 +719,30 @@ video_mode_reconf:
 
     SDL_DisplayMode ddm;
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-    const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
-    assert(_tmp_ddm); ddm = *_tmp_ddm;
+    SDL_DisplayID *_dpys = SDL_GetDisplays(&num_displays);
+    const SDL_DisplayMode *_tmp_ddm = SDL_GetCurrentDisplayMode(dpy);
     if (_tmp_ddm == 0)
 #else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
 #endif
     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_free(_dpys);
+#endif
         log_errorf("No display connected!: %d\n", dpy);
         return 0;
     }
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    ddm = *_tmp_ddm;
+#endif
+
     SDL_Rect monitor_area_location;
     SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_free(_dpys);
+#endif
 
     int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
     int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);
@@ -1234,19 +1256,30 @@ video_mode_auto_config_reconf:
 
     SDL_DisplayMode ddm;
 #if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
-    const SDL_DisplayMode *_tmp_ddm = SDL_GetDesktopDisplayMode(dpy);
-    assert(_tmp_ddm); ddm = *_tmp_ddm;
+    SDL_DisplayID *_dpys = SDL_GetDisplays(&num_displays);
+    const SDL_DisplayMode *_tmp_ddm = SDL_GetCurrentDisplayMode(dpy);
     if (_tmp_ddm == 0)
 #else
     if (SDL_GetDesktopDisplayMode(dpy, &ddm) != 0)
 #endif
     {
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+        SDL_free(_dpys);
+#endif
         log_errorf("No display connected!: %d\n", dpy);
         return 0;
     }
 
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    ddm = *_tmp_ddm;
+#endif
+
     SDL_Rect monitor_area_location;
     SDL_GetDisplayBounds(dpy, &monitor_area_location);
+
+#if NB_HAVE_PB_BOTH==1 && NB_PB_SDL3==1
+    SDL_free(_dpys);
+#endif
 
     int X = monitor_area_location.x + (ddm.w / 2) - (w / 2);
     int Y = monitor_area_location.y + (ddm.h / 2) - (h / 2);

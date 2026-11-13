@@ -19,14 +19,12 @@
 # define SDL_MAIN_HANDLED
 # include <SDL3/SDL.h>
 # include <SDL3/SDL_main.h>
-# if _MSC_VER >= 1950 && !defined(SDL_MAIN_HANDLED)
-#  pragma comment(lib, "SDL3.lib")
-#  pragma comment(lib, "SDL3_uclibc.lib")
-#  pragma comment(lib, "SDL3_ttf.lib")
-# elif _MSC_VER >= 1950 && defined(SDL_MAIN_HANDLED)
+# pragma comment(lib, "SDL3.lib")
+# pragma comment(lib, "SDL3_ttf.lib")
+# if _MSC_VER >= 1952 && defined(SDL_MAIN_HANDLED)
 #  include <Windows.h>
 # else
-#  error SDL3 for Windows requires latest Visual Studio C++ Version 14.50!
+#  error SDL3 for Windows requires latest Visual Studio C++ Version 14.52.x!
 # endif
 #elif _WIN32 && __MINGW32__
 # include <SDL2/SDL.h>

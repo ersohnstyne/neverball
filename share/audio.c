@@ -177,7 +177,7 @@ static int voice_step(struct voice *V, float volume, SDL_AudioStream *stream, in
 static int voice_step(struct voice *V, float volume, Uint8 *stream, int length)
 #endif
 {
-    if (audio_paused) return 0;
+    if (audio_paused || !stream) return 0;
 
     int order = 0;
 

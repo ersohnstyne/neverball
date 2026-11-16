@@ -670,7 +670,7 @@ static int play_prep_keybd(int c, int d)
             )
         {
             hud_speedup_reset();
-            goto_ball_pause(curr_state());
+            return goto_ball_pause(curr_state());
         }
     }
     return 1;
@@ -1325,7 +1325,7 @@ static int play_loop_keybd(int c, int d)
             {
                 play_freeze_all = 1;
                 hud_speedup_reset();
-                goto_ball_pause(curr_state());
+                return goto_ball_pause(curr_state());
             }
         }
     }
@@ -1369,7 +1369,7 @@ static int play_loop_buttn(int b, int d)
         {
             play_freeze_all = 1;
             hud_speedup_reset();
-            goto_ball_pause(curr_state());
+            return goto_ball_pause(curr_state());
         }
 
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_R1, b))
@@ -1519,7 +1519,8 @@ static int play_loop_touch(const SDL_TouchFingerEvent *e)
             play_loop_touch_reset();
             touch_arrow_enabled = 0;
             game_client_maxspeed(0.0f, touch_arrow_enabled);
-            goto_ball_pause(curr_state());
+            hud_speedup_reset();
+            return goto_ball_pause(curr_state());
         }
         else if (token == GUI_CAMERA)
             next_camera();

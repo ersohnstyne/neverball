@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifndef NDEBUG
+#include <assert.h>
+#endif
+
 /*
  * HACK: Used with console version
  */
@@ -93,7 +97,7 @@ static int keybd_restart_shift = 0;
             if (st_continue == &st_play_ready ||              \
                 st_continue == &st_play_loop)                 \
                 video_set_grab(1);                            \
-            exit_state(st_continue); st_continue = NULL;      \
+            r = exit_state(st_continue); st_continue = NULL;  \
             st_continue_prepared = 0;                         \
         } else {                                              \
             quit_uses_resetpuzzle = 0;                        \
@@ -111,7 +115,7 @@ static int keybd_restart_shift = 0;
             if (st_continue == &st_play_ready ||              \
                 st_continue == &st_play_loop)                 \
                 video_set_grab(1);                            \
-            exit_state(st_continue); st_continue = NULL;      \
+            r = exit_state(st_continue); st_continue = NULL;  \
             st_continue_prepared = 0;                         \
         } else {                                              \
             quit_uses_resetpuzzle = 0;                        \
@@ -130,16 +134,24 @@ static int keybd_restart_shift = 0;
  */
 int goto_ball_pause(struct state *returnable)
 {
+#ifndef NDEBUG
+    assert(returnable);
+#endif
+
     audio_play("snd/2.2/game_pause.ogg", 1.0f);
     keybd_restart_shift = 0;
 
-    if (returnable)
+    if (returnable && !st_continue_prepared)
     {
+        st_continue = returnable;
+
         if (returnable == &st_play_ready || returnable == &st_play_set ||
             returnable == &st_play_loop  || returnable == &st_look)
         {
-            if (returnable == &st_play_set) st_continue = &st_play_ready;
-            if (returnable == &st_look)     st_continue = &st_play_loop;
+            if (returnable == &st_play_ready || returnable == &st_play_set)
+                st_continue = &st_play_ready;
+            if (returnable == &st_look)
+                st_continue = &st_play_loop;
         }
         else st_continue = returnable;
 
@@ -227,7 +239,7 @@ static int pause_restart(void)
 static int pause_quit(void)
 {
     // HACK: In challenge mode, this should be DOUBLE CONFIRM!
-    
+
     if ((curr_mode() == MODE_NONE       ||
          curr_mode() == MODE_CHALLENGE  ||
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -245,6 +257,8 @@ static int pause_quit(void)
 static int pause_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
+
+    int r = 1;
 
     switch (tok)
     {
@@ -329,7 +343,7 @@ static int pause_action(int tok, int val)
             return pause_quit();
     }
 
-    return 1;
+    return r;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -492,6 +506,8 @@ static void pause_timer(int id, float dt)
 
 static int pause_keybd(int c, int d)
 {
+    int r = 1;
+
     if (d)
     {
         if (KEY_IS_PAUSE(c)
@@ -519,11 +535,13 @@ static int pause_keybd(int c, int d)
     if (c == SDLK_LSHIFT || c == SDLK_RSHIFT)
         keybd_restart_shift = d;
 
-    return 1;
+    return r;
 }
 
 static int pause_buttn(int b, int d)
 {
+    int r = 1;
+
     if (d)
     {
         int active = gui_active();
@@ -541,7 +559,8 @@ static int pause_buttn(int b, int d)
             else audio_play(AUD_DISABLED, 1.0f);
         }
     }
-    return 1;
+
+    return r;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -659,6 +678,8 @@ static int pause_quit_enter(struct state *st, struct state *prev, int intent)
 
 static int pause_quit_buttn(int b, int d)
 {
+    int r = 1;
+
     if (d)
     {
         int active = gui_active();
@@ -696,7 +717,8 @@ static int pause_quit_buttn(int b, int d)
             else audio_play(AUD_DISABLED, 1.0f);
         }
     }
-    return 1;
+
+    return r;
 }
 
 /*---------------------------------------------------------------------------*/

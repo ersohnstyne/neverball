@@ -389,10 +389,10 @@ static void pause_btns_vertical_gui(int jd, const char *quit_btn_text)
 #endif
 
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
-    btn_ids[2] = gui_state_icon(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? (campaign_used() ? gui_red : gui_yel) : gui_gry, _("Restart"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0);
+    btn_ids[2] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? (campaign_used() ? gui_red : gui_yel) : gui_gry, _("Restart"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0, progress_same_avail(), 0);
     btn_ids[3] = gui_state_icon_full(jd, GUI_CROSS, gui_red, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0, 1, campaign_used() || curr_times() > 0);
 #else
-    btn_ids[2] = gui_state_icon(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_yel : gui_gry, _("Restart"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0);
+    btn_ids[2] = gui_state_icon_full(jd, GUI_CIRCLE_ARROW, progress_same_avail() ? gui_yel : gui_gry, _("Restart"), GUI_SML, progress_same_avail() ? PAUSE_RESTART : GUI_NONE, 0, progress_same_avail(), 0);
     btn_ids[3] = gui_state_icon_full(jd, GUI_CROSS, gui_red, _(quit_btn_text), GUI_SML, PAUSE_EXIT, 0, 1, curr_times() > 0);
 #endif
 }

@@ -56,8 +56,4 @@ jobs:
           name: neverball-${{ matrix.arch }}
           path: build/windows/neverball-*.zip
           retention-days: 7
-<<<<<<< HEAD
           archive: false
-=======
-          archive: false
->>>>>>> ff2a35ee655520cee96c87d00951335203347385

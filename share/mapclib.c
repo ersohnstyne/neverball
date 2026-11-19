@@ -1593,11 +1593,8 @@ static void make_plane_valve(struct mapc_context *ctx, int   pi,
 
 static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAXSTR], char val[MAXSTR])
 {
-<<<<<<< HEAD
     int doit = 1;
     char stderr_buf[512];
-=======
->>>>>>> ff2a35ee655520cee96c87d00951335203347385
     char buf[1024];
 
     if (fs_gets(buf, sizeof (buf), fin))

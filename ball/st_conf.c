@@ -2755,7 +2755,7 @@ static void conf_controllers_set_label(int id, int value)
     }
 #else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(str, 20,
+    sprintf_s(str, sizeof (str),
 #else
     sprintf(str,
 #endif

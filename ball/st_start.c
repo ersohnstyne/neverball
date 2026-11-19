@@ -1165,7 +1165,7 @@ static int start_compat_gui()
         char multiattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(multiattr, MAXSTR,
+        sprintf_s(multiattr, sizeof (multiattr),
 #else
         sprintf(multiattr,
 #endif

@@ -400,7 +400,7 @@ static void bcast_send_msg(struct mapc_context *ctx, int lvl, const char *str)
     maxstr = sizeof (buf) - sizeof ("<message level=\"1\"></message>");
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-    sprintf_s(buf, 512, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
+    sprintf_s(buf, sizeof (buf), "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
 #else
     sprintf(buf, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
 #endif
@@ -576,8 +576,8 @@ void mapc_quit(struct mapc_context **ctx_ptr)
             if (SymFromAddr(_handle, _address, 0, _symbol))
             {
                 if (SymGetLineFromAddr64(_handle, _address, &_displacement, &_line))
-                    sprintf_s(dbg_final_text, MAXSTR, "    %s(%u): %s (0x%llX)\n", _line.FileName, _line.LineNumber, _symbol->Name, _symbol->Address);
-                else sprintf_s(dbg_final_text, MAXSTR, "    %s (0x%llX)\n", _symbol->Name, _symbol->Address);
+                    sprintf_s(dbg_final_text, sizeof (dbg_final_text), "    %s(%u): %s (0x%llX)\n", _line.FileName, _line.LineNumber, _symbol->Name, _symbol->Address);
+                else sprintf_s(dbg_final_text, sizeof (dbg_final_text), "    %s (0x%llX)\n", _symbol->Name, _symbol->Address);
 
                 log_errorf(dbg_final_text);
             }
@@ -599,7 +599,7 @@ static int overflow(struct mapc_context *ctx, const char s[64u - sizeof (" overf
     char buf[64];
 
 #if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
-    sprintf_s(buf, 64, "%s overflow\n", s);
+    sprintf_s(buf, sizeof (buf), "%s overflow\n", s);
 #else
     sprintf(buf, "%s overflow\n", s);
 #endif
@@ -1444,7 +1444,7 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
     else
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(stderr_buf, 512,
+        sprintf_s(stderr_buf, sizeof (stderr_buf),
 #else
         sprintf(stderr_buf,
 #endif
@@ -5268,7 +5268,7 @@ static void interactive_web(void)
 
 #if _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
-    sprintf_s(buf_url, 512,
+    sprintf_s(buf_url, sizeof (buf_url),
 #else
     sprintf(buf_url,
 #endif
@@ -5313,7 +5313,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 
         char tmp_buf_loading[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(tmp_buf_loading, MAXSTR,
+        sprintf_s(tmp_buf_loading, sizeof (tmp_buf_loading),
 #else
         sprintf(tmp_buf_loading,
 #endif
@@ -5327,7 +5327,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #if NB_HAVE_PB_BOTH==1
                 char tmp_buf[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(tmp_buf, MAXSTR,
+                sprintf_s(tmp_buf, sizeof (tmp_buf),
 #else
                 sprintf(tmp_buf,
 #endif
@@ -5356,7 +5356,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #if NB_HAVE_PB_BOTH==1
             char tmp_buf[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(tmp_buf, MAXSTR,
+            sprintf_s(tmp_buf, sizeof (tmp_buf),
 #else
             sprintf(tmp_buf,
 #endif
@@ -5445,7 +5445,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 
             if (ctx->compile_time >= 1800)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(tmp_buf, MAXSTR,
+                sprintf_s(tmp_buf, sizeof (tmp_buf),
 #else
                     sprintf(tmp_buf,
 #endif
@@ -5464,7 +5464,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
                     timelimit_canset_seconds = timelimits_available[i];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(tmp_buf, MAXSTR,
+                sprintf_s(tmp_buf, sizeof (tmp_buf),
 #else
                 sprintf(tmp_buf,
 #endif
@@ -5489,7 +5489,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #if NB_HAVE_PB_BOTH==1
                 char tmp_buf[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(tmp_buf, MAXSTR,
+                sprintf_s(tmp_buf, sizeof (tmp_buf),
 #else
                 sprintf(tmp_buf,
 #endif
@@ -5511,7 +5511,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #if NB_HAVE_PB_BOTH==1
                 char tmp_buf[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(tmp_buf, MAXSTR,
+                sprintf_s(tmp_buf, sizeof (tmp_buf),
 #else
                 sprintf(tmp_buf,
 #endif
@@ -5579,7 +5579,7 @@ static int mapc_compile_internal(struct mapc_context *ctx)
 #if NB_HAVE_PB_BOTH==1
             char tmp_buf[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(tmp_buf, MAXSTR,
+            sprintf_s(tmp_buf, sizeof (tmp_buf),
 #else
             sprintf(tmp_buf,
 #endif

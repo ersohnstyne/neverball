@@ -703,7 +703,7 @@ static int intro_restore_gui(void)
 #endif
                 gfx_target_name = _("Antialiasing");
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(restore_attr, MAXSTR,
+                sprintf_s(restore_attr, sizeof (restore_attr),
 #else
                 sprintf(restore_attr,
 #endif
@@ -746,7 +746,7 @@ static int intro_restore_gui(void)
 
         if (doubles) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(restore_doubles, MAXSTR,
+            sprintf_s(restore_doubles, sizeof (restore_doubles),
 #else
             sprintf(restore_doubles,
 #endif
@@ -760,7 +760,7 @@ static int intro_restore_gui(void)
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(restore_singles, MAXSTR,
+            sprintf_s(restore_singles, sizeof (restore_singles),
 #else
             sprintf(restore_singles,
 #endif

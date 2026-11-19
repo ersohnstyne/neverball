@@ -546,7 +546,7 @@ static void shot(void)
     const int secdecimal = ROUND(decimal / 10000);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(filename_primary, MAXSTR,
+    sprintf_s(filename_primary, sizeof (filename_primary),
 #else
     sprintf(filename_primary,
 #endif
@@ -557,7 +557,7 @@ static void shot(void)
 #if ENABLE_DUALDISPLAY==1
     char filename_secondary[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(filename_secondary, MAXSTR,
+    sprintf_s(filename_secondary, sizeof (filename_secondary),
 #else
     sprintf(filename_secondary,
 #endif
@@ -890,7 +890,7 @@ static int goto_level(const List level_multi)
                     }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(lvl->name, 12,
+                    sprintf_s(lvl->name, sizeof (lvl->name),
 #else
                     sprintf(lvl->name,
 #endif

@@ -120,7 +120,7 @@ void course_score_init_hs(struct course_score *s)
 
         if (i < 2)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(name, MAXSTR,
+            sprintf_s(name, sizeof (name),
 #else
             sprintf(name,
 #endif

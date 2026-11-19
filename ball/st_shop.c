@@ -241,7 +241,7 @@ static int shop_gui(void)
             {
                 char gemsattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(gemsattr, MAXSTR,
+                sprintf_s(gemsattr, sizeof (gemsattr),
 #else
                 sprintf(gemsattr,
 #endif
@@ -256,7 +256,7 @@ static int shop_gui(void)
             char coinsattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(coinsattr, MAXSTR,
+            sprintf_s(coinsattr, sizeof (coinsattr),
 #else
             sprintf(coinsattr,
 #endif
@@ -332,13 +332,13 @@ static int shop_gui(void)
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 /*if      (temp_lives >= 1110)
-                    sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
+                    sprintf_s(powerups, sizeof (powerups), "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
                 else if (temp_lives >= 1100)
-                    sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN GUI_CROWN "%01d)", _("Balls"), (lvalue) - 1100);
+                    sprintf_s(powerups, sizeof (powerups), "%s (" GUI_CROWN GUI_CROWN "%01d)", _("Balls"), (lvalue) - 1100);
                 else if (temp_lives >= 1000)
-                    sprintf_s(powerups, MAXSTR, "%s (" GUI_CROWN "%02d)", _("Balls"), (lvalue) - 1000);
+                    sprintf_s(powerups, sizeof (powerups), "%s (" GUI_CROWN "%02d)", _("Balls"), (lvalue) - 1000);
                 else*/
-                    sprintf_s(powerups, MAXSTR, "%s (%d)", _("Balls"), lvalue);
+                    sprintf_s(powerups, sizeof (powerups), "%s (%d)", _("Balls"), lvalue);
 #else
                 /*if      (temp_lives >= 1110)
                     sprintf(powerups, "%s (" GUI_CROWN GUI_CROWN GUI_CROWN ")", _("Balls"));
@@ -355,11 +355,11 @@ static int shop_gui(void)
                 if ((kd = gui_harray(jd)))
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(powerups, MAXSTR, "%s (%i)", _("Speedifier"), svalue);
+                    sprintf_s(powerups, sizeof (powerups), "%s (%i)", _("Speedifier"), svalue);
                     const int powe_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_grn);
-                    sprintf_s(powerups, MAXSTR, "%s (%i)", _("Floatifier"), fvalue);
+                    sprintf_s(powerups, sizeof (powerups), "%s (%i)", _("Floatifier"), fvalue);
                     const int powf_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_blu);
-                    sprintf_s(powerups, MAXSTR, "%s (%i)", _("Earninator"), evalue);
+                    sprintf_s(powerups, sizeof (powerups), "%s (%i)", _("Earninator"), evalue);
                     const int pows_id = gui_label(kd, powerups, GUI_SML, gui_wht, gui_red);
 #else
                     sprintf(powerups, "%s (%i)", _("Speedifier"), svalue);
@@ -1170,14 +1170,14 @@ static int shop_iap_gui(void)
             char walletattr[MAXSTR];
             if (iap_page)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(walletattr, MAXSTR,
+                sprintf_s(walletattr, sizeof (walletattr),
 #else
                 sprintf(walletattr,
 #endif
                         _("You have %i Gems"), gemwallet);
             else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(walletattr, MAXSTR,
+                sprintf_s(walletattr, sizeof (walletattr),
 #else
                 sprintf(walletattr,
 #endif
@@ -1218,9 +1218,9 @@ static int shop_iap_gui(void)
             char missionattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             if (iap_page)
-                sprintf_s(missionattr, MAXSTR, _("Need %i gems to complete transaction!"),  (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)));
+                sprintf_s(missionattr, sizeof (missionattr), _("Need %i gems to complete transaction!"),  (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)));
             else
-                sprintf_s(missionattr, MAXSTR, _("Need %i coins to complete transaction!"), (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)));
+                sprintf_s(missionattr, sizeof (missionattr), _("Need %i coins to complete transaction!"), (curr_min - account_get_d(ACCOUNT_DATA_WALLET_COINS)));
 #else
             if (iap_page)
                 sprintf(missionattr, _("Need %i gems to complete transaction!"),  (curr_min - account_get_d(ACCOUNT_DATA_WALLET_GEMS)));
@@ -1278,8 +1278,8 @@ static int shop_iap_gui(void)
 
                                 char iapattr[MAXSTR], imgattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                                sprintf_s(imgattr, MAXSTR, "gui/shop/coins-%s.png", iaptiers[multiply - 1]);
-                                sprintf_s(iapattr, MAXSTR, GUI_DIAMOND " %d", iapcoinfromgems[multiply - 1]);
+                                sprintf_s(imgattr, sizeof (imgattr), "gui/shop/coins-%s.png", iaptiers[multiply - 1]);
+                                sprintf_s(iapattr, sizeof (iapattr), GUI_DIAMOND " %d", iapcoinfromgems[multiply - 1]);
 #else
                                 sprintf(imgattr, "gui/shop/coins-%s.png", iaptiers[multiply - 1]);
                                 sprintf(iapattr, GUI_DIAMOND " %d", iapcoinfromgems[multiply - 1]);
@@ -1310,8 +1310,8 @@ static int shop_iap_gui(void)
                                     char iapattr[MAXSTR], imgattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                                    sprintf_s(imgattr, MAXSTR, "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
-                                    sprintf_s(iapattr, MAXSTR, "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
+                                    sprintf_s(imgattr, sizeof (imgattr), "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
+                                    sprintf_s(iapattr, sizeof (iapattr), "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
 #else
                                     sprintf(imgattr, "gui/shop/gems-%s.png", iaptiers[multiply - 1]);
                                     sprintf(iapattr, "%s", currency_get_price_from_locale(pChar, iapgemcost[multiply - 1]));
@@ -1350,7 +1350,7 @@ static int shop_iap_gui(void)
                              && iapcoinvalue[multiply - 1] + account_get_d(ACCOUNT_DATA_WALLET_COINS) <= ACCOUNT_WALLET_MAX_COINS)
                             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                                sprintf_s(iapattr, MAXSTR,
+                                sprintf_s(iapattr, sizeof (iapattr),
 #else
                                 sprintf(iapattr,
 #endif
@@ -1377,7 +1377,7 @@ static int shop_iap_gui(void)
                                     SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
 
 #if _WIN32 && !_CRT_SECURE_NO_WARNINGS
-                                sprintf_s(iapattr, MAXSTR,
+                                sprintf_s(iapattr, sizeof (iapattr),
 #else
                                 sprintf(iapattr,
 #endif
@@ -1910,7 +1910,7 @@ static int shop_buy_gui(void)
         {
             char limitattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(limitattr, MAXSTR,
+            sprintf_s(limitattr, sizeof (limitattr),
 #else
             sprintf(limitattr,
 #endif
@@ -1930,41 +1930,41 @@ static int shop_buy_gui(void)
             {
                 if (productkey == 7 && CHECK_ACCOUNT_BANKRUPT &&
                     has_enough_gems(prodcost))
-                    sprintf_s(prodattr, MAXSTR,
+                    sprintf_s(prodattr, sizeof (prodattr),
                               _("Would you like buy and activate Challenge?\n"
                                 "%s costs %i gems."),
                               prodname, prodcost);
                 else if (has_enough_gems(prodcost))
-                    sprintf_s(prodattr, MAXSTR,
+                    sprintf_s(prodattr, sizeof (prodattr),
                               _("Would you like buy this Products?\n"
                                 "%s costs %i gems."),
                               prodname, prodcost);
 #if (NB_STEAM_API==1 || NB_EOS_SDK==1) || ENABLE_IAP==1
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) &&
                          prodcost <= 1920)
-                    sprintf_s(prodattr, MAXSTR,
+                    sprintf_s(prodattr, sizeof (prodattr),
                               _("You need at least %i gems to buy %s,\n"
                                 "but you can review from IAP."),
                               prodcost, prodname);
 #endif
-                else sprintf_s(prodattr, MAXSTR,
+                else sprintf_s(prodattr, sizeof (prodattr),
                                _("You need at least %i gems to buy %s."),
                                prodcost, prodname);
             }
             else
             {
                 if (has_enough_coins(prodcost))
-                    sprintf_s(prodattr, MAXSTR,
+                    sprintf_s(prodattr, sizeof (prodattr),
                               _("Would you like buy this Products?\n"
                                 "%s costs %i coins."),
                               prodname, prodcost);
                 else if (server_policy_get_d(SERVER_POLICY_SHOP_ENABLED_IAP) &&
                          prodcost <= 1920)
-                    sprintf_s(prodattr, MAXSTR,
+                    sprintf_s(prodattr, sizeof (prodattr),
                               _("You need at least %i coins to buy %s,\n"
                                 "but you can purchase from coin shop."),
                               prodcost, prodname);
-                else sprintf_s(prodattr, MAXSTR,
+                else sprintf_s(prodattr, sizeof (prodattr),
                                _("You need at least %i coins to buy %s."),
                                prodcost, prodname);
             }
@@ -2216,7 +2216,7 @@ static int shop_buy_confirmmulti_gui(void)
         const char *buy_currency_name = purchase_product_usegems ? N_("Gems") : N_("Coins");
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(prodattr, MAXSTR,
+        sprintf_s(prodattr, sizeof (prodattr),
 #else
         sprintf(prodattr,
 #endif
@@ -2363,7 +2363,7 @@ static int expenses_export_gui(void)
             }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(desc_attr, MAXSTR,
+            sprintf_s(desc_attr, sizeof (desc_attr),
 #else
             sprintf(desc_attr,
 #endif
@@ -2376,7 +2376,7 @@ static int expenses_export_gui(void)
         {
             gui_title_header(id, _("Export to Expenses?"), GUI_MED, GUI_COLOR_DEFAULT);
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(desc_attr, MAXSTR,
+            sprintf_s(desc_attr, sizeof (desc_attr),
 #else
             sprintf(desc_attr,
 #endif

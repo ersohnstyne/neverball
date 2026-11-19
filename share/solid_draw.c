@@ -1080,7 +1080,7 @@ static void check_mtrl(const char *name, GLenum pname, GLuint curr)
     if (real != curr)
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(buff, MAXSTR,
+        sprintf_s(buff, sizeof (buff),
 #else
         sprintf(buff,
 #endif
@@ -1164,7 +1164,7 @@ static void check_mtrl(const char *name, GLenum pname, GLuint curr)
     if (real != curr)
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(buff, MAXSTR,
+        sprintf_s(buff, sizeof (buff),
 #else
         sprintf(buff,
 #endif

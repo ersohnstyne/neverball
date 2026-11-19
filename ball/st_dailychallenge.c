@@ -174,7 +174,7 @@ void WGCL_DailyChallenge_AddLevelFile(const char *filename) {
         l->is_locked = dailychallenge_lvlindex == 0 ? 0 : 1;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(l->name, MAXSTR,
+        sprintf_s(l->name, sizeof (l->name),
 #else
         sprintf(l->name,
 #endif
@@ -209,7 +209,7 @@ void WGCL_DailyChallenge_AddLevelFile(const char *filename) {
 void WGCL_DailyChallenge_SetInfocard(int hardcore, int balls_needed, int reward_gems, const char *timeleft_text, const char *setid, const char *setname) {
     char s_rewards[MAXSTR], s_timeleft[20];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(s_rewards, MAXSTR,
+    sprintf_s(s_rewards, sizeof (s_rewards),
 #else
     sprintf(s_rewards,
 #endif
@@ -267,7 +267,7 @@ void WGCL_DailyChallenge_FinishPreparing(int done, int hardcore, int error_state
             /* 1 = NOT ENOUGH BALLS */
             case 1:
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(s_needed, MAXSTR,
+                sprintf_s(s_needed, sizeof (s_needed),
 #else
                 sprintf(s_needed,
 #endif
@@ -278,7 +278,7 @@ void WGCL_DailyChallenge_FinishPreparing(int done, int hardcore, int error_state
             /* 2 = MISMATCH LANGUAGES */
             case 2:
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(s_needed, MAXSTR,
+                sprintf_s(s_needed, sizeof (s_needed),
 #else
                 sprintf(s_needed,
 #endif
@@ -289,7 +289,7 @@ void WGCL_DailyChallenge_FinishPreparing(int done, int hardcore, int error_state
             /* 3 = MISSING ADD-ONS */
             case 3:
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(s_needed, MAXSTR,
+                sprintf_s(s_needed, sizeof (s_needed),
 #else
                 sprintf(s_needed,
 #endif

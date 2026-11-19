@@ -647,7 +647,7 @@ const char *game_level_msg_inputbindings(const char *msg)
             {
                 char ks_keybd_rotate[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(ks_keybd_rotate, MAXSTR,
+                sprintf_s(ks_keybd_rotate, sizeof (ks_keybd_rotate),
 #else
                 sprintf(ks_keybd_rotate,
 #endif
@@ -735,7 +735,7 @@ const char *game_level_msg_inputbindings(const char *msg)
             {
                 char ks_wii_presstostart[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(ks_wii_presstostart, MAXSTR,
+                sprintf_s(ks_wii_presstostart, sizeof (ks_wii_presstostart),
 #else
                 sprintf(ks_wii_presstostart,
 #endif
@@ -749,7 +749,7 @@ const char *game_level_msg_inputbindings(const char *msg)
             {
                 char ks_wii_presstocontinue[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(ks_wii_presstocontinue, MAXSTR,
+                sprintf_s(ks_wii_presstocontinue, sizeof (ks_wii_presstocontinue),
 #else
                 sprintf(ks_wii_presstocontinue,
 #endif
@@ -818,7 +818,7 @@ const char *game_level_msg_inputbindings(const char *msg)
             {
                 char ks_ps_presstostart[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(ks_ps_presstostart, MAXSTR,
+                sprintf_s(ks_ps_presstostart, sizeof (ks_ps_presstostart),
 #else
                 sprintf(ks_ps_presstostart,
 #endif
@@ -832,7 +832,7 @@ const char *game_level_msg_inputbindings(const char *msg)
             {
                 char ks_ps_presstocontinue[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(ks_ps_presstocontinue, MAXSTR,
+                sprintf_s(ks_ps_presstocontinue, sizeof (ks_ps_presstocontinue),
 #else
                 sprintf(ks_ps_presstocontinue,
 #endif
@@ -900,7 +900,7 @@ const char *game_level_msg_inputbindings(const char *msg)
             {
                 char ks_ps_presstostart[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(ks_ps_presstostart, MAXSTR,
+                sprintf_s(ks_ps_presstostart, sizeof (ks_ps_presstostart),
 #else
                 sprintf(ks_ps_presstostart,
 #endif
@@ -914,7 +914,7 @@ const char *game_level_msg_inputbindings(const char *msg)
             {
                 char ks_ps_presstocontinue[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(ks_ps_presstocontinue, MAXSTR,
+                sprintf_s(ks_ps_presstocontinue, sizeof (ks_ps_presstocontinue),
 #else
                 sprintf(ks_ps_presstocontinue,
 #endif

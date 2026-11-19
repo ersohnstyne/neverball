@@ -206,7 +206,7 @@ static void game_link_download_progress(void *data1, void *data2)
         {
             int pct = (int) (pr->now * 100 / pr->total) % 1000;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(label, MAXSTR, _("Loading (%d%%)..."), pct);
+            sprintf_s(label, sizeof (label), _("Loading (%d%%)..."), pct);
 #else
             sprintf(label, _("Loading (%d%%)..."), pct);
 #endif

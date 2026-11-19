@@ -544,14 +544,14 @@ int set_env_var(const char *name, const char *value)
 
         if (value)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(str, MAXSTR,
+            sprintf_s(str, sizeof (str),
 #else
             sprintf(str,
 #endif
                     "%s=%s", name, value);
         else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(str, MAXSTR,
+            sprintf_s(str, sizeof (str),
 #else
             sprintf(str,
 #endif

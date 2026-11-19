@@ -229,7 +229,7 @@ const char *video_get_display_name(int id, int *dpy_count)
 
                     if (real_name_done)
                         SAFECPY(display_monitor_names[deviceIndex], display_monitor_names_real[deviceIndex]);
-                    else sprintf_s(display_monitor_names[deviceIndex], 64, "%s (%s)", display_monitor_names_real[deviceIndex], displayDeviceB.DeviceString);
+                    else sprintf_s(display_monitor_names[deviceIndex], sizeof (display_monitor_names[deviceIndex]), "%s (%s)", display_monitor_names_real[deviceIndex], displayDeviceB.DeviceString);
                 }
                 else SAFECPY(display_monitor_names[deviceIndex], displayDeviceB.DeviceString);
 

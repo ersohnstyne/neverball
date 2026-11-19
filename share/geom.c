@@ -384,8 +384,8 @@ void geom_init(void)
     }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(jump_style, MAXSTR, "geom/jump%s/jump%s.sol", style_name, style_name);
-    sprintf_s(goal_style, MAXSTR, "geom/goal%s/goal%s.sol", style_name, style_name);
+    sprintf_s(jump_style, sizeof (jump_style), "geom/jump%s/jump%s.sol", style_name, style_name);
+    sprintf_s(goal_style, sizeof (goal_style), "geom/goal%s/goal%s.sol", style_name, style_name);
 #else
     sprintf(jump_style, "geom/jump%s/jump%s.sol", style_name, style_name);
     sprintf(goal_style, "geom/goal%s/goal%s.sol", style_name, style_name);

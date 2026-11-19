@@ -163,7 +163,7 @@ static int operator_action(int tok, int val)
         localtime_s(&output_tm, &output_t);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(datestr_incident, MAXSTR,
+        sprintf_s(datestr_incident, sizeof (datestr_incident),
 #else
         sprintf(datestr_incident,
 #endif

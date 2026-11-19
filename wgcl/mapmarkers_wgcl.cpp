@@ -203,7 +203,7 @@ static int mapmarkers_load_file(const char *path)
 static int mapmarkers_load_csv(void)
 {
     char full_path[256];
-    sprintf_s(full_path, 256, "%s\\%s\\*", fs_get_write_dir(), "Map Markers");
+    sprintf_s(full_path, sizeof (full_path), "%s\\%s\\*", fs_get_write_dir(), "Map Markers");
     WIN32_FIND_DATAA find_data;
     HANDLE hFind;
 
@@ -215,7 +215,7 @@ static int mapmarkers_load_csv(void)
                 continue;
 
             char tmp_real[256];
-            sprintf_s(tmp_real, 256, "%s\\%s", "Map Markers", find_data.cFileName);
+            sprintf_s(tmp_real, sizeof (tmp_real), "%s\\%s", "Map Markers", find_data.cFileName);
 
             if ((find_data.dwFileAttributes & FILE_ATTRIBUTE_NORMAL   ||
                  find_data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE  ||

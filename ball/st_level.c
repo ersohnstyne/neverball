@@ -489,7 +489,7 @@ static int level_gui(void)
         if (!curr_setid)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(curr_setid_final, MAXSTR,
+            sprintf_s(curr_setid_final, sizeof (curr_setid_final),
 #else
             sprintf(curr_setid_final,
 #endif
@@ -538,9 +538,9 @@ static int level_gui(void)
             char account_coinsattr[MAXSTR], account_gemsattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(account_gemsattr, MAXSTR, "%s %d", GUI_DIAMOND,
+            sprintf_s(account_gemsattr, sizeof (account_gemsattr), "%s %d", GUI_DIAMOND,
                       account_get_d(ACCOUNT_DATA_WALLET_GEMS));
-            sprintf_s(account_coinsattr, MAXSTR, "%s %d", GUI_COIN,
+            sprintf_s(account_coinsattr, sizeof (account_coinsattr, "%s %d", GUI_COIN,
                       account_get_d(ACCOUNT_DATA_WALLET_COINS));
 #else
             sprintf(account_gemsattr, "%s %d", GUI_DIAMOND,
@@ -592,51 +592,46 @@ static int level_gui(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     if (curr_mode() == MODE_CAMPAIGN)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s%s: %s",
-                                                   hp, ln, mode_to_str(MODE_CAMPAIGN, 1));
+                        sprintf_s(setattr, sizeof (setattr), "%s%s: %s",
 #else
                         sprintf(setattr, "%s%s: %s",
-                                         hp, ln, mode_to_str(MODE_CAMPAIGN, 1));
 #endif
+                                         hp, ln, mode_to_str(MODE_CAMPAIGN, 1));
                     else if (curr_mode() == MODE_HARDCORE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
-                                                   hp, ln, mode_to_str(MODE_HARDCORE, 1));
+                        sprintf_s(setattr, sizeof (setattr), "%s %s%s: %s",
 #else
-                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
-                                         hp, ln, mode_to_str(MODE_HARDCORE, 1));
+                        sprintf(setattr, "%s %s%s: %s", 
 #endif
+                                          set_name(curr_set()), hp, ln, mode_to_str(MODE_HARDCORE, 1));
                     else
 #endif
                     if (curr_mode() == MODE_CHALLENGE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
-                                                   hp, ln, mode_to_str(MODE_CHALLENGE, 1));
+                        sprintf_s(setattr, sizeof (setattr), "%s %s%s: %s",
 #else
-                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
-                                         hp, ln, mode_to_str(MODE_CHALLENGE, 1));
+                        sprintf(setattr, "%s %s%s: %s",
 #endif
+                                         set_name(curr_set()), hp, ln, mode_to_str(MODE_CHALLENGE, 1));
 #ifdef LEVELGROUPS_INCLUDES_ZEN
                     else if (curr_mode() == MODE_ZEN)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
-                                                   hp, ln, mode_to_str(MODE_ZEN, 1));
+                        sprintf_s(setattr, sizeof (setattr), "%s %s%s: %s", 
 #else
-                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
-                                         hp, ln, mode_to_str(MODE_ZEN, 1));
+                        sprintf(setattr, "%s %s%s: %s",
 #endif
+                                         set_name(curr_set()), hp, ln, mode_to_str(MODE_ZEN, 1));
 #endif
                     else if (curr_mode() != MODE_STANDALONE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
-                                         hp, ln);
+                        sprintf_s(setattr, sizeof (setattr), "%s %s%s: %s", 
 #else
-                        sprintf(setattr, "%s %s%s", set_name(curr_set()),
-                                         hp, ln);
+                        sprintf(setattr, "%s %s%s",
 #endif
+                                         set_name(curr_set()), hp, ln);
                     else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, _("Standalone Level"));
+                        sprintf_s(setattr, sizeof (setattr), _("Standalone Level"));
 #else
                         sprintf(setattr, _("Standalone Level"));
 #endif
@@ -645,19 +640,19 @@ static int level_gui(void)
                 {
                     if (m)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(lvlattr, MAXSTR, _("Master Level %s"), ln);
+                        sprintf_s(lvlattr, sizeof (lvlattr), _("Master Level %s"), ln);
 #else
                         sprintf(lvlattr, _("Master Level %s"), ln);
 #endif
                     else if (b)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(lvlattr, MAXSTR, _("Bonus Level %s"), ln);
+                        sprintf_s(lvlattr, sizeof (lvlattr), _("Bonus Level %s"), ln);
 #else
                         sprintf(lvlattr, _("Bonus Level %s"), ln);
 #endif
                     else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(lvlattr, MAXSTR, _("Level %s"), ln);
+                        sprintf_s(lvlattr, sizeof (lvlattr), _("Level %s"), ln);
 #else
                         sprintf(lvlattr, _("Level %s"), ln);
 #endif
@@ -665,49 +660,46 @@ static int level_gui(void)
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
                     if (curr_mode() == MODE_CAMPAIGN)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s", mode_to_str(MODE_CAMPAIGN, 1));
+                        sprintf_s(setattr, sizeof (setattr), "%s%s: %s",
 #else
-                        sprintf(setattr, "%s", mode_to_str(MODE_CAMPAIGN, 1));
+                        sprintf(setattr, "%s%s: %s",
 #endif
+                                         hp, ln, mode_to_str(MODE_CAMPAIGN, 1));
                     else if (curr_mode() == MODE_HARDCORE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
-                                                   hp, ln, mode_to_str(MODE_HARDCORE, 1));
+                        sprintf_s(setattr, sizeof (setattr), "%s %s%s: %s",
 #else
-                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
-                                         hp, ln, mode_to_str(MODE_HARDCORE, 1));
+                        sprintf(setattr, "%s %s%s: %s", 
 #endif
+                                          set_name(curr_set()), hp, ln, mode_to_str(MODE_HARDCORE, 1));
                     else
 #endif
                     if (curr_mode() == MODE_CHALLENGE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
-                                                   hp, ln, mode_to_str(MODE_CHALLENGE, 1));
+                        sprintf_s(setattr, sizeof (setattr), "%s %s%s: %s",
 #else
-                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
-                                         hp, ln, mode_to_str(MODE_CHALLENGE, 1));
+                        sprintf(setattr, "%s %s%s: %s",
 #endif
+                                         set_name(curr_set()), hp, ln, mode_to_str(MODE_CHALLENGE, 1));
 #ifdef LEVELGROUPS_INCLUDES_ZEN
                     else if (curr_mode() == MODE_ZEN)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
-                                                   hp, ln, mode_to_str(MODE_ZEN, 1));
+                        sprintf_s(setattr, sizeof (setattr), "%s %s%s: %s", 
 #else
-                        sprintf(setattr, "%s %s%s: %s", set_name(curr_set()),
-                                         hp, ln, mode_to_str(MODE_ZEN, 1));
+                        sprintf(setattr, "%s %s%s: %s",
 #endif
+                                         set_name(curr_set()), hp, ln, mode_to_str(MODE_ZEN, 1));
 #endif
                     else if (curr_mode() != MODE_STANDALONE)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, "%s %s%s: %s", set_name(curr_set()),
-                                         hp, ln);
+                        sprintf_s(setattr, sizeof (setattr), "%s %s%s: %s", 
 #else
-                        sprintf(setattr, "%s %s%s", set_name(curr_set()),
-                                         hp, ln);
+                        sprintf(setattr, "%s %s%s",
 #endif
+                                         set_name(curr_set()), hp, ln);
                     else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(setattr, MAXSTR, _("Standalone Level"));
+                        sprintf_s(setattr, sizeof (setattr), _("Standalone Level"));
 #else
                         sprintf(setattr, _("Standalone Level"));
 #endif

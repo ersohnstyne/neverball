@@ -61,7 +61,7 @@ void game_payment_browse(int index)
     EM_ASM({ window.open(UTF8ToString($0)); }, linkstr);
 #else
 #if _WIN32 && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(linkstr, MAXSTR,
+    sprintf_s(linkstr, sizeof (linkstr),
 #else
     sprintf(linkstr,
 #endif

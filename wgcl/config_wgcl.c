@@ -706,7 +706,7 @@ void WGCL_TryFormatUserData(void)
         char file_attr[256];
 
 #if ENABLE_OPENDRIVEAPI!=0
-        sprintf_s(userdir_path, 256, "%s/%s", fs_get_write_dir(), path_name[i]);
+        sprintf_s(userdir_path, sizeof (userdir_path), "%s/%s", fs_get_write_dir(), path_name[i]);
 
         OpenDriveAPI_PDIR          dir;
         struct OpenDriveAPI_DirEnt ent;
@@ -719,7 +719,7 @@ void WGCL_TryFormatUserData(void)
                     continue;
 
 #if _WIN32 && _MSC_VER
-                sprintf_s(file_attr, 256, "%s\\%s", path_name[i], ent.dir_ent_d_name);
+                sprintf_s(file_attr, sizeof (file_attr), "%s\\%s", path_name[i], ent.dir_ent_d_name);
 #else
                 sprintf(file_attr, "%s/%s", path_name[i], ent.dir_ent_d_name);
 #endif
@@ -728,7 +728,7 @@ void WGCL_TryFormatUserData(void)
             opendriveapi_closedir(dir);
         }
 #elif _WIN32 && _MSC_VER
-        sprintf_s(userdir_path, 256, "%s\\%s\\*", fs_get_write_dir(), path_name[i]);
+        sprintf_s(userdir_path, sizeof (userdir_path), "%s\\%s\\*", fs_get_write_dir(), path_name[i]);
 
         WIN32_FIND_DATAA find_data;
         HANDLE hFind;
@@ -740,7 +740,7 @@ void WGCL_TryFormatUserData(void)
                     strcmp(find_data.cFileName, "..") == 0)
                     continue;
 
-                sprintf_s(file_attr, 256, "%s\\%s", path_name[i], find_data.cFileName);
+                sprintf_s(file_attr, sizeof (file_attr), "%s\\%s", path_name[i], find_data.cFileName);
                 fs_remove(file_attr);
             } while (FindNextFileA(hFind, &find_data));
 

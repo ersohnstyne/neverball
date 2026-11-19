@@ -3722,7 +3722,7 @@ int gui_navig_full(int id, int total, int first, int step, int back_disabled)
             {
                 char str[12];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(str, 12,
+                sprintf_s(str, sizeof (str),
 #else
                 sprintf(str,
 #endif

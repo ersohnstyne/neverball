@@ -532,7 +532,7 @@ static int start_star_view_gui(void)
             char set_star_attr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(set_star_attr, MAXSTR,
+            sprintf_s(set_star_attr, sizeof (set_star_attr),
 #else
             sprintf(set_star_attr,
 #endif
@@ -566,7 +566,7 @@ static int start_star_view_gui(void)
                 if (set_balls_needed(curr_set()) > curr_balls + 3)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(s_needed, MAXSTR,
+                    sprintf_s(s_needed, sizeof (s_needed),
 #else
                     sprintf(s_needed,
 #endif
@@ -577,7 +577,7 @@ static int start_star_view_gui(void)
                 else if (set_balls_needed(curr_set()) > curr_balls)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(s_recommend, MAXSTR,
+                    sprintf_s(s_needed, sizeof (s_needed),
 #else
                     sprintf(s_needed,
 #endif
@@ -748,7 +748,7 @@ static int start_gui(void)
                 char set_star_attr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(set_star_attr, MAXSTR,
+                sprintf_s(set_star_attr, sizeof (set_star_attr),
 #else
                 sprintf(set_star_attr,
 #endif
@@ -783,7 +783,7 @@ static int start_gui(void)
             if (!curr_setname)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(curr_setname_final, MAXSTR,
+                sprintf_s(curr_setname_final, sizeof (curr_setname_final),
 #else
                 sprintf(curr_setname_final,
 #endif
@@ -1153,7 +1153,7 @@ static int start_compat_gui()
         if (!curr_setname)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(curr_setname_final, MAXSTR,
+            sprintf_s(curr_setname_final, sizeof (curr_setname_final),
 #else
             sprintf(curr_setname_final,
 #endif

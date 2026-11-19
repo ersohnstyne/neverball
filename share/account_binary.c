@@ -217,7 +217,7 @@ int  account_exists(void)
 {
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(paths, MAXSTR,
+    sprintf_s(paths, sizeof (paths),
 #else
     sprintf(paths,
 #endif
@@ -263,7 +263,7 @@ void account_load(void)
 
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(paths, MAXSTR,
+    sprintf_s(paths, sizeof (paths),
 #else
     sprintf(paths,
 #endif
@@ -335,7 +335,7 @@ void account_save(void)
 
     char paths[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(paths, MAXSTR,
+    sprintf_s(paths, sizeof (paths),
 #else
     sprintf(paths,
 #endif

@@ -123,7 +123,7 @@ static int done_action(int tok, int val)
 
                 if (!curr_setid) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(curr_setid_final, MAXSTR,
+                    sprintf_s(curr_setid_final, sizeof (curr_setid_final),
 #else
                     sprintf(curr_setid_final,
 #endif
@@ -176,7 +176,7 @@ static int done_gui_campaign(void)
     {
         char sdescHardcore[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(sdescHardcore, MAXSTR,
+        sprintf_s(sdescHardcore, sizeof (sdescHardcore),
 #else
         sprintf(sdescHardcore,
 #endif
@@ -274,7 +274,7 @@ static int done_gui_set(void)
             {
                 char set_star_attr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(set_star_attr, MAXSTR,
+                sprintf_s(set_star_attr, sizeof (set_star_attr),
 #else
                 sprintf(set_star_attr,
 #endif

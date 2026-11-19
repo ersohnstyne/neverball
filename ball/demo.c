@@ -53,7 +53,7 @@ static const char *demo_path(const char *name, int name_ten)
     static char path[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(path, MAXSTR,
+    sprintf_s(path, sizeof (path),
 #else
     sprintf(path,
 #endif
@@ -378,7 +378,7 @@ const char *demo_format_name(const char *fmt,
     make_time_from_utc(&date_src);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(numpart, MAXSTR,
+    sprintf_s(numpart, sizeof (numpart),
 #else
     sprintf(numpart,
 #endif
@@ -404,7 +404,7 @@ const char *demo_format_name(const char *fmt,
     for (int i = 1; i < 100; i++)
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(numpart, MAXSTR,
+        sprintf_s(numpart, sizeof (numpart),
 #else
         sprintf(numpart,
 #endif

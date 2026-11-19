@@ -694,7 +694,7 @@ static int conf_account_gui(void)
                 char filter_introductive_attr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(filter_introductive_attr, MAXSTR,
+                sprintf_s(filter_introductive_attr, sizeof (filter_introductive_attr),
 #else
                 sprintf(filter_introductive_attr,
 #endif
@@ -947,7 +947,7 @@ static void conf_account_timer(int id, float dt)
         int clock_sec  = (int) MAX(0, (sec       ) % 60);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(cv19_infoattr, MAXSTR,
+        sprintf_s(cv19_infoattr, sizeof (cv19_infoattr),
 #else
         sprintf(cv19_infoattr,
 #endif
@@ -2686,7 +2686,7 @@ static void conf_controllers_set_label(int id, int value)
     if (joystick_option_values_xbox[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 20,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -2696,7 +2696,7 @@ static void conf_controllers_set_label(int id, int value)
     if (joystick_option_values_ps[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 20,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -2706,7 +2706,7 @@ static void conf_controllers_set_label(int id, int value)
     if (joystick_option_values_steamdeck[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 20,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -2716,7 +2716,7 @@ static void conf_controllers_set_label(int id, int value)
     if (joystick_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 20,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -2726,7 +2726,7 @@ static void conf_controllers_set_label(int id, int value)
     if (joystick_option_values_switch[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 20,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -2737,7 +2737,7 @@ static void conf_controllers_set_label(int id, int value)
     if (joystick_option_values_wii[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 20,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -2747,7 +2747,7 @@ static void conf_controllers_set_label(int id, int value)
     if (joystick_option_values_energizelab[value % 100000])
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, 20,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -3204,7 +3204,7 @@ static void conf_calibrate_stick(int id, int a, float v, int bump)
     char axisattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(axisattr, MAXSTR,
+    sprintf_s(axisattr, sizeof (axisattr),
 #else
     sprintf(axisattr,
 #endif

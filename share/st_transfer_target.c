@@ -641,7 +641,7 @@ static int transfer_gui(void)
                 if (transfer_walletamount[0] > 0 && transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, MAXSTR,
+                    sprintf_s(wallet_infotext, sizeof (wallet_infotext),
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -655,7 +655,7 @@ static int transfer_gui(void)
                 else if (transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, MAXSTR,
+                    sprintf_s(wallet_infotext, sizeof (wallet_infotext),
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -669,7 +669,7 @@ static int transfer_gui(void)
                 else if (transfer_walletamount[0] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, MAXSTR,
+                    sprintf_s(wallet_infotext, sizeof (wallet_infotext),
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -1113,9 +1113,9 @@ static void transfer_timer_preparation_target(float dt)
                                                         ffd.cFileName, NULL));
                     account_transfer_save(ffd.cFileName);
 
-                    char copy_cmd[MAXSTR];
+                    char copy_cmd[65536];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(copy_cmd, "copy /y \"%s\" \"%s\"",
+                    sprintf_s(copy_cmd, sizeof (copy_cmd), "copy /y \"%s\" \"%s\"",
                         concat_string(pick_home_path(), "\\", CONFIG_USER,
                                       "\\Accounts_transfer\\", ffd.cFileName, NULL),
                         concat_string(drive_letters[current_drive_idx],
@@ -1345,10 +1345,10 @@ static void transfer_timer_process_target(float dt)
     const char *src_dirpath_screenshots;
 
     char target_dirpath_account[MAXSTR];
-    char target_dirpath_campaign[MAXSTR];
-    char target_dirpath_demo[MAXSTR];
-    char target_dirpath_hs[MAXSTR];
-    char target_dirpath_screenshots[MAXSTR];
+    char target_dirpath_campaign[65536];
+    char target_dirpath_demo[65536];
+    char target_dirpath_hs[65536];
+    char target_dirpath_screenshots[65536];
 
     assert(current_drive_idx > -1 && drive_letters[current_drive_idx]);
 
@@ -1383,10 +1383,10 @@ static void transfer_timer_process_target(float dt)
     const char *homepath = pick_home_path();
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(target_dirpath_campaign, "%s\\%s\\Campaign", homepath, CONFIG_USER);
-    sprintf_s(target_dirpath_demo, "%s\\%s\\Replays", homepath, CONFIG_USER);
-    sprintf_s(target_dirpath_hs, "%s\\%s\\Scores", homepath, CONFIG_USER);
-    sprintf_s(target_dirpath_screenshots, "%s\\%s\\Screenshots", homepath, CONFIG_USER);
+    sprintf_s(target_dirpath_campaign, sizeof(target_dirpath_campaign), "%s\\%s\\Campaign", homepath, CONFIG_USER);
+    sprintf_s(target_dirpath_demo, sizeof(target_dirpath_demo), "%s\\%s\\Replays", homepath, CONFIG_USER);
+    sprintf_s(target_dirpath_hs, sizeof(target_dirpath_hs), "%s\\%s\\Scores", homepath, CONFIG_USER);
+    sprintf_s(target_dirpath_screenshots, sizeof(target_dirpath_screenshots), "%s\\%s\\Screenshots", homepath, CONFIG_USER);
 #elif _WIN32
     sprintf(target_dirpath_campaign, "%s\\%s\\Campaign", homepath, CONFIG_USER);
     sprintf(target_dirpath_demo, "%s\\%s\\Replays", homepath, CONFIG_USER);
@@ -1515,7 +1515,7 @@ static void transfer_timer_process_target(float dt)
 #endif
                 char movecmd_account[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(movecmd_account,
+                sprintf_s(movecmd_account, sizeof (movecmd_account),
 #else
                 sprintf(movecmd_account,
 #endif
@@ -1541,10 +1541,10 @@ static void transfer_timer_process_target(float dt)
         ball_init();
 #endif
 
-        char movecmd_campaign[MAXSTR],
-             movecmd_demo[MAXSTR],
-             movecmd_hs[MAXSTR],
-             movecmd_screenshots[MAXSTR];
+        char movecmd_campaign[65536],
+             movecmd_demo[65536],
+             movecmd_hs[65536],
+             movecmd_screenshots[65536];
 
         log_printf("Campaign path from source to target: %s => %s\n", src_dirpath_campaign, target_dirpath_campaign);
         log_printf("Replay path from source to target: %s => %s\n", src_dirpath_demo, target_dirpath_demo);
@@ -1552,10 +1552,10 @@ static void transfer_timer_process_target(float dt)
         log_printf("Screenshots path from source to target: %s => %s\n", src_dirpath_screenshots, target_dirpath_screenshots);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(movecmd_campaign, "move /y \"%s\" \"%s\"", src_dirpath_campaign, target_dirpath_campaign);
-        sprintf_s(movecmd_demo, "move /y \"%s\" \"%s\"", src_dirpath_demo, target_dirpath_demo);
-        sprintf_s(movecmd_hs, "move /y \"%s\" \"%s\"", src_dirpath_hs, target_dirpath_hs);
-        sprintf_s(movecmd_screenshots, "move /y \"%s\" \"%s\"", src_dirpath_screenshots, target_dirpath_screenshots);
+        sprintf_s(movecmd_campaign, sizeof (movecmd_campaign), "move /y \"%s\" \"%s\"", src_dirpath_campaign, target_dirpath_campaign);
+        sprintf_s(movecmd_demo, sizeof (movecmd_demo), "move /y \"%s\" \"%s\"", src_dirpath_demo, target_dirpath_demo);
+        sprintf_s(movecmd_hs, sizeof (movecmd_hs), "move /y \"%s\" \"%s\"", src_dirpath_hs, target_dirpath_hs);
+        sprintf_s(movecmd_screenshots, sizeof (movecmd_screenshots), "move /y \"%s\" \"%s\"", src_dirpath_screenshots, target_dirpath_screenshots);
 #else
         sprintf(movecmd_campaign, "move /y \"%s\" \"%s\"", src_dirpath_campaign, target_dirpath_campaign);
         sprintf(movecmd_demo, "move /y \"%s\" \"%s\"", src_dirpath_demo, target_dirpath_demo);

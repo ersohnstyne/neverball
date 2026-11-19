@@ -95,7 +95,7 @@ List dir_list_files(const char *path)
     }
 #elif _WIN32 && _MSC_VER
     char out_path[MAXSTR];
-    sprintf_s(out_path, MAXSTR, "%s\\*", path);
+    sprintf_s(out_path, sizeof (out_path), "%s\\*", path);
 
     WIN32_FIND_DATAA find_data;
     HANDLE hFind;
@@ -112,7 +112,7 @@ List dir_list_files(const char *path)
             struct stat _buf;
             char tmp_real[256];
 
-            sprintf_s(tmp_real, 256, "%s\\%s", path, find_data.cFileName);
+            sprintf_s(tmp_real, sizeof (tmp_real), "%s\\%s", path, find_data.cFileName);
 
             if (!(name = strdup(find_data.cFileName)))
                 continue;

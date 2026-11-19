@@ -480,7 +480,7 @@ int account_wgcl_reload(void)
 
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(in_url, 512,
+    sprintf_s(in_url, sizeof (in_url),
 #else
     sprintf(in_url,
 #endif
@@ -498,9 +498,9 @@ int account_wgcl_reload(void)
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_post_data[MAXSTR];
+    char json_post_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_post_data, MAXSTR,
+    sprintf_s(json_post_data, sizeof (json_post_data),
 #else
     sprintf(json_post_data,
 #endif
@@ -770,9 +770,9 @@ int account_wgcl_login(const char *name, const char *password)
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_data[512];
+    char json_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_data, 512
+    sprintf_s(json_data, sizeof (json_data),
 #else
     sprintf(json_data,
 #endif
@@ -899,9 +899,9 @@ int account_wgcl_login_twofactor(const char *token)
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_data[512];
+    char json_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_data, 512
+    sprintf_s(json_data, sizeof(json_data),
 #else
     sprintf(json_data,
 #endif
@@ -1025,7 +1025,7 @@ int account_wgcl_try_add(int w_coins, int w_gems,
 #if NB_HAVE_PB_BOTH==1
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(in_url, 512,
+    sprintf_s(in_url, sizeof (in_url),
 #else
     sprintf(in_url,
 #endif
@@ -1043,9 +1043,9 @@ int account_wgcl_try_add(int w_coins, int w_gems,
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_data[512];
+    char json_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_data, 512,
+    sprintf_s(json_data, sizeof (json_data),
 #else
     sprintf(json_data,
 #endif
@@ -1178,7 +1178,7 @@ int account_wgcl_try_set(int w_coins, int w_gems,
 #if NB_HAVE_PB_BOTH==1
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(in_url, 512,
+    sprintf_s(in_url, sizeof (in_url),
 #else
     sprintf(in_url,
 #endif
@@ -1196,9 +1196,9 @@ int account_wgcl_try_set(int w_coins, int w_gems,
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_data[512];
+    char json_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_data, 512,
+    sprintf_s(json_data, sizeof (json_data),
 #else
     sprintf(json_data,
 #endif
@@ -1328,7 +1328,7 @@ int account_wgcl_try_buy(int w_coins_cost, int flags)
 
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(in_url, 512,
+    sprintf_s(in_url, sizeof (in_url),
 #else
     sprintf(in_url,
 #endif
@@ -1346,9 +1346,9 @@ int account_wgcl_try_buy(int w_coins_cost, int flags)
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_data[512];
+    char json_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_data, 512,
+    sprintf_s(json_data, sizeof (json_data),
 #else
     sprintf(json_data,
 #endif
@@ -1603,7 +1603,7 @@ int  account_wgcl_do_finish_challenge(int campaign, int coins, int gems,
     /* TODO: Do this for finish challenge network requests! */
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(in_url, 512,
+    sprintf_s(in_url, sizeof (in_url),
 #else
     sprintf(in_url,
 #endif
@@ -1622,9 +1622,9 @@ int  account_wgcl_do_finish_challenge(int campaign, int coins, int gems,
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_data[512];
+    char json_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_data, 512,
+    sprintf_s(json_data, sizeof (json_data),
 #else
     sprintf(json_data,
 #endif
@@ -1808,7 +1808,7 @@ int account_wgcl_mapmarkers_place(const char *map_name, int status, int x_cm, in
 #if _WIN32 && _MSC_VER
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(in_url, 512,
+    sprintf_s(in_url, sizeof (in_url),
 #else
     sprintf(in_url,
 #endif
@@ -1826,9 +1826,9 @@ int account_wgcl_mapmarkers_place(const char *map_name, int status, int x_cm, in
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_data[512];
+    char json_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_data, 512,
+    sprintf_s(json_data, sizeof (json_data),
 #else
     sprintf(json_data,
 #endif
@@ -1908,7 +1908,7 @@ int account_wgcl_seths_load(const char *setid,
 #if _WIN32 && _MSC_VER
     char in_url[512];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(in_url, 512,
+    sprintf_s(in_url, sizeof (in_url),
 #else
     sprintf(in_url,
 #endif
@@ -1926,9 +1926,9 @@ int account_wgcl_seths_load(const char *setid,
             wgcl_utc_time->tm_year + 1900, wgcl_utc_time->tm_mon + 1, wgcl_utc_time->tm_mday,
             wgcl_utc_time->tm_hour, wgcl_utc_time->tm_min, wgcl_utc_time->tm_sec);
 
-    char json_data[512];
+    char json_data[65535];
 #if !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(json_data, 512,
+    sprintf_s(json_data, sizeof (json_data),
 #else
     sprintf(json_data,
 #endif

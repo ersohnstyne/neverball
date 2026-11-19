@@ -138,7 +138,7 @@ static int over_action(int tok, int val)
 
                 if (!curr_setid) {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(curr_setid_final, MAXSTR,
+                    sprintf_s(curr_setid_final, sizeof (curr_setid_final),
 #else
                     sprintf(curr_setid_final,
 #endif
@@ -206,7 +206,7 @@ static int over_gui_hardcore(void)
         }
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(hardcore_report, MAXSTR,
+        sprintf_s(hardcore_report, sizeof (hardcore_report),
 #else
         sprintf(hardcore_report,
 #endif

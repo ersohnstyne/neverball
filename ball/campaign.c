@@ -531,7 +531,7 @@ static void campaign_load_levels(void)
             l->num_indiv_theme = i_num_indiv_theme;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(l->name, 12,
+            sprintf_s(l->name, signed (l->name),
 #else
             sprintf(l->name,
 #endif
@@ -783,7 +783,7 @@ int campaign_load_camera_box_trigger(const char *levelname)
     char camLinePrefix[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(camFilename, MAXSTR,
+    sprintf_s(camFilename, sizeof (camFilename),
 #else
     sprintf(camFilename,
 #endif
@@ -794,7 +794,7 @@ int campaign_load_camera_box_trigger(const char *levelname)
     if ((fh = fs_open_read(camFilename)))
     {
         int camBoxIdx = 0;
-        while (fs_gets(camLinePrefix, MAXSTR, fh) &&
+        while (fs_gets(camLinePrefix, sizeof (camLinePrefix), fh) &&
                camBoxIdx < MAX_CAM_BOX_TRIGGER)
         {
             cam_box_triggers[camBoxIdx].positions[0] = 0.0f;

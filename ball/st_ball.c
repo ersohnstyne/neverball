@@ -161,7 +161,7 @@ static void load_ball_name_real(struct model_ball *b, const char *path)
     char tmp_ball_name_path[64];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(tmp_ball_name_path, 64,
+    sprintf_s(tmp_ball_name_path, sizeof (tmp_ball_name_path),
 #else
     sprintf(tmp_ball_name_path,
 #endif
@@ -333,7 +333,7 @@ static void set_curr_ball(int ball_index)
     const struct model_ball *ball = MODEL_BALL_GET(balls, ball_index);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(ball_file, 64,
+    sprintf_s(ball_file, sizeof (ball_file),
 #else
     sprintf(ball_file,
 #endif

@@ -218,7 +218,7 @@ void log_init(const char *name, const char *path)
                 &date_dd, &date_mm, &date_yyyy, &date_h, &date_m, &date_s) == 6)
             {
 #if _WIN32 && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(log_header, MAXSTR,
+                sprintf_s(log_header, sizeof (log_header),
 #else
                 sprintf(log_header,
 #endif
@@ -232,7 +232,7 @@ void log_init(const char *name, const char *path)
                 OutputDebugStringA("[!] NB ERROR: Invalid date format!\n");
 #endif
 #if _WIN32 && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(log_header, MAXSTR,
+                sprintf_s(log_header, sizeof (log_header),
 #else
                 sprintf(log_header,
 #endif

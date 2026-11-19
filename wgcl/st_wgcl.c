@@ -1040,7 +1040,7 @@ static int wgcl_login_result_gui_done(void)
         char desc_info[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(desc_info, MAXSTR,
+        sprintf_s(desc_info, sizeof (desc_info),
 #else
         sprintf(desc_info,
 #endif

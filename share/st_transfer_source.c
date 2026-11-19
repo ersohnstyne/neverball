@@ -486,7 +486,7 @@ static int transfer_gui(void)
                 if (transfer_walletamount[0] > 0 && transfer_walletamount[1])
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, MAXSTR,
+                    sprintf_s(wallet_infotext, sizeof (wallet_infotext),
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -500,7 +500,7 @@ static int transfer_gui(void)
                 else if (transfer_walletamount[1] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, MAXSTR,
+                    sprintf_s(wallet_infotext, sizeof (wallet_infotext),
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -514,7 +514,7 @@ static int transfer_gui(void)
                 else if (transfer_walletamount[0] > 0)
                 {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(wallet_infotext, MAXSTR,
+                    sprintf_s(wallet_infotext, sizeof (wallet_infotext),
 #else
                     sprintf(wallet_infotext,
 #endif
@@ -1180,7 +1180,7 @@ void transfer_timer_process_source(float dt)
         if (INVALID_HANDLE_VALUE != hSrcFind)
         {
             FILE *wallet_file;
-            char outwallet_result_csv[MAXSTR];
+            char outwallet_result_csv[65536];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             fopen_s(&wallet_file, concat_string(drive_letters[current_drive_idx],
@@ -1225,7 +1225,7 @@ void transfer_timer_process_source(float dt)
                     SAFECPY(account_transfer_values_source.ball_file, account_transfer_get_s(ACCOUNT_TRANSFER_BALL_FILE));
 #endif
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(outwallet_result_csv, MAXSTR,
+                    sprintf_s(outwallet_result_csv, sizeof (outwallet_result_csv),
 #else
                     sprintf(outwallet_result_csv,
 #endif
@@ -1348,16 +1348,16 @@ void transfer_timer_process_source(float dt)
 
         /* Phase 3: Highscores */
 
-        char hs_campaign_out_transfer[MAXSTR];
-        char hs_levelset_out_transfer[MAXSTR];
+        char hs_campaign_out_transfer[1024];
+        char hs_levelset_out_transfer[1024];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(hs_campaign_out_transfer, MAXSTR, "move /y \"%s\" \"%s\"",
+        sprintf_s(hs_campaign_out_transfer, sizeof (hs_campaign_out_transfer), "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Campaign\\*", NULL),
             concat_string(drive_letters[current_drive_idx],
                           ":/nvb_gametransfer/campaign", NULL)
         );
-        sprintf_s(hs_levelset_out_transfer, MAXSTR, "move /y \"%s\" \"%s\"",
+        sprintf_s(hs_levelset_out_transfer, sizeof (hs_levelset_out_transfer), "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Scores\\*", NULL),
             concat_string(drive_letters[current_drive_idx],
                           ":/nvb_gametransfer/scores", NULL)
@@ -1397,10 +1397,10 @@ void transfer_timer_process_source(float dt)
 
         /* Phase 4: Screenshots */
 
-        char screenshots_out_transfer[MAXSTR];
+        char screenshots_out_transfer[1024];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(screenshots_out_transfer, MAXSTR, "move /y \"%s\" \"%s\"",
+        sprintf_s(screenshots_out_transfer, sizeof (screenshots_out_transfer), "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Screenshots\\*", NULL),
             concat_string(drive_letters[current_drive_idx],
                           ":/nvb_gametransfer/screenshots", NULL)

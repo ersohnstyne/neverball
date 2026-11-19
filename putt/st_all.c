@@ -98,7 +98,7 @@ static char *number(int i)
     static char str[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(str, MAXSTR,
+    sprintf_s(str, sizeof (str),
 #else
     sprintf(str,
 #endif
@@ -151,7 +151,7 @@ static int score_card(const char  *title,
 
                     char diffattr[16];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(diffattr, 16
+                    sprintf_s(diffattr, sizeof (diffattr),
 #else
                     sprintf(diffattr,
 #endif
@@ -1402,7 +1402,7 @@ static void controltype_timer(int id, float dt)
         {
             char descattr[44];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(descattr, 44
+            sprintf_s(descattr, sizeof (descattr),
 #else
             sprintf(descattr,
 #endif
@@ -1684,7 +1684,7 @@ static int next_enter(struct state *st, struct state *prev, int intent)
     stroke_set_type(0);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(str, MAXSTR
+    sprintf_s(str, sizeof (str),
 #else
     sprintf(str,
 #endif
@@ -2428,7 +2428,7 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
     else if (scr_v > par_v)
     {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(hole_statname, 64,
+        sprintf_s(hole_statname, sizeof (hole_statname),
 #else
         sprintf(hole_statname,
 #endif

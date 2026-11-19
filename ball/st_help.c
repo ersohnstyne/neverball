@@ -549,7 +549,7 @@ static void controls_pc(int id)
     char s_rotate_new[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(s_rotate_new, MAXSTR,
+    sprintf_s(s_rotate_new, sizeof (s_rotate_new),
 #else
     sprintf(s_rotate_new,
 #endif

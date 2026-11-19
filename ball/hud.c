@@ -143,7 +143,7 @@ static void hud_fps(void)
     last_fps = flerp(last_fps, video_perf(), ms_latency * 4);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(perf_attr, 32,
+    sprintf_s(perf_attr, sizeof (perf_attr),
 #else
     sprintf(perf_attr,
 #endif
@@ -536,7 +536,7 @@ void hud_update(int pulse, float animdt)
     float speedpercent = curr_speed_percent();
     char  speedattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(speedattr, MAXSTR,
+    sprintf_s(speedattr, sizeof (speedattr),
 #else
     sprintf(speedattr,
 #endif
@@ -688,7 +688,7 @@ void hud_update(int pulse, float animdt)
 #endif
         case MODE_CHALLENGE:
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(xppenalty_text_final, 9,
+            sprintf_s(xppenalty_text_final, sizeof (xppenalty_text_final),
 #else
             sprintf(xppenalty_text_final,
 #endif
@@ -949,7 +949,7 @@ void hud_update_camera_direction(float rot_direction)
     char camdirref[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(camdirref, MAXSTR,
+    sprintf_s(camdirref, sizeof (camdirref),
 #else
     sprintf(camdirref,
 #endif
@@ -1178,7 +1178,7 @@ void hud_incomecall_timer(float dt)
         
         if (incomecall_timer >= 3600.0f)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(incomecall_attr, MAXSTR,
+            sprintf_s(incomecall_attr, sizeof (incomecall_attr),
 #else
             sprintf(incomecall_attr,
 #endif
@@ -1188,7 +1188,7 @@ void hud_incomecall_timer(float dt)
                     ROUND( incomecall_timer)            % 60);
         else
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(incomecall_attr, MAXSTR,
+            sprintf_s(incomecall_attr, sizeof (incomecall_attr),
 #else
             sprintf(incomecall_attr,
 #endif

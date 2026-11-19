@@ -1477,7 +1477,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
             {
                 char coinsattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(coinsattr, MAXSTR,
+                sprintf_s(coinsattr, sizeof (coinsattr),
 #else
                 sprintf(coinsattr,
 #endif
@@ -1489,7 +1489,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
             {
                 char gemsattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(gemsattr, MAXSTR,
+                sprintf_s(gemsattr, sizeof (gemsattr),
 #else
                 sprintf(gemsattr,
 #endif
@@ -1561,7 +1561,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
             {
                 char gemsattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(gemsattr, MAXSTR,
+                sprintf_s(gemsattr, sizeof (gemsattr),
 #else
                 sprintf(gemsattr,
 #endif
@@ -1643,7 +1643,7 @@ static int ask_more_enter(struct state *st, struct state *prev, int intent)
                 char approveattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(approveattr, MAXSTR,
+                sprintf_s(approveattr, sizeof (approveattr),
 #else
                 sprintf(approveattr,
 #endif
@@ -1932,7 +1932,7 @@ static int raise_gems_prepare_gui(void)
         {
             if (pay_debt_ready)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(infoattr_full, MAXSTR,
+                sprintf_s(infoattr_full, sizeof(infoattr_full),
 #else
                 sprintf(infoattr_full,
 #endif
@@ -1942,7 +1942,7 @@ static int raise_gems_prepare_gui(void)
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(infoattr0, MAXSTR,
+            sprintf_s(infoattr0, sizeof (infoattr0),
 #else
             sprintf(infoattr0,
 #endif
@@ -2005,7 +2005,7 @@ static int raise_gems_prepare_gui(void)
                                                         N_("Coins");
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                            sprintf_s(paramattr, MAXSTR,
+                            sprintf_s(paramattr, sizeof (paramattr),
 #else
                             sprintf(paramattr,
 #endif
@@ -2032,7 +2032,7 @@ static int raise_gems_prepare_gui(void)
                         char coinaddattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(coinaddattr, MAXSTR,
+                        sprintf_s(coinaddattr, sizeof (coinaddattr),
 #else
                         sprintf(coinaddattr,
 #endif
@@ -2044,7 +2044,7 @@ static int raise_gems_prepare_gui(void)
 
                     char elemattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(elemattr, MAXSTR,
+                    sprintf_s(elemattr, sizeof (elemattr),
 #else
                     sprintf(elemattr,
 #endif

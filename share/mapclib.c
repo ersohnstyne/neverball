@@ -1402,7 +1402,7 @@ static void read_f(struct mapc_context *ctx, const char *name, const char *line,
 static void read_obj(struct mapc_context *ctx, const char *name, int mi)
 {
     struct s_base *fp = &ctx->file;
-    char line[MAXSTR];
+    char line[1024];
     char mtrl[MAXSTR];
     char stderr_buf[512];
     fs_file fin;
@@ -1415,7 +1415,7 @@ static void read_obj(struct mapc_context *ctx, const char *name, int mi)
     {
         int line_num = 1;
 
-        while (fs_gets(line, MAXSTR, fin))
+        while (fs_gets(line, sizeof (line), fin))
         {
             if (strncmp(line, "usemtl", 6) == 0)
             {

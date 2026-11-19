@@ -503,7 +503,7 @@ static const char *config_mouse_name(int b)
     static char buff[4];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(buff, 4,
+    sprintf_s(buff, sizeof (buff),
 #else
     sprintf(buff,
 #endif

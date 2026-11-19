@@ -291,7 +291,7 @@ static int demo_action(int tok, int val)
                 const char *demo_path = DIR_ITEM_GET(demo_items, selected)->path;
 
                 char out_cmd_buf[MAXSTR];
-                sprintf_s(out_cmd_buf, MAXSTR, "explorer %s\\Replays\\%s", fs_get_write_dir(), base_name(demo_path));
+                sprintf_s(out_cmd_buf, sizeof (out_cmd_buf), "explorer %s\\Replays\\%s", fs_get_write_dir(), base_name(demo_path));
 
                 if (win32_demo_is_video_file(demo_path))
                     system(out_cmd_buf);
@@ -816,7 +816,7 @@ static void gui_demo_update_status(int i)
     char coin_id_str[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(coin_id_str, MAXSTR,
+    sprintf_s(coin_id_str, sizeof (coin_id_str),
 #else
     sprintf(coin_id_str,
 #endif
@@ -915,7 +915,7 @@ static int demo_restricted_gui(void)
         {
             char infoattr[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(infoattr, MAXSTR,
+            sprintf_s(infoattr, sizeof (infoattr),
 #else
             sprintf(infoattr,
 #endif
@@ -1118,7 +1118,7 @@ static int demo_gui(void)
                     char availibility_header_monitor[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(availibility_header_monitor, MAXSTR,
+                    sprintf_s(availibility_header_monitor, sizeof (availibility_header_monitor),
 #else
                     sprintf(availibility_header_monitor,
 #endif

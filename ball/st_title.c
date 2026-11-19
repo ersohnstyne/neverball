@@ -681,9 +681,9 @@ static int title_action(int tok, int val)
 
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
+            sprintf_s(dev_env, sizeof (dev_env), _("RFD Edition / %s"),
                                        _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
+            sprintf_s(os_env, sizeof (os_env), _("Recipes for Disaster Edition"));
 #else
             sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Recipes for Disaster Edition"));
@@ -694,9 +694,9 @@ static int title_action(int tok, int val)
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 10002)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Server Datacenter / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Server Datacenter / %s"),
                                            _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Server Datacenter Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Server Datacenter Edition"));
 #else
                 sprintf(dev_env, _("Server Datacenter / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Datacenter Edition"));
@@ -705,9 +705,9 @@ static int title_action(int tok, int val)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10001)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Server Standard / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Server Standard / %s"),
                                            _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Server Standard Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Server Standard Edition"));
 #else
                 sprintf(dev_env, _("Server Standard / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Standard Edition"));
@@ -716,9 +716,9 @@ static int title_action(int tok, int val)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10000)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Server Essential / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Server Essential / %s"),
                                            _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Server Essential Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Server Essential Edition"));
 #else
                 sprintf(dev_env, _("Server Essential / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Essential Edition"));
@@ -727,9 +727,9 @@ static int title_action(int tok, int val)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 3)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Edu Edition / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Edu Edition / %s"),
                                            _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Edu Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Edu Edition"));
 #else
                 sprintf(dev_env, _("Edu Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Edu Edition"));
@@ -738,9 +738,9 @@ static int title_action(int tok, int val)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 2)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Enterprise Edition / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Enterprise Edition / %s"),
                                            _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Enterprise Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Enterprise Edition"));
 #else
                 sprintf(dev_env, _("Enterprise Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Enterprise Edition"));
@@ -749,9 +749,9 @@ static int title_action(int tok, int val)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 1)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Pro Edition / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Pro Edition / %s"),
                                            _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Pro Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Pro Edition"));
 #else
                 sprintf(dev_env, _("Pro Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Pro Edition"));
@@ -760,9 +760,9 @@ static int title_action(int tok, int val)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Home Edition / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Home Edition / %s"),
                                            _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Home Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Home Edition"));
 #else
                 sprintf(dev_env, _("Home Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Home Edition"));
@@ -772,9 +772,9 @@ static int title_action(int tok, int val)
 
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
+            sprintf_s(dev_env, sizeof (dev_env), _("RFD Edition / %s"),
                      _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
+            sprintf_s(os_env, sizeof (os_env), _("Recipes for Disaster Edition"));
 #else
             sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Recipes for Disaster Edition"));
@@ -1074,9 +1074,9 @@ static int title_gui(void)
 
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
+            sprintf_s(dev_env, sizeof (dev_env), _("RFD Edition / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
+            sprintf_s(os_env, sizeof (os_env), _("Recipes for Disaster Edition"));
 #else
             sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Recipes for Disaster Edition"));
@@ -1086,9 +1086,9 @@ static int title_gui(void)
             if (server_policy_get_d(SERVER_POLICY_EDITION) == 10002)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Server Datacenter / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Server Datacenter / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Server Datacenter Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Server Datacenter Edition"));
 #else
                 sprintf(dev_env, _("Server Datacenter / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Datacenter Edition"));
@@ -1097,9 +1097,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10001)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Server Standard / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Server Standard / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Server Standard Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Server Standard Edition"));
 #else
                 sprintf(dev_env, _("Server Standard / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Standard Edition"));
@@ -1108,9 +1108,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 10000)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Server Essential / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Server Essential / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Server Essential Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Server Essential Edition"));
 #else
                 sprintf(dev_env, _("Server Essential / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Server Essential Edition"));
@@ -1119,9 +1119,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 3)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Edu Edition / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Edu Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Education Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Education Edition"));
 #else
                 sprintf(dev_env, _("Edu Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Education Edition"));
@@ -1130,9 +1130,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 2)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Enterprise Edition / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Enterprise Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Enterprise Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Enterprise Edition"));
 #else
                 sprintf(dev_env, _("Enterprise Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Enterprise Edition"));
@@ -1141,9 +1141,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 1)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Pro Edition / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Pro Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Pro Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Pro Edition"));
 #else
                 sprintf(dev_env, _("Pro Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Pro Edition"));
@@ -1152,9 +1152,9 @@ static int title_gui(void)
             else if (server_policy_get_d(SERVER_POLICY_EDITION) == 0)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(dev_env, MAXSTR, _("Home Edition / %s"),
+                sprintf_s(dev_env, sizeof (dev_env), _("Home Edition / %s"),
                           _("Developer Mode"));
-                sprintf_s(os_env, MAXSTR, _("Home Edition"));
+                sprintf_s(os_env, sizeof (os_env), _("Home Edition"));
 #else
                 sprintf(dev_env, _("Home Edition / %s"), _("Developer Mode"));
                 sprintf(os_env, _("Home Edition"));
@@ -1163,9 +1163,9 @@ static int title_gui(void)
 
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(dev_env, MAXSTR, _("RFD Edition / %s"),
+            sprintf_s(dev_env, sizeof (dev_env), _("RFD Edition / %s"),
                       _("Developer Mode"));
-            sprintf_s(os_env, MAXSTR, _("Recipes for Disaster Edition"));
+            sprintf_s(os_env, sizeof (os_env), _("Recipes for Disaster Edition"));
 #else
             sprintf(dev_env, _("RFD Edition / %s"), _("Developer Mode"));
             sprintf(os_env, _("Recipes for Disaster Edition"));

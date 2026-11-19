@@ -1076,7 +1076,7 @@ static int game_setup_lang_gui(void)
 
                 char lang_infotext[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(lang_infotext, MAXSTR,
+                sprintf_s(lang_infotext, sizeof (lang_infotext),
 #else
                 sprintf(lang_infotext,
 #endif

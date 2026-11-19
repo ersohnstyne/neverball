@@ -394,11 +394,11 @@ static int end_support_gui(void)
             else if (diff < 30)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(titleattr, MAXSTR, END_SUPPORT_TITLE_1);
-                sprintf_s(descattr, MAXSTR, END_SUPPORT_DESC_1, curryear - 2014);
+                sprintf_s(titleattr, sizeof (titleattr), END_SUPPORT_TITLE_1);
+                sprintf_s(descattr,  sizeof (descattr),  END_SUPPORT_DESC_1, curryear - 2014);
 #else
                 sprintf(titleattr, END_SUPPORT_TITLE_1);
-                sprintf(descattr, END_SUPPORT_DESC_1, curryear - 2014);
+                sprintf(descattr,  END_SUPPORT_DESC_1,  curryear - 2014);
 #endif
                 gui_label(id, titleattr, GUI_SML, gui_red, gui_red);
                 gui_space(id);
@@ -407,8 +407,8 @@ static int end_support_gui(void)
             else if (diff < 2)
             {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(titleattr, MAXSTR, END_SUPPORT_TITLE_2, curryear - 2014);
-                sprintf_s(descattr, MAXSTR, END_SUPPORT_DESC_2);
+                sprintf_s(titleattr, sizeof (titleattr), END_SUPPORT_TITLE_2, curryear - 2014);
+                sprintf_s(descattr,  sizeof (descattr),  END_SUPPORT_DESC_2);
 #else
                 sprintf(titleattr, END_SUPPORT_TITLE_2, curryear - 2014);
                 sprintf(descattr, END_SUPPORT_DESC_2);

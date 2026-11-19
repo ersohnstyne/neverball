@@ -296,7 +296,7 @@ static int goal_gui(void)
                 int timer_diff = curr_times_diff();
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                sprintf_s(timer_diffattr, 64,
+                sprintf_s(timer_diffattr, sizeof (timer_diffattr),
 #else
                 sprintf(timer_diffattr,
 #endif
@@ -1190,7 +1190,7 @@ static int goal_shop_gui(void)
         char productmsg[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(productmsg, MAXSTR,
+        sprintf_s(productmsg, sizeof (productmsg),
 #else
         sprintf(productmsg,
 #endif

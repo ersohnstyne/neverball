@@ -206,7 +206,7 @@ char *hole_score(int h, int p)
         if (h <= hole && 0 <= p && p <= party)
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(str, MAXSTR,
+            sprintf_s(str, sizeof (str),
 #else
             sprintf(str,
 #endif
@@ -230,7 +230,7 @@ char *hole_tot(int p)
             T += score_v[h][p];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, MAXSTR,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -253,7 +253,7 @@ char *hole_out(int p)
             T += score_v[h][p];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, MAXSTR,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -277,7 +277,7 @@ char *hole_in(int p)
             T += score_v[h][p];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(str, MAXSTR,
+        sprintf_s(str, sizeof (str),
 #else
         sprintf(str,
 #endif
@@ -308,7 +308,7 @@ const char *curr_scr_profile(int i)
     static char buf[8];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(buf, 8,
+    sprintf_s(buf, sizeof (buf),
 #else
     sprintf(buf,
 #endif
@@ -322,7 +322,7 @@ const char *curr_scr(void)
     static char buf[8];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(buf, 8,
+    sprintf_s(buf, sizeof (buf),
 #else
     sprintf(buf,
 #endif
@@ -336,7 +336,7 @@ const char *curr_par(void)
     static char buf[8];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(buf, 8,
+    sprintf_s(buf, sizeof (buf),
 #else
     sprintf(buf,
 #endif

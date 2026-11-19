@@ -160,7 +160,7 @@ int  conf_slider_v2(int id, const char *text, int tok, int val)
             char valattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(valattr, MAXSTR,
+            sprintf_s(valattr, sizeof (valattr),
 #else
             sprintf(valattr,
 #endif
@@ -194,7 +194,7 @@ void conf_set_slider_v2(int id, int val)
         char valattr[MAXSTR];
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(valattr, MAXSTR,
+        sprintf_s(valattr, sizeof (valattr),
 #else
         sprintf(valattr,
 #endif
@@ -1144,7 +1144,7 @@ static int video_gui(void)
 
         char dpy_info[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(dpy_info, MAXSTR,
+        sprintf_s(dpy_info, sizeof (dpy_info),
 #else
         sprintf(dpy_info,
 #endif
@@ -1198,7 +1198,7 @@ static int video_gui(void)
 #ifndef RESIZEABLE_WINDOW
         char resolution[sizeof ("12345678 x 12345678")];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(resolution, MAXSTR,
+        sprintf_s(resolution, sizeof (resolution),
 #else
         sprintf(resolution,
 #endif
@@ -1792,7 +1792,7 @@ static int video_advanced_gui(void)
         conf_header(id, _("Graphics"), GUI_BACK);
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sprintf_s(resolution, MAXSTR,
+        sprintf_s(resolution, sizeof (resolution),
 #else
         sprintf(resolution,
 #endif
@@ -2000,7 +2000,7 @@ static int display_gui(void)
             
             int out_num_displays = 0;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            sprintf_s(name, MAXSTR,
+            sprintf_s(name, sizeof (name),
 #else
             sprintf(name,
 #endif
@@ -2213,7 +2213,7 @@ static int resol_gui(void)
                         SDL_DisplayMode dm;
 
 #if !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        sprintf_s(buff, MAXSTR,
+                        sprintf_s(buff, sizeof (buff),
 #else
                         sprintf(buff,
 #endif
@@ -2404,7 +2404,7 @@ static int lang_gui(void)
 
                     char lang_infotext[MAXSTR];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    sprintf_s(lang_infotext, MAXSTR,
+                    sprintf_s(lang_infotext, sizeof (lang_infotext),
 #else
                     sprintf(lang_infotext,
 #endif

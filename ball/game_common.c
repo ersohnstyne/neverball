@@ -147,7 +147,7 @@ const char *cam_to_str(int c)
 
     /* Custom configuration fallback */
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(str, 64,
+    sprintf_s(str, sizeof (str),
 #else
     sprintf(str,
 #endif

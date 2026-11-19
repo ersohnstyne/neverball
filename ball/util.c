@@ -383,11 +383,11 @@ void gui_levelgroup_stats(const struct level *l)
     const float clr_rate_val = total_attempts >= 1 ?
                                ((total_attempts_cleared / total_attempts) * 10000.0f) / 100.0f :
                                100.0f;
-
-    sprintf_s(buffer[0], 12, "%d",     l->stats.completed);
-    sprintf_s(buffer[1], 12, "%d",     l->stats.timeout + mapmarker_count_xt);
-    sprintf_s(buffer[2], 12, "%d",     l->stats.fallout + mapmarker_count_xf);
-    sprintf_s(buffer[3], 12, "%.2f%%", CLAMP(0, clr_rate_val, 100));
+    
+    sprintf_s(buffer[0], sizeof (buffer[0]), "%d",     l->stats.completed);
+    sprintf_s(buffer[1], sizeof (buffer[0]), "%d",     l->stats.timeout + mapmarker_count_xt);
+    sprintf_s(buffer[2], sizeof (buffer[0]), "%d",     l->stats.fallout + mapmarker_count_xf);
+    sprintf_s(buffer[3], sizeof (buffer[0]), "%.2f%%", CLAMP(0, clr_rate_val, 100));
 #else
     /* Calculate the clear rate per levels (Internal only) */
 
@@ -399,10 +399,10 @@ void gui_levelgroup_stats(const struct level *l)
                                0.0f;
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-    sprintf_s(buffer[0], 12, "%d",     l->stats.completed);
-    sprintf_s(buffer[1], 12, "%d",     l->stats.timeout);
-    sprintf_s(buffer[2], 12, "%d",     l->stats.fallout);
-    sprintf_s(buffer[3], 12, "%.2f%%", CLAMP(0, clr_rate_val, 100));
+    sprintf_s(buffer[0], sizeof (buffer[0]), "%d",     l->stats.completed);
+    sprintf_s(buffer[1], sizeof (buffer[0]), "%d",     l->stats.timeout);
+    sprintf_s(buffer[2], sizeof (buffer[0]), "%d",     l->stats.fallout);
+    sprintf_s(buffer[3], sizeof (buffer[0]), "%.2f%%", CLAMP(0, clr_rate_val, 100));
 #else
     sprintf(buffer[0], "%d",    l->stats.completed);
     sprintf(buffer[1], "%d",    l->stats.timeout);

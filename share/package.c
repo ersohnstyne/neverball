@@ -504,8 +504,8 @@ static Array load_packages_from_file(const char *filename)
 
                         SAFECPY(pkg->id, line + 8);
                         prefix_len = strcspn(pkg->id, "-");
-#if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                        strncpy_s(pkg->type, 64,
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+                        strncpy_s(pkg->type, sizeof (pkg->type),
 #else
                         strncpy(pkg->type,
 #endif
@@ -538,7 +538,7 @@ static Array load_packages_from_file(const char *filename)
             else if (str_starts_with(line, "size ") && !available_packages_kicked)
             {
                 if (pkg)
-#if _MSC_VER && _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                     sscanf_s(line + 5,
 #else
                     sscanf(line + 5,

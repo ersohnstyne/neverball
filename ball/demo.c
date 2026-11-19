@@ -304,7 +304,7 @@ const char *demo_format_name(const char *fmt,
             {
                 case 's':
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    strncat_s(name, MAXSTR, set, space_left);
+                    strncat_s(name, sizeof (name), set, space_left);
 #else
                     strncat(name, set, space_left);
 #endif
@@ -313,7 +313,7 @@ const char *demo_format_name(const char *fmt,
 
                 case 'l':
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    strncat_s(name, MAXSTR, level, space_left);
+                    strncat_s(name, sizeof (name), level, space_left);
 #else
                     strncat(name, level, space_left);
 #endif
@@ -322,7 +322,7 @@ const char *demo_format_name(const char *fmt,
 
                 case 'r':
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    strncat_s(name, MAXSTR, d_status, space_left);
+                    strncat_s(name, sizeof (name), d_status, space_left);
 #else
                     strncat(name, d_status, space_left);
 #endif
@@ -331,7 +331,7 @@ const char *demo_format_name(const char *fmt,
 
                 case '%':
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    strncat_s(name, MAXSTR, "%", space_left);
+                    strncat_s(name, sizeof (name), "%", space_left);
 #else
                     strncat(name, "%", space_left);
 #endif
@@ -351,7 +351,7 @@ const char *demo_format_name(const char *fmt,
         else
         {
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            strncat_s(name, MAXSTR, fmt, 1);
+            strncat_s(name, sizeof (name), fmt, 1);
 #else
             strncat(name, fmt, 1);
 #endif

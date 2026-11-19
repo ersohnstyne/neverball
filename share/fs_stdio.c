@@ -12,12 +12,12 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
-#include <sec_api/stdlib_s.h>
-#endif
-
-#if !_MSC_VER
+#if _WIN32
+#include <Windows.h>
+#elif defined(__linux__) || defined(__MINGW__) || defined(__EMSCRIPTEN__)
 #include <unistd.h>
+#else
+#error Security compilation error: No target platform include header detected!
 #endif
 
 #ifndef NDEBUG

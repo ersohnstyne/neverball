@@ -1285,7 +1285,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
 
                 int i; const char rgbachars[4][5] = { "Red", "Green", "Blue", "Alpha" };
 
-#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS && !defined(__EMSCRIPTEN__)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 if (sscanf_s(p, "diffuse %f %f %f %f",
                              &mp->d[0], &mp->d[1],
                              &mp->d[2], &mp->d[3]) == 4)
@@ -1383,7 +1383,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                         int f = 0, n, flags_found = 0;
 
                         p += 6;
-#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS && !defined(__EMSCRIPTEN__)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                         while (sscanf_s(p, "%s%n", word, &n) > 0)
 #else
                         while (sscanf(p, "%s%n", word, &n) > 0)
@@ -1419,7 +1419,7 @@ int mtrl_read(struct b_mtrl *mp, const char *name)
                         mp->fl = f;
                     }
                 }
-#if _MSC_VER && !_CRT_SECURE_NO_WARNINGS
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                 else if (sscanf_s(p, "angle %f", &curr_angle) == 1)
                 {
                     if (curr_angle < 0.0f) {

@@ -391,7 +391,7 @@ static void bcast_send_msg(struct mapc_context *ctx, int lvl, const char *str)
 
     maxstr = sizeof (buf) - sizeof ("<message level=\"1\"></message>");
 
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(buf, sizeof (buf), "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
 #else
     sprintf(buf, "<message level=\"%1d\">%.*s</message>", lvl, maxstr, str);
@@ -588,7 +588,7 @@ static int overflow(struct mapc_context *ctx, const char s[64u - sizeof (" overf
 {
     char buf[64];
 
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     sprintf_s(buf, sizeof (buf), "%s overflow\n", s);
 #else
     sprintf(buf, "%s overflow\n", s);
@@ -840,7 +840,7 @@ static void make_sym(struct mapc_context *ctx, int type, const char *name, int v
         struct sym *sym = &ctx->syms[ctx->symc];
 
         sym->type = type;
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         strncpy_s(sym->name, MAXSTR, name, MAXSTR - 1);
 #else
         strncpy(sym->name, name, MAXSTR - 1);
@@ -858,7 +858,7 @@ static void make_ref(struct mapc_context *ctx, int type, const char *name, int *
         struct ref *ref = &ctx->refs[ctx->refc];
 
         ref->type = type;
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         strncpy_s(ref->name, MAXSTR, name, MAXSTR - 1);
 #else
         strncpy(ref->name, name, MAXSTR - 1);
@@ -980,7 +980,7 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
         ctx->imagedata[ctx->image_n].w = *w;
         ctx->imagedata[ctx->image_n].h = *h;
 
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         strcpy_s(ctx->imagedata[ctx->image_n].s, strlen(name) + 1, name);
 #else
         strcpy(ctx->imagedata[ctx->image_n].s, name);
@@ -1636,7 +1636,7 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 
         if (doit == 1 && buf[0] == '\"')
         {
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             strcpy_s(key, strlen(key), strtok(buf,  "\""));
             (void)                     strtok(NULL, "\"");
             strcpy_s(val, strlen(val), strtok(NULL, "\""));
@@ -2050,7 +2050,7 @@ static void make_dict(struct mapc_context *ctx,
     fp->ac = dp->aj + strlen(v) + 1;
 
 #if NB_HAVE_PB_BOTH==1
-#if defined(_WIN32) && !defined(__EMSCRIPTEN__) && !defined(_CRT_SECURE_NO_WARNINGS)
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     strncpy_s(fp->av + dp->ai, MAXSTR, k, space_left);
     strncpy_s(fp->av + dp->aj, MAXSTR, v, space_left - strlen(k) - 1);
 #else

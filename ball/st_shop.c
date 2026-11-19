@@ -1376,7 +1376,7 @@ static int shop_iap_gui(void)
                                 else
                                     SAFECPY(pChar, config_get_s(CONFIG_LANGUAGE));
 
-#if _WIN32 && !_CRT_SECURE_NO_WARNINGS
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                                 sprintf_s(iapattr, sizeof (iapattr),
 #else
                                 sprintf(iapattr,

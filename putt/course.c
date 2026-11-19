@@ -193,8 +193,12 @@ static int course_load(struct course *crs, const char *filename)
         return 0;
 
     memset(crs, 0, sizeof (*crs));
-
-    strncpy(crs->holes, filename, MAXSTR - 1);
+    
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+    strncpy_s(crs->holes, sizeof (crs->holes), filename, sizeof (filename) - 1);
+#else
+    strncpy(crs->holes, filename, sizeof (filename) - 1);
+#endif
 
     if ((fin = fs_open_read(filename)))
     {

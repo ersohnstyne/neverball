@@ -247,7 +247,7 @@ static void ms_nls_init(const char *pref)
                 char temp_targ0[MAXSTR], \
                      temp_targ1[MAXSTR]; \
                 SAFECPY(temp_targ0, buf + 8); \
-                strncpy_s(temp_targ1, MAXSTR, temp_targ0, strlen(temp_targ0) - 1); \
+                strncpy_s(temp_targ1, sizeof (temp_targ1), temp_targ0, strlen(temp_targ0) - 1); \
                 if (!lang_duplicated) \
                 { \
                     std::string _src_std_lang(src_lang_stack_final); \
@@ -298,8 +298,8 @@ static void ms_nls_init(const char *pref)
                     char temp_src0[MAXSTR], \
                          temp_src1[MAXSTR]; \
                     SAFECPY(temp_src0, buf + 7); \
-                    strncpy_s(temp_src1, MAXSTR, temp_src0, strlen(temp_src0) - 1); \
-                    strncpy_s(src_lang_stack_final, MAXSTR, temp_src1, strlen(temp_src1)); \
+                    strncpy_s(temp_src1, sizeof (temp_src1), temp_src0, strlen(temp_src0) - 1); \
+                    strncpy_s(src_lang_stack_final, sizeof (src_lang_stack_final), temp_src1, strlen(temp_src1)); \
                     lang_first = false; \
                 } \
                 if (str_starts_with(buf, "\"") && buf[0] == '"' && lang_src_hold) \
@@ -308,8 +308,8 @@ static void ms_nls_init(const char *pref)
                          temp_src1[MAXSTR], \
                          temp_stack_final[MAXSTR]; \
                     SAFECPY(temp_src0, buf+1); \
-                    strncpy_s(temp_src1, MAXSTR, temp_src0, strlen(temp_src0) - 1); \
-                    strncpy_s(temp_stack_final, MAXSTR, strdup(temp_src1), strlen(temp_src1)); \
+                    strncpy_s(temp_src1, sizeof (temp_src1), temp_src0, strlen(temp_src0) - 1); \
+                    strncpy_s(temp_stack_final, sizeof (temp_stack_final), strdup(temp_src1), strlen(temp_src1)); \
                     SAFECAT(src_lang_stack_final, temp_stack_final); \
                 } \
                 if (str_starts_with(buf, "msgstr ") && lang_src_hold) \
@@ -322,8 +322,8 @@ static void ms_nls_init(const char *pref)
                         char temp_targ0[MAXSTR], \
                              temp_targ1[MAXSTR]; \
                         SAFECPY(temp_targ0, buf + 8); \
-                        strncpy_s(temp_targ1, MAXSTR, temp_targ0, strlen(temp_targ0) - 1); \
-                        strncpy_s(targ_lang_stack_final, MAXSTR, temp_targ1, strlen(temp_targ1)); \
+                        strncpy_s(temp_targ1, sizeof (temp_targ1), temp_targ0, strlen(temp_targ0) - 1); \
+                        strncpy_s(targ_lang_stack_final, sizeof (targ_lang_stack_final), temp_targ1, strlen(temp_targ1)); \
                     } \
                 } \
                 if (str_starts_with(buf, "\"") && buf[0] == '"' && lang_targ_hold) \
@@ -332,8 +332,8 @@ static void ms_nls_init(const char *pref)
                          temp_targ1[MAXSTR], \
                          temp_stack_final[MAXSTR]; \
                     SAFECPY(temp_targ0, buf + 1); \
-                    strncpy_s(temp_targ1, MAXSTR, temp_targ0, strlen(temp_targ0)); \
-                    strncpy_s(temp_stack_final, MAXSTR, strdup(temp_targ1), strlen(temp_targ1)); \
+                    strncpy_s(temp_targ1, sizeof (temp_targ1), temp_targ0, strlen(temp_targ0)); \
+                    strncpy_s(temp_stack_final, sizeof (temp_stack_final), strdup(temp_targ1), strlen(temp_targ1)); \
                     SAFECAT(targ_lang_stack_final, temp_stack_final); \
                 } \
             } \

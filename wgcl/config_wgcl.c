@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#if _MSC_VER
+#if _WIN32
 #define NOMINMAX
 #include <Windows.h> /* FindClose(), FindFirstFile(), FindNextFile() */
 #else

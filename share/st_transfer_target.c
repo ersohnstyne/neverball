@@ -1121,7 +1121,7 @@ static void transfer_timer_preparation_target(float dt)
                         concat_string(drive_letters[current_drive_idx],
                                       ":/nvb_gametransfer/accounts", 0)
                     );
-#elif _WIN32 && !defined(__EMSCRIPTEN__) && _CRT_SECURE_NO_WARNINGS
+#elif _WIN32 && !defined(__EMSCRIPTEN__)
                     sprintf(copy_cmd, "copy /y \"%s\" \"%s\"",
                         concat_string(pick_home_path(), "\\", CONFIG_USER,
                                       "\\Accounts_transfer\\", ffd.cFileName, NULL),

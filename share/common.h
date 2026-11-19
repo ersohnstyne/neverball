@@ -32,10 +32,6 @@
     )))
 #endif
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
-#include <sec_api/stdlib_s.h>
-#endif
-
 #if _MSC_VER
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
@@ -260,7 +256,7 @@ extern int vsnprintf(char *, size_t, const char *, va_list);
 
 /* Time. */
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && _MSC_VER
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
 #define DATE_TO_STR_V2(_out_str, _pTime) \
     do { \
         struct tm _output_tm; \

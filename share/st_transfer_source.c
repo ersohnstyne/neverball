@@ -1362,7 +1362,7 @@ void transfer_timer_process_source(float dt)
             concat_string(drive_letters[current_drive_idx],
                           ":/nvb_gametransfer/scores", NULL)
         );
-#elif _WIN32 && !defined(__EMSCRIPTEN__) && _CRT_SECURE_NO_WARNINGS
+#elif _WIN32 && !defined(__EMSCRIPTEN__)
         sprintf(hs_campaign_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Campaign\\*", NULL),
             concat_string(drive_letters[current_drive_idx],
@@ -1405,7 +1405,7 @@ void transfer_timer_process_source(float dt)
             concat_string(drive_letters[current_drive_idx],
                           ":/nvb_gametransfer/screenshots", NULL)
         );
-#elif _WIN32 && !defined(__EMSCRIPTEN__) && _CRT_SECURE_NO_WARNINGS
+#elif _WIN32 && !defined(__EMSCRIPTEN__)
         sprintf(screenshots_out_transfer, "move /y \"%s\" \"%s\"",
             concat_string(fs_get_write_dir(), "\\Screenshots\\*", NULL),
             concat_string(drive_letters[current_drive_idx],

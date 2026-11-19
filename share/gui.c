@@ -21,8 +21,12 @@
 #include <stdio.h>
 #include <limits.h>
 
-#if defined(__linux__) || defined(__MINGW__)
+#if _WIN32
+#include <Windows.h>
+#elif defined(__linux__) || defined(__MINGW__) || defined(__EMSCRIPTEN__)
 #include <unistd.h>
+#else
+#error Security compilation error: No target platform include header detected!
 #endif
 
 /*
@@ -1210,9 +1214,9 @@ void gui_set_multi(int id, const char *text)
     for (p = text, sc = 0; *p && sc < lc; sc++)
     {
         /* Support both '\\' and '\n' as delimiters. */
-
+        
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        strncpy_s(s[sc], MAXSTR, p, (n = strcspn(p, "\\\n")));
+        strncpy_s(s[sc], sizeof (s[sc]), p, (n = strcspn(p, "\\\n")));
 #else
         strncpy(s[sc], p, (n = strcspn(p, "\\\n")));
 #endif
@@ -1696,7 +1700,7 @@ int gui_multi(int pd, const char *text, int size, const GLubyte *c0,
             /* Support both '\\' and '\n' as delimiters. */
 
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-            strncpy_s(s[j], MAXSTR, p, (n = strcspn(p, "\\\n")));
+            strncpy_s(s[j], sizeof (s[j]), p, (n = strcspn(p, "\\\n")));
 #else
             strncpy(s[j], p, (n = strcspn(p, "\\\n")));
 #endif

@@ -478,7 +478,7 @@ static void opt_init(int argc, char **argv)
 
                 if (strcmp(ext, ".map") == 0)
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-                    strncpy_s(ext, MAXSTR, ".sol", 4);
+                    strncpy_s(ext, sizeof (ext), ".sol", 4);
 #else
                     strncpy(ext, ".sol", 4);
 #endif

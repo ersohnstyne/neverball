@@ -12,10 +12,6 @@
  * General Public License for more details.
  */
 
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && !_MSC_VER
-#include <sec_api/stdlib_s.h>
-#endif
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -48,7 +44,7 @@
 #include "common.h"
 #include "fs.h"
 
-#if ENABLE_OPENDRIVEAPI!=0 && !defined(__EMSCRIPTEN__)
+#if ENABLE_OPENDRIVEAPI!=0
 /*
  * https://gitea.stynegame.de/StyneGameHamburg/opendrivepi
  */
@@ -63,13 +59,15 @@
 #else
 #pragma message(__FILE__ ": Using code compilation: Microsoft Visual Studio")
 #endif
-#else
+#elif defined(__linux__) || defined(__MINGW__) || defined(__EMSCRIPTEN__)
 /*
  * Relying on MinGW to provide, that uses from GetFileAttributes() (Windows.h).
  */
 #include <unistd.h>   /* access() */
 
 #pragma message(__FILE__ ": Using code compilation: GCC + G++")
+#else
+#error Security compilation error: No target platform include header detected!
 #endif
 
 #if _DEBUG && _MSC_VER
@@ -290,7 +288,7 @@ time_t make_time_from_utc(struct tm *tm)
 const char *date_to_str(time_t i)
 {
     char str[21]; /* Was: sizeof ("dd.mm.YYYY HH:MM:SS") */
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS && _MSC_VER
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
     struct tm output_tm;
     localtime_s(&output_tm, &i);
     strftime   (str, sizeof (str), "%d.%m.%Y %H:%M:%S", &output_tm);

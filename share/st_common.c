@@ -2212,7 +2212,7 @@ static int resol_gui(void)
                     {
                         SDL_DisplayMode dm;
 
-#if !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
                         sprintf_s(buff, sizeof (buff),
 #else
                         sprintf(buff,

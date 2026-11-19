@@ -51,7 +51,7 @@ jobs:
           ./scripts/package-windows.sh --arch ${{ matrix.arch }}
 
       - name: Upload ZIP Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: neverball-${{ matrix.arch }}
           path: build/windows/*.zip

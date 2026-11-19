@@ -790,11 +790,7 @@ static int putt_view_goal_compare(const void *a, const void *b)
 static int putt_view_goal_find_median(const struct b_goal *zv, int zc,
                                       float *out_x, float *out_y, float *out_z)
 {
-    if (zc < 1)
-    {
-        log_errorf("b_goal: No elements to compute median\n");
-        return 0;
-    }
+    if (zc < 1) return 0;
 
     float tmp_pos_x[1024];
     float tmp_pos_y[1024];

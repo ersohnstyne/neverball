@@ -12,6 +12,10 @@
  * General Public License for more details.
  */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>

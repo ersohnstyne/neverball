@@ -1595,9 +1595,9 @@ static int map_token(struct mapc_context *ctx, fs_file fin, int pi, char key[MAX
 {
     int doit = 1;
     char stderr_buf[512];
-    char buf[MAXSTR];
+    char buf[1024];
 
-    if (fs_gets(buf, MAXSTR, fin))
+    if (fs_gets(buf, sizeof (buf), fin))
     {
         ctx->linenum += 1;
         float x0, y0, z0;

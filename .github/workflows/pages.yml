@@ -39,15 +39,12 @@ jobs:
     steps:
       - name: Checkout Neverball
         uses: actions/checkout@v7
-<<<<<<< HEAD
       - name: Make script executable
         run: |
           chmod +x "./.devcontainer/install-gl4es.sh"
           chmod +x "./scripts/install-devel-linux.sh"
           chmod +x "./scripts/translate-desktop.sh"
           chmod +x "./scripts/version.sh"
-=======
->>>>>>> e6554379e252555089387d8be8c087bd3ec62eba
       - name: Build base SOLs
         run: |
           sudo apt-get update

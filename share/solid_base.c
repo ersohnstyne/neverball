@@ -641,7 +641,7 @@ static int sol_load_file(fs_file fin, struct s_base *fp, int fp_ten)
     if (fp->uc < 1)
     {
         fp->uc = 1;
-        if (!(fp->uv = (struct b_ball *) calloc(fp->uc, sizeof(*fp->uv))))
+        if (!(fp->uv = (struct b_ball *) calloc(fp->uc, sizeof (*fp->uv))))
             goto sol_load_file_fail;
     }
     else for (i = 0; i < fp->uc; i++)

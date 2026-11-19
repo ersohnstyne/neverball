@@ -17,9 +17,11 @@
 
 /*---------------------------------------------------------------------------*/
 
+#define AUD_ALBATROS _("snd/albatros.ogg")
 #define AUD_BIRDIE   _("snd/birdie.ogg")
 #define AUD_BOGEY    _("snd/bogey.ogg")
 #define AUD_BUMP       "snd/bink.ogg"
+#define AUD_CHIPIN   _("snd/chipin.ogg")
 #define AUD_DOUBLE   _("snd/double.ogg")
 #define AUD_EAGLE    _("snd/eagle.ogg")
 #define AUD_JUMP       "snd/jump.ogg"

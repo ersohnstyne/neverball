@@ -500,7 +500,7 @@ static Array load_packages_from_file(const char *filename)
                     {
                         size_t prefix_len;
 
-                        memset(pkg, 0, sizeof(*pkg));
+                        memset(pkg, 0, sizeof (*pkg));
 
                         SAFECPY(pkg->id, line + 8);
                         prefix_len = strcspn(pkg->id, "-");
@@ -509,7 +509,7 @@ static Array load_packages_from_file(const char *filename)
 #else
                         strncpy(pkg->type,
 #endif
-                                pkg->id, MIN(sizeof(pkg->type) - 1, prefix_len));
+                                pkg->id, MIN(sizeof (pkg->type) - 1, prefix_len));
 
                         pkg->size        = 0;
                         pkg->filename[0] = 0;

@@ -64,7 +64,7 @@ jobs:
           git rev-parse HEAD > neverball-commit.txt
           git archive --prefix=neverball-source/ --add-file=neverball-commit.txt --output=js/neverball-source.zip HEAD
       - name: Upload pages artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pages-${{ github.sha }}
           path: ./js
@@ -78,7 +78,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Download pages artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: pages-${{ github.sha }}
           path: ./js

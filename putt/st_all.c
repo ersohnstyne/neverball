@@ -1952,6 +1952,8 @@ static int flyby_buttn(int b, int d)
 
 /*---------------------------------------------------------------------------*/
 
+static int stroke_chip_in_notification = 0;
+
 static int stroke_rotate     = 0;
 static int stroke_rotate_alt = 0;
 static int stroke_mag        = 0;
@@ -1988,7 +1990,7 @@ static int stroke_enter(struct state *st, struct state *prev, int intent)
 
     stroke_allowed = 1;
     putt_clr_mag();
-    config_set_d(CONFIG_CAMERA, 2);
+    //config_set_d(CONFIG_CAMERA, 2);
     video_set_grab(1);
     putt_hud_init();
     putt_hud_show(prev == &st_putt_flyby ? 0.5f : 0.0f);
@@ -2006,9 +2008,9 @@ static int stroke_enter(struct state *st, struct state *prev, int intent)
 static int stroke_leave(struct state *st, struct state *next, int id, int intent)
 {
     video_clr_grab();
-    config_set_d(CONFIG_CAMERA, 0);
+    //config_set_d(CONFIG_CAMERA, 0);
     stroke_rotate = 0.0f;
-    stroke_mag = 0.0f;
+    stroke_mag    = 0.0f;
     stroke_touch_reset();
 
     if (next == &st_null)
@@ -2047,7 +2049,7 @@ static void stroke_timer(int id, float dt)
     if (dt <= 0.f) return;
 
     putt_set_rot_rate(stroke_rotate * k, dt);
-    putt_set_mag_rate(stroke_mag * k, dt);
+    putt_set_mag_rate(stroke_mag    * k, dt);
 
     putt_update_view(dt);
 
@@ -2117,6 +2119,7 @@ static int stroke_buttn(int b, int d)
             stroke_rotate_alt = 1;
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
+            stroke_chip_in_notification = stroke_type != 0;
             putt_putt();
             return goto_state(&st_putt_roll);
         }
@@ -2283,6 +2286,7 @@ static int stroke_touch(const SDL_TouchFingerEvent *e)
 
             if (was_tap)
             {
+                stroke_chip_in_notification = stroke_type != 0;
                 putt_putt();
                 return goto_state(&st_putt_roll);
             }
@@ -2399,13 +2403,18 @@ static int goal_enter(struct state *st, struct state *prev, int intent)
         c0 = gui_wht;
         c1 = gui_yel;
     }
+    else if (stroke_chip_in_notification)
+    {
+        SAFECPY(hole_statname, _("Chip-In"));
+        c0 = c1 = gui_vio;
+    }
     else if (scr_v < par_v)
     {
         c0 = gui_wht;
         c1 = gui_yel;
 
         if (scr_v == par_v - 3)
-            SAFECPY(hole_statname, _("Albatross"));
+            SAFECPY(hole_statname, _("Albatros"));
         else if (scr_v == par_v - 2)
             SAFECPY(hole_statname, _("Eagle"));
         else if (scr_v == par_v - 1)
@@ -2461,33 +2470,39 @@ static void goal_timer(int id, float dt)
 {
     gui_timer(id, dt);
 
-    if (time_state() > 3 && !st_global_animating())
+    if (atoi(curr_scr()) != 1 && stroke_type > 0 && stroke_chip_in_notification && time_state() >= 1.0f)
     {
-        if (hole_next())
-            goto_state(&st_putt_next);
-        else
-            goto_state(&st_putt_score);
+        stroke_chip_in_notification = 0;
+        goto_state(&st_putt_goal);
+        return;
     }
+
+    if (time_state() > 3 && !st_global_animating())
+        goto_state(hole_next() ? &st_putt_next : &st_putt_score);
 }
 
 static int goal_buttn(int b, int d)
 {
+    int r = 1;
+
     if (d &&
         (joy_get_cursor_actions(curr_player() - 1) || joy_get_active_cursor(curr_player() - 1) || !party_indiv_controllers))
     {
+        int chip_in_notification = atoi(curr_scr()) != 1 && stroke_type > 0 && stroke_chip_in_notification;
+
         if (config_tst_d(CONFIG_JOYSTICK_BUTTON_A, b))
         {
-            if (hole_next())
-                goto_state(&st_putt_next);
-            else
-                goto_state(&st_putt_score);
+            r = goto_state(chip_in_notification ? &st_putt_goal : (hole_next() ? &st_putt_next : &st_putt_score));
+
+            if (chip_in_notification)
+                stroke_chip_in_notification = 0;
         }
     }
 
     if (d && config_tst_d(CONFIG_JOYSTICK_BUTTON_START, b))
         return goto_putt_pause(&st_putt_over, 0);
 
-    return 1;
+    return r;
 }
 
 /*---------------------------------------------------------------------------*/

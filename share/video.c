@@ -1744,11 +1744,11 @@ void video_swap(void)
 
     /* Windows Exclusive */
 
-#if _WIN32 && NB_PB_SDL3==1
+#if _WIN32 && NB_PB_SDL3==1 && !defined(__EMSCRIPTEN__)
     HWND curr_hwnd = GetForegroundWindow();
     char curr_hwnd_name[MAXSTR];
 
-    GetWindowTextA(curr_hwnd, curr_hwnd_name, sizeof(curr_hwnd_name));
+    GetWindowTextA(curr_hwnd, curr_hwnd_name, sizeof (curr_hwnd_name));
 
     if (strcmp(curr_hwnd_name, TITLE) == 0) {
         if (!video.disable_screencapture && config_cheat())

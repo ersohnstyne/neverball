@@ -43,7 +43,7 @@ jobs:
           git archive --prefix=neverball-source/ --add-file=neverball-commit.txt --output=js/neverball-source.zip HEAD
 
       - name: Upload Web Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: neverball-web
           path: ./js

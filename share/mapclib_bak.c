@@ -961,7 +961,7 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
         if (ctx->image_n + 1 >= ctx->image_alloc)
         {
             struct _imagedata *tmp =
-                (struct _imagedata *) malloc(sizeof(struct _imagedata) * (ctx->image_alloc + IMAGE_REALLOC));
+                (struct _imagedata *) malloc(sizeof (struct _imagedata) * (ctx->image_alloc + IMAGE_REALLOC));
             if (!tmp)
             {
                 printf("malloc error\n");
@@ -969,7 +969,7 @@ static void size_image(struct mapc_context *ctx, const char *name, int *w, int *
             }
             if (ctx->imagedata)
             {
-                (void) memcpy(tmp, ctx->imagedata, sizeof(struct _imagedata) * ctx->image_alloc);
+                (void) memcpy(tmp, ctx->imagedata, sizeof (struct _imagedata) * ctx->image_alloc);
                 free(ctx->imagedata);
             }
             ctx->imagedata = tmp;
@@ -3148,7 +3148,7 @@ static void read_ent(struct mapc_context *ctx, fs_file fin)
         if (ctx->campaign_output) ctx->campaign_cost += 408;
 
 #if SPECIFICATION_LEGACY_MODE
-        memset(&specification_type, 0, sizeof(specification_type));
+        memset(&specification_type, 0, sizeof (specification_type));
         SAFECPY(specification_type, "ball");
 
         if (newspecification_request_legacy(k, v, c))

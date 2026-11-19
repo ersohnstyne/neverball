@@ -1196,7 +1196,7 @@ static int video_gui(void)
         /* This ignores resolution and fullscreen configurations. */
 #ifndef __EMSCRIPTEN__
 #ifndef RESIZEABLE_WINDOW
-        char resolution[sizeof("12345678 x 12345678")];
+        char resolution[sizeof ("12345678 x 12345678")];
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
         sprintf_s(resolution, MAXSTR,
 #else

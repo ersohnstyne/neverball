@@ -171,8 +171,8 @@ void part_init(void)
     coin_mtrl = mtrl_cache(&part_base_mtrl);
     goal_mtrl = mtrl_cache(&part_base_mtrl);
 
-    memset(coin_part, 0, sizeof(coin_part));
-    memset(goal_part, 0, sizeof(goal_part));
+    memset(coin_part, 0, sizeof (coin_part));
+    memset(goal_part, 0, sizeof (goal_part));
 
     glGenBuffers_(1,              &part_vbo);
     glBindBuffer_(GL_ARRAY_BUFFER, part_vbo);

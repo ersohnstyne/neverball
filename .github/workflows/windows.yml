@@ -41,7 +41,7 @@ jobs:
             ${{ matrix.pkg_prefix }}-gettext
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Configure Git Safe Directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -55,8 +55,4 @@ jobs:
         with:
           name: neverball-${{ matrix.arch }}
           path: build/windows/*.zip
-<<<<<<< HEAD
           retention-days: 7
-=======
-          retention-days: 7
->>>>>>> 86bbf940e14a5a1f26e7aa7172d3e7f6938a3a1b

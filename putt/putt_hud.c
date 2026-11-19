@@ -259,10 +259,10 @@ void putt_hud_hide(void)
 
     show_hud_expected = 0;
 
-    gui_slide(fps_id,         GUI_NW | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(Lhud_id,        GUI_SW | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(stroke_type_id, GUI_N  | GUI_EASE_BACK, 0, 0.3f, 0);
-    gui_slide(Rhud_id,        GUI_SE | GUI_EASE_BACK, 0, 0.3f, 0);
+    gui_slide(fps_id,         GUI_NW | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(Lhud_id,        GUI_SW | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(stroke_type_id, GUI_N  | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
+    gui_slide(Rhud_id,        GUI_SE | GUI_EASE_BACK | GUI_BACKWARD, 0, 0.3f, 0);
 }
 
 static void hud_update_alpha(void)

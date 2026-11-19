@@ -429,6 +429,60 @@ void game_view_init(struct game_view *view)
     view->e[2][0] = 0.0f; view->e[2][1] = 0.0f; view->e[2][2] = 1.0f;
 }
 
+static int game_view_goal_compare(const void *a, const void *b)
+{
+    float diff = *(float *) a - *(float *) b;
+    return (diff > 0) - (diff < 0); /* returns 1, 0, or -1 */
+}
+
+static int game_view_goal_find_median(const struct b_goal *zv, int zc,
+                                      float *out_x, float *out_y, float *out_z)
+{
+    if (zc < 1)
+    {
+        log_errorf("b_goal: No elements to compute median\n");
+        return 0;
+    }
+
+    float tmp_pos_x[1024];
+    float tmp_pos_y[1024];
+    float tmp_pos_z[1024];
+
+    for (int i = 0; i < zc && i < 1024; i++)
+    {
+        const struct b_goal *zp = zv + i;
+
+        tmp_pos_x[i] = zp->p[0];
+        tmp_pos_y[i] = zp->p[1];
+        tmp_pos_z[i] = zp->p[2];
+    }
+
+    /* Sort the array */
+
+    qsort(tmp_pos_x, zc, sizeof (float), game_view_goal_compare);
+    qsort(tmp_pos_y, zc, sizeof (float), game_view_goal_compare);
+    qsort(tmp_pos_z, zc, sizeof (float), game_view_goal_compare);
+
+    /* If odd number of elements, return middle one */
+
+    if (zc % 2 != 0)
+    {
+        if (out_x) *out_x = tmp_pos_x[ROUND(zc / 2)];
+        if (out_y) *out_y = tmp_pos_y[ROUND(zc / 2)];
+        if (out_z) *out_z = tmp_pos_z[ROUND(zc / 2)];
+
+        return 1;
+    }
+
+    /* If even number of elements, return average of two middle ones */
+
+    if (out_x) *out_x = (tmp_pos_x[ROUND((zc - 1) / 2)] + tmp_pos_x[ROUND(zc / 2)]) / 2.0f;
+    if (out_y) *out_y = (tmp_pos_y[ROUND((zc - 1) / 2)] + tmp_pos_y[ROUND(zc / 2)]) / 2.0f;
+    if (out_z) *out_z = (tmp_pos_z[ROUND((zc - 1) / 2)] + tmp_pos_z[ROUND(zc / 2)]) / 2.0f;
+
+    return 1;
+}
+
 void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, float k)
 {
     float view_dir_to_goal = 0.0f;
@@ -437,6 +491,16 @@ void game_view_fly(struct game_view *view, const struct s_vary *vary, int ui, fl
     {
         view_dir_to_goal = V_DEG(fatan2f(vary->uv[0].p[0] - vary->base->zv[0].p[0],
                                          vary->uv[0].p[2] - vary->base->zv[0].p[2]));
+    }
+    else if (vary->uc == 1 && vary->zc > 1)
+    {
+        float p_center[3] = { 0.0f, 0.0f, 0.0f };
+        
+        game_view_goal_find_median(vary->base->zv, vary->base->zc,
+                                   &p_center[0], &p_center[1], &p_center[2]);
+
+        view_dir_to_goal = V_DEG(fatan2f(vary->uv[0].p[0] - p_center[0],
+                                         vary->uv[0].p[2] - p_center[2]));
     }
 
 #ifdef MAPC_INCLUDES_CHKP

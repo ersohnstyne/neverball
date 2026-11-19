@@ -37,6 +37,7 @@ static struct s_full file;
 static int           ball;
 
 static int state;
+static int stroke_mode;
 
 static float view_a;                    /* Ideal view rotation about Y axis  */
 static float view_m;
@@ -477,18 +478,17 @@ void putt_update_view(float dt)
     float d[3];
     float s = 2.f * dt;
 
-    if (!state)
-        return;
+    if (!state) return;
 
     /* Center the view about the ball. */
 
     v_cpy(view_c, file.vary.uv[ball].p);
     v_inv(view_v, file.vary.uv[ball].v);
 
-    switch (config_get_d(CONFIG_CAMERA))
+    /*switch (config_get_d(CONFIG_CAMERA))
     {
         case 2:
-            /* Camera 2: View vector is given by view angle. */
+            // Camera 2: View vector is given by view angle.
 
             view_e[2][0] = fsinf(V_RAD(view_a));
             view_e[2][1] = 0.f;
@@ -498,7 +498,7 @@ void putt_update_view(float dt)
             break;
 
         default:
-            /* View vector approaches the ball velocity vector. */
+            // View vector approaches the ball velocity vector.
 
             v_mad(e, view_v, y, v_dot(view_v, y));
             v_inv(e, e);
@@ -507,6 +507,29 @@ void putt_update_view(float dt)
 
             v_sub(view_e[2], view_p, view_c);
             v_mad(view_e[2], view_e[2], view_v, k * dt * 0.1f);
+    }*/
+
+    if (stroke_mode)
+    {
+        // Camera 2: View vector is given by view angle.
+
+        view_e[2][0] = fsinf(V_RAD(view_a));
+        view_e[2][1] = 0.f;
+        view_e[2][2] = fcosf(V_RAD(view_a));
+
+        s = 1.f;
+    }
+    else
+    {
+        // View vector approaches the ball velocity vector.
+
+        v_mad(e, view_v, y, v_dot(view_v, y));
+        v_inv(e, e);
+
+        k = v_dot(view_v, view_v);
+
+        v_sub(view_e[2], view_p, view_c);
+        v_mad(view_e[2], view_e[2], view_v, k * dt * 0.1f);
     }
 
     /* Orthonormalize the basis of the view in its new position. */
@@ -696,9 +719,9 @@ int putt_step(const float g[3], float dt)
 
 void putt_putt(void)
 {
-    if (!state)
-        return;
+    if (!state) return;
 
+    stroke_mode = 0;
     roll_force_timeout = 0;
 
     /*
@@ -714,12 +737,9 @@ void putt_putt(void)
     /* Trying to shot the ball upwards */
     switch (curr_stroke_type())
     {
-        case 3:
-            file.vary.uv[ball].v[1] += 0.5f * (view_m * 0.7f); break;
-        case 2:
-            file.vary.uv[ball].v[1] += 0.9f * (view_m * 0.7f); break;
-        case 1:
-            file.vary.uv[ball].v[1] += 1.3f * (view_m * 0.7f); break;
+        case 3: file.vary.uv[ball].v[1] += 0.5f * (view_m * 0.7f); break;
+        case 2: file.vary.uv[ball].v[1] += 0.9f * (view_m * 0.7f); break;
+        case 1: file.vary.uv[ball].v[1] += 1.3f * (view_m * 0.7f); break;
     }
 
     view_m = 0.f;
@@ -729,38 +749,90 @@ void putt_putt(void)
 
 void putt_set_rot(int d)
 {
-    if (!state)
-        return;
+    if (!state) return;
 
-    view_a += (float) (30.f * d) / config_get_d(CONFIG_MOUSE_SENSE);
+    stroke_mode = 1;
+    int _d = d * (config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 1 ? -1 : 1);
+    view_a += (float)(30.f * _d) / config_get_d(CONFIG_MOUSE_SENSE);
 }
 
 void putt_clr_mag(void)
 {
-    if (!state)
-        return;
+    if (!state) return;
 
+    stroke_mode = 1;
     view_m = 1.f;
 }
 
 void putt_set_mag(int d)
 {
-    if (!state)
-        return;
+    if (!state) return;
 
-    view_m -= (float) (1.f * d) / config_get_d(CONFIG_MOUSE_SENSE);
+    stroke_mode = 1;
+    int _d = d * (config_get_d(CONFIG_MOUSE_INVERT) == 1 ? -1 : 1);
+    view_m -= (float) (1.f * _d) / config_get_d(CONFIG_MOUSE_SENSE);
 
     switch (curr_stroke_type())
     {
-        case 3:
-            view_m = CLAMP(.25f, view_m, 2.25f); break;
-        case 2:
-            view_m = CLAMP(.25f, view_m, 2.f);   break;
-        case 1:
-            view_m = CLAMP(.25f, view_m, 1.75f); break;
-        default:
-            view_m = CLAMP(.25f, view_m, 1.5f);
+        case 3:  view_m = CLAMP(.25f, view_m, 2.25f); break;
+        case 2:  view_m = CLAMP(.25f, view_m, 2.f);   break;
+        case 1:  view_m = CLAMP(.25f, view_m, 1.75f); break;
+        default: view_m = CLAMP(.25f, view_m, 1.5f);
     }
+}
+
+static int putt_view_goal_compare(const void *a, const void *b)
+{
+    float diff = *(float *) a - *(float *) b;
+    return (diff > 0) - (diff < 0); /* returns 1, 0, or -1 */
+}
+
+static int putt_view_goal_find_median(const struct b_goal *zv, int zc,
+                                      float *out_x, float *out_y, float *out_z)
+{
+    if (zc < 1)
+    {
+        log_errorf("b_goal: No elements to compute median\n");
+        return 0;
+    }
+
+    float tmp_pos_x[1024];
+    float tmp_pos_y[1024];
+    float tmp_pos_z[1024];
+
+    for (int i = 0; i < zc && i < 1024; i++)
+    {
+        const struct b_goal *zp = zv + i;
+
+        tmp_pos_x[i] = zp->p[0];
+        tmp_pos_y[i] = zp->p[1];
+        tmp_pos_z[i] = zp->p[2];
+    }
+
+    /* Sort the array */
+
+    qsort(tmp_pos_x, zc, sizeof (float), putt_view_goal_compare);
+    qsort(tmp_pos_y, zc, sizeof (float), putt_view_goal_compare);
+    qsort(tmp_pos_z, zc, sizeof (float), putt_view_goal_compare);
+
+    /* If odd number of elements, return middle one */
+
+    if (zc % 2 != 0)
+    {
+        if (out_x) *out_x = tmp_pos_x[ROUND(zc / 2)];
+        if (out_y) *out_y = tmp_pos_y[ROUND(zc / 2)];
+        if (out_z) *out_z = tmp_pos_z[ROUND(zc / 2)];
+
+        return 1;
+    }
+
+    /* If even number of elements, return average of two middle ones */
+
+    if (out_x) *out_x = (tmp_pos_x[ROUND((zc - 1) / 2)] + tmp_pos_x[ROUND(zc / 2)]) / 2.0f;
+    if (out_y) *out_y = (tmp_pos_y[ROUND((zc - 1) / 2)] + tmp_pos_y[ROUND(zc / 2)]) / 2.0f;
+    if (out_z) *out_z = (tmp_pos_z[ROUND((zc - 1) / 2)] + tmp_pos_z[ROUND(zc / 2)]) / 2.0f;
+
+    return 1;
 }
 
 void putt_set_fly(float k)
@@ -776,16 +848,26 @@ void putt_set_fly(float k)
     float p1[3] = { 0.f, 0.f, 0.f };
     float  v[3] = { 0.f, 0.f, 0.f };
 
-    if (!state)
-        return;
+    if (!state) return;
 
     v_cpy(view_e[0], x);
     v_cpy(view_e[1], y);
 
     if (fp->base->zc > 0)
-        v_sub(view_e[2], fp->uv[ball].p, fp->base->zv[0].p);
-    else
-        v_cpy(view_e[2], z);
+    {
+        if (fp->base->zc == 1)
+            v_sub(view_e[2], fp->uv[ball].p, fp->base->zv[0].p);
+        else
+        {
+            float p_center[3] = { 0.0f, 0.0f, 0.0f };
+
+            putt_view_goal_find_median(fp->base->zv, fp->base->zc,
+                                       &p_center[0], &p_center[1], &p_center[2]);
+
+            v_sub(view_e[2], fp->uv[ball].p, p_center);
+        }
+    }
+    else v_cpy(view_e[2], z);
 
     if (fabs(v_dot(view_e[1], view_e[2])) > 0.999)
         v_cpy(view_e[2], z);
@@ -852,36 +934,29 @@ void putt_set_fly(float k)
 
 void putt_set_rot_rate(int d, float dt)
 {
-    if (!state)
-        return;
+    if (!state) return;
 
     view_a -= (float) (1.f * d) * dt * (fast_timescale ? 3.0f : 1.0f);
 }
 
 void putt_set_mag_rate(int d, float dt)
 {
-    if (!state)
-        return;
+    if (!state) return;
 
     view_m -= (float) (1.f * d) / dt * (fast_timescale ? 3.0f : 1.0f);
 
     switch (curr_stroke_type())
     {
-        case 3:
-            view_m = CLAMP(.25f, view_m, 2.25f); break;
-        case 2:
-            view_m = CLAMP(.25f, view_m, 2.f);   break;
-        case 1:
-            view_m = CLAMP(.25f, view_m, 1.75f); break;
-        default:
-            view_m = CLAMP(.25f, view_m, 1.5f);
+        case 3:  view_m = CLAMP(.25f, view_m, 2.25f); break;
+        case 2:  view_m = CLAMP(.25f, view_m, 2.f);   break;
+        case 1:  view_m = CLAMP(.25f, view_m, 1.75f); break;
+        default: view_m = CLAMP(.25f, view_m, 1.5f);
     }
 }
 
 void putt_ball(int i)
 {
-    if (!state)
-        return;
+    if (!state) return;
 
     int ui;
 
@@ -924,17 +999,12 @@ void putt_set_pos(float p[3], float e[3][3])
 
 void putt_set_fast(int d)
 {
-    if (!state)
-        return;
+    if (!state) return;
 
     if (!config_cheat())
-    {
         fast_timescale = 0;
-    }
     else
-    {
         fast_timescale = d;
-    }
 }
 
 /*---------------------------------------------------------------------------*/

@@ -562,7 +562,7 @@ static void dailychallenge_timer(int id, float dt)
 
             char line[MAXSTR] = "";
 
-            while (fs_gets(line, sizeof(line), handle)) {
+            while (fs_gets(line, sizeof (line), handle)) {
                 strip_newline(line);
 
                 if (strncmp(line, "package ", 8) == 0) {

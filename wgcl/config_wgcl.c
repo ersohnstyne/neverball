@@ -379,11 +379,11 @@ static void campaign_load_hs(void)
 
         char buf[MAXSTR];
 
-        if (fs_gets(buf, sizeof(buf), fp))
+        if (fs_gets(buf, sizeof (buf), fp))
         {
             strip_newline(buf);
 
-            campaign_hs_read_lines(fp, buf, sizeof(buf));
+            campaign_hs_read_lines(fp, buf, sizeof (buf));
         }
 
         fs_close(fp);
@@ -402,7 +402,7 @@ static void set_load_hs(const char *filename)
         {
             strip_newline(buf);
 
-            set_hs_read_lines(fp, buf, sizeof(buf));
+            set_hs_read_lines(fp, buf, sizeof (buf));
         }
 
         fs_close(fp);

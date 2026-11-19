@@ -302,7 +302,7 @@ static void fetch_dispatch_event(struct fetch_event *fe)
 {
     SDL_Event e;
 
-    memset(&e, 0, sizeof(e));
+    memset(&e, 0, sizeof (e));
 
     e.type = FETCH_EVENT;
     e.user.data1 = fe;

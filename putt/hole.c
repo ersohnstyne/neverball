@@ -421,9 +421,69 @@ void hole_goal(int split)
 {
     if (!split) score_v[hole][player]++;
 
+#if NB_HAVE_PB_BOTH==1 && defined(__EMSCRIPTEN__)
+    /* FIXME: WGCL Narrator can do it! */
+
+    if (score_v[hole][player] == 1)
+        EM_ASM({
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_putt_holeinone.mp3");
+            }
+        });
+
+    else if (curr_stroke_type() != 0)
+    {
+        if (score_v[hole][player] == score_v[hole][0] - 3)
+            EM_ASM({
+                if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_putt_chipin_albatros.mp3");
+                }
+            });
+        else if (score_v[hole][player] == score_v[hole][0] - 2)
+            EM_ASM({
+                if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_putt_chipin_eagle.mp3");
+                }
+            });
+        else if (score_v[hole][player] == score_v[hole][0] - 1)
+            EM_ASM({
+                if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_putt_chipin_birdie.mp3");
+                }
+            });
+        else if (score_v[hole][player] == score_v[hole][0])
+            EM_ASM({
+                if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                    CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_putt_chipin_par.mp3");
+                }
+            });
+    }
+    else if (score_v[hole][player] == score_v[hole][0] - 2)
+        EM_ASM({
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_putt_eagle.mp3");
+            }
+        });
+    else if (score_v[hole][player] == score_v[hole][0] - 1)
+        EM_ASM({
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_putt_birdie.mp3");
+            }
+        });
+    else if (score_v[hole][player] == score_v[hole][0])
+        EM_ASM({
+            if (Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") || gameoptions_debug_locale_japanese) {
+                CoreLauncherOptions_GameOptions_PlayNarratorAudio("ja-JP/corelauncher_narrator_putt_par.mp3");
+            }
+        });
+#else
     if (score_v[hole][player] == 1)
         audio_narrator_play(AUD_ONE);
 
+    else if (curr_stroke_type() != 0)
+        audio_narrator_play(AUD_CHIPIN);
+    else if (score_v[hole][player] == score_v[hole][0] - 3)
+        audio_narrator_play(AUD_ALBATROS);
     else if (score_v[hole][player] == score_v[hole][0] - 2)
         audio_narrator_play(AUD_EAGLE);
     else if (score_v[hole][player] == score_v[hole][0] - 1)
@@ -436,6 +496,7 @@ void hole_goal(int split)
         audio_narrator_play(AUD_DOUBLE);
     else
         audio_narrator_play(AUD_SUCCESS);
+#endif
 
     stat_v[player] = 1;
     done++;

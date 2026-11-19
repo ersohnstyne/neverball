@@ -274,7 +274,7 @@ int sol_load_vary(struct s_vary *fp, struct s_base *base)
 #ifdef MAPC_INCLUDES_CHKP
     if (fp->base->cc)
     {
-        if (!(fp->cv = calloc(fp->base->cc, sizeof(*fp->cv))))
+        if (!(fp->cv = calloc(fp->base->cc, sizeof (*fp->cv))))
             goto sol_load_vary_fail;
         fp->cc = fp->base->cc;
 

@@ -50,17 +50,17 @@ typedef SDLKey SDL_Keycode;
 
 /*---------------------------------------------------------------------------*/
 
-static int level_msg_search_and_replace(char *src,
-                                        char *search, char *replace,
-                                        char *result)
+static int level_msg_search_and_replace(const char *src,
+                                        const char *search, const char *replace,
+                                              char *result)
 {
     int done = 0, i, j, k;
-    int src_len     = strlen(src);
-    int search_len  = strlen(search);
-    int replace_len = strlen(replace);
+    const int src_len     = strlen(src);
+    const int search_len  = strlen(search);
+    const int replace_len = strlen(replace);
 
-    char *src_copy    = src;
-    char *search_copy = search;
+    const char *src_copy    = src;
+    const char *search_copy = search;
 
     for (i = 0, j = 0; i < src_len; )
     {

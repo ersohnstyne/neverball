@@ -178,13 +178,6 @@ int glext_check_ext(const char *needle)
     return 0;
 }
 
-/*
- * This function name will be redirected to glext_check_ext for modern WGCL source project.
- * To continue with legacy source project Neverball,
- * please change from `glext_check_ext` to `glext_check`.
- */
-#define glext_check glext_check_ext
-
 /*---------------------------------------------------------------------------*/
 
 #if !ENABLE_OPENGLES && !defined(__EMSCRIPTEN__) && !defined(__WII__)

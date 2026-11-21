@@ -2389,7 +2389,7 @@ static void game_server_iter(float dt)
 
 #if NB_HAVE_PB_BOTH==1
 #ifndef GAME_SHA256_NOENCRYPTION
-    if (!game_sha256_state() || !game_sha256_server_state()) return;
+    if (!game_sha256_state() || !game_sha256_server_state()) return; /* Invalid checksum! */
 #endif
 #else
     if (status != GAME_NONE) {

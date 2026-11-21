@@ -465,7 +465,7 @@ static void fail_btns_horizontal_gui_mojang(int jd, const int sync_done,
                 gui_start_icon(jd, GUI_ARROW_UP, gui_grn, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
         } else
 #endif
-        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_vio, _("Respawn"), GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0, progress_same_avail && !progress_dead(), 0);
+        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_vio, _("Respawn"), GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0, progress_same_avail() && !progress_dead(), 0);
 
         /* ^^^ END RESPAWN BUTTON ^^^ */
     }
@@ -500,7 +500,7 @@ static void fail_btns_horizontal_gui_mojang(int jd, const int sync_done,
                 gui_start_icon(jd, GUI_ARROW_UP, gui_grn, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
         } else
 #endif
-        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_yel, _("Retry Level"), GUI_SML, FAIL_SAME, 0, progress_same_avail && !progress_dead(), 0);
+        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_yel, _("Retry Level"), GUI_SML, FAIL_SAME, 0, progress_same_avail() && !progress_dead(), 0);
 
         /* ^^^ END RESTART BUTTON ^^^ */
     }
@@ -576,7 +576,7 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
                 gui_start_icon(jd, GUI_ARROW_UP, gui_grn, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
         } else
 #endif
-        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_vio, _("Respawn"), GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0, progress_same_avail && !progress_dead(), 0);
+        gui_start_icon_full(jd, GUI_CIRCLE_ARROW, gui_vio, _("Respawn"), GUI_SML, FAIL_CHECKPOINT_RESPAWN, 0, progress_same_avail() && !progress_dead(), 0);
 
         /* ^^^ END RESPAWN BUTTON ^^^ */
 
@@ -611,7 +611,7 @@ static void fail_btns_vertical_gui_mojang(int jd, const int sync_done,
                 gui_start_icon(jd, GUI_ARROW_UP, gui_grn, _("Upgrade edition!"), GUI_SML, FAIL_UPGRADE_EDITION, 0);
         } else
 #endif
-        gui_state_icon_full(jd, GUI_CIRCLE_ARROW, gui_yel, _("Retry Level"), GUI_SML, FAIL_SAME, 0, progress_same_avail && !progress_dead(), 0);
+        gui_state_icon_full(jd, GUI_CIRCLE_ARROW, gui_yel, _("Retry Level"), GUI_SML, FAIL_SAME, 0, progress_same_avail() && !progress_dead(), 0);
 
         /* ^^^ END RESTART BUTTON ^^^ */
 
@@ -635,11 +635,11 @@ static int fail_gui_wgcl(void)
 #endif
 
 #ifdef MAPC_INCLUDES_CHKP
-    const int wgcl_respawnable = respawnable && progress_same_avail();
+    const int wgcl_respawnable = respawnable && progress_same_avail() && !progress_dead();
 #else
     const int wgcl_respawnable = 0;
 #endif
-    const int wgcl_restartable = progress_same_avail();
+    const int wgcl_restartable = progress_same_avail() && !progress_dead();
     const int wgcl_saveable    = demo_saved() && ((demo_savemode == 3 && status == GAME_FALL) || (demo_savemode >= 2 && status == GAME_TIME));
 
     if (!wgcl_saveable) demo_play_stop(1);
@@ -777,7 +777,7 @@ static int fail_gui(void)
                     if (last_active)
                     {
                         if (((checkpoints_last_time_limit() - checkpoints_last_time_elapsed()) > 60.0f || checkpoints_last_time_limit() == 0.0f) &&
-                            progress_same_avail())
+                            progress_same_avail() && !progress_dead())
                         {
                             audio_play(AUD_RESPAWN, 1.0f);
                             gui_multi(jd, _("Respawn is still available during active!"),
@@ -873,7 +873,7 @@ static int fail_gui(void)
             }
 
 #if NB_HAVE_PB_BOTH==1 && defined(CONFIG_INCLUDES_ACCOUNT)
-            if (progress_same_avail() && !respawnable) {
+            if (progress_same_avail() && !progress_dead() && !respawnable) {
                 int buymore = 0;
 
                 if (account_get_d(ACCOUNT_PRODUCT_MEDIATION) == 0 &&

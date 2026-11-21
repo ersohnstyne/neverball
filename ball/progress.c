@@ -1658,7 +1658,7 @@ int  progress_next_avail(void)
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
 #if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
-    if (!game_sha256_state()) return 0;
+    if (!game_sha256_state()) return 0; /* Invalid chechsum! */
 #endif
 
     if (next &&
@@ -1684,7 +1684,7 @@ int  progress_same_avail(void)
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
 #if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
-    if (!game_sha256_state()) return 0;
+    if (!game_sha256_state()) return 0; /* Invalid chechsum! */
 #endif
 
     /* Cannot restart in home room or hardcore mode. */
@@ -1777,7 +1777,7 @@ int  progress_same(void)
     PROGRESS_DEBUG_CHECK_IS_INIT_FUNC_BOOL;
 
 #if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
-    if (!game_sha256_state()) return 0;
+    if (!game_sha256_state()) return 0; /* Invalid chechsum! */
 #endif
 
     if (!progress_dead())
@@ -1827,7 +1827,7 @@ int  progress_dead(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1 && !defined(GAME_SHA256_NOENCRYPTION)
-    if (!game_sha256_state()) return 1;
+    if (!game_sha256_state()) return 1; /* Invalid chechsum! */
 #endif
 
     if (status == GAME_NONE) return 0;

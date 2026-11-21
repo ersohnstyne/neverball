@@ -647,7 +647,8 @@ static int handle_key_dn(SDL_Event *e)
             //return st_keybd(c, 1);
         }
 
-    if (KEY_IS_PAUSE(c))
+    if (KEY_IS_PAUSE(c) ||
+        c == SDLK_TAB || c == SDLK_CAPSLOCK || c == SDLK_LSHIFT || c == SDLK_RSHIFT)
     {
         if (e->key.repeat)
             return d;

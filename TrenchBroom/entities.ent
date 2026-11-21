@@ -124,7 +124,7 @@ Defines the camera position at the beginning of a level fly-in
 </point>
 
 
-<point name="game_ball" color="1 1 1" model="{'path': 'obj/editor/ball2.obj', 'scale': 1}" box="-16 -16 -16 16 16 16">
+<point name="game_ball" color="1 1 1" model="{'path': 'obj/editor/ball2.obj', 'scale': {{ radius != '' -> radius / 0.25, 1 }} }" box="-16 -16 -16 16 16 16">
 A ball spawn.
 
 It is preferable to use this entity in place of info_player_start.
@@ -137,7 +137,7 @@ The ball does not replace your Radiant's entities, but should be a higher-fideli
 </point>
 
 
-<point name="info_player_start" color="1 1 1" model="{'path': 'obj/editor/ball.obj', 'scale': 1}" box="-16 -16 -24 16 16 8">
+<point name="info_player_start" color="1 1 1" model="{'path': 'obj/editor/ball.obj', 'scale': {{ radius != '' -> radius / 0.25, 1 }} }" box="-16 -16 -24 16 16 8">
 A ball spawn.  This entity exists for backward compatibility; game_ball is preferable.  While multiple balls may be defined, Neverball uses only the first of them.  Neverputt requires an info_player_start entity for each player slot plus one.
 
 The ball does not replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines:

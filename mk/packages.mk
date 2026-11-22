@@ -15,16 +15,11 @@ COURSE_PACKAGES := $(COURSE_FILES:$(DATA_DIR)/holes-%.txt=course-%)
 
 MANIFEST := $(OUTPUT_DIR)/available-packages.txt
 
-<<<<<<< HEAD
 all: base-music $(SET_PACKAGES) $(BALL_PACKAGES) $(COURSE_PACKAGES) addon-sets
 	find "$(OUTPUT_DIR)" -name '*.manifest.txt' | LC_ALL=C sort | tr '\n' '\0' | xargs -0 cat > "$(MANIFEST)"
 
 base-music:
 	$(MAKE) -f mk/package-music.mk OUTPUT_DIR=$(OUTPUT_DIR)
-=======
-all: $(SET_PACKAGES) $(BALL_PACKAGES) $(COURSE_PACKAGES) addon-sets
-	find "$(OUTPUT_DIR)" -name '*.manifest.txt' | LC_ALL=C sort | tr '\n' '\0' | xargs -0 cat > "$(MANIFEST)"
->>>>>>> 93a4185c71316980704c9bcdaa53a9df8b0899e9
 
 $(SET_PACKAGES): %: $(DATA_DIR)/%.txt
 	$(MAKE) -f mk/package-levelset.mk ADDON_SET=0 PACKAGE_ID=$@ SET_FILE=$< DATA_DIR=$(DATA_DIR) OUTPUT_DIR=$(OUTPUT_DIR)

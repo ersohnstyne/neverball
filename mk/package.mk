@@ -25,8 +25,13 @@ PACKAGE_EXCLUDE := \
 	'*.xcf' \
 	'*.wings' \
 	'screenshot.png'
+<<<<<<< HEAD
 	
 ASSET_HASH := $(shell cd "$(DATA_DIR)" && sh "$(CURRDIR)/scripts/hash_assets.sh" $(ASSET_PATHS))
+=======
+
+ASSET_HASH := $(shell cd "$(DATA_DIR)" && sh "$(CURDIR)/scripts/hash-assets.sh" $(ASSET_PATHS))
+>>>>>>> 93a4185c71316980704c9bcdaa53a9df8b0899e9
 PACKAGE_ZIP := $(PACKAGE_ID)-$(ASSET_HASH).zip
 PACKAGE_TMP := /tmp/$(PACKAGE_ID)
 PACKAGE_MANIFEST := $(PACKAGE_ID).manifest.txt
@@ -38,7 +43,11 @@ output-dir:
 
 package: output-dir
 	cd "$(DATA_DIR)" && \
+<<<<<<< HEAD
 	zip -X -q -r "$(OUTPUT_DIR)/$(PACKAGE_ZIP)" $(ASSET_PATHS) -x $(PACKAGE_EXCLUDE) ; \
+=======
+	zip -X -q -r "$(OUTPUT_DIR)/$(PACKAGE_ZIP)" $(ASSET_PATHS) -x $(PACKAGE_EXCLUDE) && \
+>>>>>>> 93a4185c71316980704c9bcdaa53a9df8b0899e9
 	rm -rf "$(PACKAGE_TMP)" && \
 	mkdir "$(PACKAGE_TMP)" && \
 	( \
@@ -50,9 +59,16 @@ package: output-dir
 				ffmpeg -nostdin -y -loglevel error -i "$$ogg" -acodec libmp3lame "$$mp3"; \
 			done; \
 		) && \
+<<<<<<< HEAD
 		rm "$(OUTPUT_DIR)/$(PACKAGE_ZIP)" && \
 		zip -X -q -r "$(OUTPUT_DIR)/$(PACKAGE_ZIP)" . \
 	) ; \
+=======
+		find . -execdir touch -t 200305010000 {} \; && \
+		rm "$(OUTPUT_DIR)/$(PACKAGE_ZIP)" && \
+		zip -X -q -r "$(OUTPUT_DIR)/$(PACKAGE_ZIP)" . \
+	) && \
+>>>>>>> 93a4185c71316980704c9bcdaa53a9df8b0899e9
 	rm -rf "$(PACKAGE_TMP)"
 
 manifest: output-dir package

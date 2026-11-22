@@ -33,10 +33,6 @@
 #define gt_plural(msgid, msgid_plural, n) ngettext(msgid, msgid_plural, n)
 
 #elif _WIN32
-
-#if _MSC_VER
-
-#endif
 const char *ms_nls_gettext(const char *);
 
 #define _(s) ms_nls_gettext(s)

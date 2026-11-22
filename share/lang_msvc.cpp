@@ -430,6 +430,8 @@ const char *gt_prefix(const char *msgid)
 {
 #if ENABLE_NLS
     const char *msgval = gettext(msgid);
+#elif _WIN32
+    const char *msgval = ms_nls_gettext(msgid);
 #else
     const char *msgval = msgid;
 #endif

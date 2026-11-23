@@ -16,6 +16,7 @@
 
 #include "common.h"
 #include "lang.h"
+#include "log.h"
 
 #include "vec3.h"
 
@@ -164,9 +165,51 @@ void currency_init(void)
 
     if ((currency_handle = curl_easy_init()))
     {
+        CURLU *url_handle;
         recv_in_data.prepared = 0;
 
-        curl_easy_setopt(currency_handle, CURLOPT_URL,           url);
+        // Do a little song and dance to get a URL-encoded URL.
+
+        if ((url_handle = curl_url()))
+        {
+            char *encoded_url = NULL;
+            CURLUcode rc;
+
+            // URL goes in.
+
+            rc = curl_url_set(url_handle, CURLUPART_URL, url, CURLU_URLENCODE | CURLU_ALLOW_SPACE);
+
+            if (rc)
+            {
+                log_errorf("curl_url_set failure: %s\n", curl_url_strerror(rc));
+                goto cleanup;
+            }
+
+            // URL comes out.
+
+            rc = curl_url_get(url_handle, CURLUPART_URL, &encoded_url, 0);
+
+            if (rc)
+            {
+                log_errorf("curl_url_get failure: %s\n", curl_url_strerror(rc));
+                goto cleanup;
+            }
+
+            curl_easy_setopt(currency_handle, CURLOPT_URL, encoded_url);
+
+        cleanup:
+
+            if (encoded_url)
+            {
+                curl_free(encoded_url);
+                encoded_url = NULL;
+            }
+
+            curl_url_cleanup(url_handle);
+            url_handle = NULL;
+        }
+        else log_errorf("curl_url failure\n");
+
         curl_easy_setopt(currency_handle, CURLOPT_BUFFERSIZE,    102400L);
         curl_easy_setopt(currency_handle, CURLOPT_NOPROGRESS,    1L);
         curl_easy_setopt(currency_handle, CURLOPT_WRITEFUNCTION, WriteFromMem);

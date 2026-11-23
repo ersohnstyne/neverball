@@ -489,6 +489,12 @@ int level_load(const char *filename, struct level *level)
     memset(level, 0, sizeof (struct level));
     memset(&base, 0, sizeof (base));
 
+    if (!filename || !filename[0])
+    {
+        log_errorf("filename returned NULL!\n");
+        return 0;
+    }
+
     if (!str_ends_with(filename, ".csol")  &&
         !str_ends_with(filename, ".csolx") &&
         !str_ends_with(filename, ".sol")   &&

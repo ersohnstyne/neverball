@@ -666,10 +666,177 @@ int set_check_id(const unsigned char *name, const char *needle)
 
 static void set_free(struct set *s);
 
+static int set_load_v1(struct set *s, fs_file fin)
+{
+    char *scores, *level_name;
+
+    if (read_line(&s->name, fin) &&
+        read_line(&s->desc, fin) &&
+        read_line(&s->id, fin) &&
+        read_line(&s->shot, fin) &&
+        read_line(&scores, fin))
+    {
+        /* HACK: Using temporary HS values may especially efficient version. */
+
+        int tmp_hs_timer[RANK_LAST], tmp_hs_coins[RANK_LAST];
+
+        for (int i = 0; i < 3; i++)
+        {
+            tmp_hs_timer[i] = 359999;
+            tmp_hs_coins[i] = 0;
+        }
+
+#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
+        sscanf_s(scores,
+#else
+        sscanf(scores,
+#endif
+#if NB_HAVE_PB_BOTH==1
+               "%d %d %d %d %d %d %d %d",
+#else
+               "%d %d %d %d %d %d",
+#endif
+               &tmp_hs_timer[RANK_HARD],
+               &tmp_hs_timer[RANK_MEDM],
+               &tmp_hs_timer[RANK_EASY],
+               &tmp_hs_coins[RANK_HARD],
+               &tmp_hs_coins[RANK_MEDM],
+               &tmp_hs_coins[RANK_EASY]
+#if NB_HAVE_PB_BOTH==1
+               , &s->star, &s->balls_needed
+#endif
+        );
+
+        free(scores);
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (tmp_hs_timer[i] != 0) s->time_score.timer[i] = tmp_hs_timer[i];
+            if (tmp_hs_coins[i] != 0) s->time_score.coins[i] = tmp_hs_coins[i];
+        }
+
+        while (s->count < MAXLVL_SET && read_line(&level_name, fin))
+        {
+            strip_spaces(level_name);
+
+            if (*level_name)
+            {
+                s->level_name_v[s->count] = level_name;
+                s->count++;
+            }
+            else
+            {
+                free(level_name);
+                level_name = NULL;
+            }
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
+
+static int set_load_v2(struct set *s, fs_file fin)
+{
+    char buf[512];
+
+    while (fs_gets(buf, sizeof(buf), fin))
+    {
+        int i = 0, j = 0, k = 0, n = 0;
+
+        strip_spaces(buf);
+
+        if (sscanf(buf, "name %n", &n) >= 0 && n > 0)
+        {
+            if (s->name)
+                free(s->name);
+
+            s->name = dupe_string(buf + n);
+        }
+        else if (sscanf(buf, "desc %n", &n) >= 0 && n > 0)
+        {
+            if (s->desc)
+                free(s->desc);
+
+            s->desc = dupe_string(buf + n);
+        }
+        else if (sscanf(buf, "id %n", &n) >= 0 && n > 0)
+        {
+            if (s->id)
+                free(s->id);
+
+            s->id = dupe_string(buf + n);
+        }
+        else if (sscanf(buf, "shot %n", &n) >= 0 && n > 0)
+        {
+            if (s->shot)
+                free(s->shot);
+
+            s->shot = dupe_string(buf + n);
+        }
+        else if ((n = sscanf(buf, "time_hs %d %d %d", &i, &j, &k)) >= 1)
+        {
+            s->time_score.timer[RANK_HARD] = i;
+
+            if (n > 1)
+                s->time_score.timer[RANK_MEDM] = j;
+
+            if (n > 2)
+                s->time_score.timer[RANK_EASY] = k;
+        }
+        else if ((n = sscanf(buf, "coin_hs %d %d %d", &i, &j, &k)) >= 1)
+        {
+            s->coin_score.coins[RANK_HARD] = i;
+
+            if (n > 1)
+                s->coin_score.coins[RANK_MEDM] = j;
+
+            if (n > 2)
+                s->coin_score.coins[RANK_EASY] = k;
+        }
+        else if (sscanf(buf, "level %n", &n) >= 0 && n > 0)
+        {
+            if (s->count < MAXLVL_SET)
+            {
+                s->level_name_v[s->count] = dupe_string(buf + n);
+                s->count++;
+            }
+            else log_errorf("%s has too many levels\n", s->file);
+        }
+#if NB_HAVE_PB_BOTH==1
+        else if (sscanf(buf, "set_stars %n", &n) >= 0 && n > 0)
+            s->star = n;
+        else if (sscanf(buf, "stars %n", &n) >= 0 && n > 0)
+            s->star = n;
+        else if (sscanf(buf, "required_balls %n", &n) >= 0 && n > 0)
+            s->balls_needed = n;
+        else if (sscanf(buf, "balls %n", &n) >= 0 && n > 0)
+            s->balls_needed = n;
+#endif
+    }
+
+    return (s->name && s->count > 0);
+}
+
+static const char *guess_set_id(const char *path)
+{
+    const char *base = base_name_sans(path, ".txt");
+
+    if (!base) return "IDNOTFOUND";
+
+    if (str_starts_with(base, "set-"))
+        base += 4;
+
+    if (!*base) return "IDNOTFOUND";
+
+    return base;
+}
+
 static int set_load(struct set *s, const char *filename)
 {
     fs_file  fin;
-    char    *scores, *level_name;
+    char     buf[16];
     int      curr_date_month = 0;
 
     if (!s || !filename || !*filename)
@@ -744,12 +911,12 @@ static int set_load(struct set *s, const char *filename)
             !glext_get_hatsune_miku())
         {
 #ifdef __EMSCRIPTEN__
-            if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
 #endif
                 return 0;
         }
 #ifdef __EMSCRIPTEN__
-        else if (EM_ASM_INT({ return Neverball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
             return 0;
 #endif
     }
@@ -805,91 +972,42 @@ static int set_load(struct set *s, const char *filename)
 
     SAFECPY(s->file, filename);
 
-    if (read_line(&s->name, fin) &&
-        read_line(&s->desc, fin) &&
-        read_line(&s->id,   fin) &&
-        read_line(&s->shot, fin) &&
-        read_line(&scores,  fin))
+    if (fs_gets(buf, sizeof (buf), fin))
     {
-        /* HACK: Using temporary HS values may especially efficient version. */
+        strip_spaces(buf);
 
-        int tmp_hs_timer[RANK_LAST], tmp_hs_coins[RANK_LAST];
+        fs_seek(fin, 0, SEEK_SET);
 
-        for (int i = 0; i < 3; i++)
+        if (strcmp(buf, "version 2") == 0)
         {
-            tmp_hs_timer[i] = 359999;
-            tmp_hs_coins[i] = 0;
+            if (!set_load_v2(s, fin))
+                goto set_load_fail;
         }
-
-#if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
-        sscanf_s(scores,
-#else
-        sscanf(scores,
-#endif
-#if NB_HAVE_PB_BOTH==1
-               "%d %d %d %d %d %d %d %d",
-#else
-               "%d %d %d %d %d %d",
-#endif
-               &tmp_hs_timer[RANK_HARD],
-               &tmp_hs_timer[RANK_MEDM],
-               &tmp_hs_timer[RANK_EASY],
-               &tmp_hs_coins[RANK_HARD],
-               &tmp_hs_coins[RANK_MEDM],
-               &tmp_hs_coins[RANK_EASY]
-#if NB_HAVE_PB_BOTH==1
-               , &s->star, &s->balls_needed
-#endif
-        );
-
-        for (int i = 0; i < 3; i++)
+        else
         {
-            if (tmp_hs_timer[i] != 0) s->time_score.timer[i] = tmp_hs_timer[i];
-            if (tmp_hs_coins[i] != 0) s->time_score.coins[i] = tmp_hs_coins[i];
+            if (!set_load_v1(s, fin))
+                goto set_load_fail;
         }
-
-        free(scores);
-        scores = NULL;
-
-        s->user_scores  = concat_string("Scores/", s->id, ".txt",       NULL);
-        s->cheat_scores = concat_string("Scores/", s->id, "-cheat.txt", NULL);
-
-        s->count = 0;
-
-        while (s->count < MAXLVL_SET && read_line(&level_name, fin))
-        {
-            strip_spaces(level_name);
-
-            if (*level_name)
-            {
-                s->level_name_v[s->count] = level_name;
-                s->count++;
-            }
-            else
-            {
-                free(level_name);
-                level_name = NULL;
-            }
-        }
-
-        fs_close(fin);
-        fin = NULL;
-
-        return 1;
     }
+    else goto set_load_fail;
 
+    if (!s->id)
+        s->id = dupe_string(guess_set_id(s->file));
+
+    if (!s->desc)
+        s->desc = dupe_string("");
+
+    s->user_scores  = concat_string("Scores/", s->id, ".txt", NULL);
+    s->cheat_scores = concat_string("Scores/", s->id, "-cheat.txt", NULL);
+
+    fs_close(fin);
+    fin = NULL;
+
+    return 1;
+
+set_load_fail:
     log_errorf("Failure to load set file: %s / %s\n",
                filename, fs_error());
-
-#if NB_HAVE_PB_BOTH==1
-    s->balls_needed = 0;
-    s->star = 0;
-#endif
-
-    s->name = NULL;
-    s->desc = NULL;
-    s->id   = NULL;
-    s->shot = NULL;
 
     fs_close(fin);
     fin = NULL;

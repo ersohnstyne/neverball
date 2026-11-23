@@ -346,6 +346,7 @@ static int   builtin_demo_allcoins = 0;
 static Array items;
 
 static int play_id = 0;
+static int motd_id = 0;
 
 #ifndef __EMSCRIPTEN__
 static int support_exit = 1;
@@ -604,7 +605,7 @@ static int title_action(int tok, int val)
 
             /* Developer or Public */
             char os_env[MAXSTR], dev_env[MAXSTR];
-#if  NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX)
+#if  PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX)
 #if ENABLE_HMD
             sprintf(dev_env, _(editions_developer[EDITION_CURRENT]),
                              "OpenHMD", _("Developer Mode"));
@@ -636,7 +637,7 @@ static int title_action(int tok, int val)
             }
             else if (current_platform == PLATFORM_XBOX)
             {
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
                 sprintf(dev_env, _("%s Edition / %s"),
                                  TITLE_PLATFORM_XBOX_360, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"),
@@ -826,6 +827,33 @@ static int title_action(int tok, int val)
     return 1;
 }
 
+static const char *pick_motd_text(void)
+{
+    static const char *const splash_texts[] = {
+        N_("Leading the fight against thwomps since 2003"),
+        N_("Over 1,000,000 fallouts... and counting"),
+        N_("Fallout 995,996,997,998,999, ***NUMERIC OVERFLOW***"),
+        N_("Not compatible with Minecraft"),
+        N_("Super Not-So-Empty Ball"),
+        N_("The monkeys ran away."),
+    };
+
+    static int idx = -1;
+
+    if (idx < 0)
+        idx = rand_between(0, ARRAYSIZE(splash_texts) - 1);
+
+    return splash_texts[idx];
+}
+
+static int show_motd_text(void)
+{
+    return 1;
+}
+
+static const float MOTD_DELAY = 2.4f;
+static const float MOTD_TIME = 2.4f;
+
 static int title_gui_wgcl_version_enabled;
 
 int title_check_wgcl(void)
@@ -920,7 +948,7 @@ static int title_gui(void)
 
             char os_env[MAXSTR], dev_env[MAXSTR];
 #if NB_HAVE_PB_BOTH==1 && \
-    (NEVERBALL_FAMILY_API != NEVERBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX))
+    (PENNYBALL_FAMILY_API != PENNYBALL_PC_FAMILY_API || !defined(TITLE_USE_DVD_BOX))
 #ifndef __EMSCRIPTEN__
 #if ENABLE_HMD
             sprintf(dev_env, _(editions_developer[EDITION_CURRENT]),
@@ -952,7 +980,7 @@ static int title_gui(void)
             }
             else if (current_platform == PLATFORM_XBOX)
             {
-#if NEVERBALL_FAMILY_API == NEVERBALL_XBOX_360_FAMILY_API
+#if PENNYBALL_FAMILY_API == PENNYBALL_XBOX_360_FAMILY_API
                 sprintf(dev_env, _("%s Edition / %s"),
                         TITLE_PLATFORM_XBOX_360, _("Developer Mode"));
                 sprintf(os_env, _("%s Edition"), TITLE_PLATFORM_XBOX_360);
@@ -1183,7 +1211,7 @@ static int title_gui(void)
                                                                                   GUI_LRG,
                                                                                   0, 0);
                 gui_set_font(title_id, "ttf/DejaVuSans-Bold.ttf");
-                
+
                 if (video_get_hatsune_miku() && glext_get_hatsune_miku())
                     edition_id = gui_label(title_lockscreen_gamename_id,
                                            "Hatsune Miku PC Set Edition",
@@ -1369,7 +1397,7 @@ static int title_gui(void)
 
                 if ((jd = gui_hstack(id)))
                 {
-                    int kd = gui_image(jd, "gui/neverputt-modern-256.png", ww, hh);
+                    int kd = gui_image(jd, "gui/pennyputt-256.png", ww, hh);
                     gui_set_state(kd, TITLE_PUTT, 0);
 
                     gui_space(jd);
@@ -1439,10 +1467,21 @@ static int title_gui(void)
             if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
             {
                 gui_clr_rect(id);
-                gui_set_slide(id, GUI_SW, 0, 1.6f, 0);
-                gui_layout(id, -1, -1);
+                gui_set_slide(id, GUI_NW, 0.85f, 0.4f, 0);
+                gui_layout(id, +1, +1);
             }
 #endif
+
+            if (show_motd_text())
+            {
+                if ((motd_id = gui_label(root_id, pick_motd_text(), GUI_TNY, gui_yel2, gui_grn2)))
+                {
+                    gui_set_fill(motd_id);
+                    gui_clr_rect(motd_id);
+                    gui_set_slide(motd_id, GUI_S, MOTD_DELAY, MOTD_TIME, 0);
+                    gui_layout(motd_id, 0, -1);
+                }
+            }
 
 #if ENABLE_FETCH && \
     !defined(__NDS__) && !defined(__3DS__) && \
@@ -1475,10 +1514,21 @@ static int title_gui(void)
             if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, GUI_COLOR_WHT2)))
             {
                 gui_clr_rect(id);
-                gui_set_slide(id, GUI_SW, 0.85f, 0.4f, 0);
-                gui_layout(id, -1, -1);
+                gui_set_slide(id, GUI_NW, 0.85f, 0.4f, 0);
+                gui_layout(id, +1, +1);
             }
 #endif
+
+            if (show_motd_text())
+            {
+                if ((motd_id = gui_label(root_id, pick_motd_text(), GUI_TNY, gui_yel2, gui_grn2)))
+                {
+                    gui_set_fill(motd_id);
+                    gui_clr_rect(motd_id);
+                    gui_set_slide(motd_id, GUI_S, MOTD_DELAY, MOTD_TIME, 0);
+                    gui_layout(motd_id, 0, -1);
+                }
+            }
 
             if ((id = gui_vstack(root_id)))
             {

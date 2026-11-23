@@ -90,7 +90,7 @@ static char *campaign_name = NULL;
  * https://github.com/ersohnstyne/neverball-switchball-bundle-pack
  */
 static char *campaign_levelpath[30];
-static int   campaign_count = 30;
+static int   campaign_count;
 
 static int level_difficulty = -1;
 
@@ -397,27 +397,9 @@ int campaign_rank(void)
 
 /*---------------------------------------------------------------------------*/
 
-int campaign_load(const char *filename)
+static int campaign_load_v1(fs_file fin)
 {
-    fs_file fin;
     char *scores;
-
-    if (!filename || !*filename)
-        return 0;
-
-    if (!(fin = fs_open_read(filename)))
-    {
-        log_errorf("Failure to load campaign file: %s / %s\n",
-                   filename, fs_error());
-        return 0;
-    }
-
-    score_init_hs(&time_trials, 359999, 0);
-
-#if NB_STEAM_API==1
-    /* HACK: Only hardcore campaigns, that will work. */
-    score_steam_init_hs(0, 0);
-#endif
 
     read_line(&campaign_name, fin);
 
@@ -453,6 +435,8 @@ int campaign_load(const char *filename)
               &tmp_hs_coins[RANK_MEDM],
               &tmp_hs_coins[RANK_EASY]);
 
+        free(scores); scores = NULL;
+
         for (int i = 0; i < 3; i++)
         {
             if (tmp_hs_timer[i] != 0) time_trials.timer[i] = tmp_hs_timer[i];
@@ -465,8 +449,6 @@ int campaign_load(const char *filename)
             }
         }
 
-        free(scores); scores = NULL;
-
         time_trial_leaderboard = strdup(config_cheat() ?
                                         "Campaign/time-trial-cheat.txt" :
                                         "Campaign/time-trial.txt");
@@ -476,12 +458,121 @@ int campaign_load(const char *filename)
         while (campaign_count < MAXLVL && read_line(&campaign_levelpath[campaign_count], fin))
             campaign_count++;
 
-        fs_close(fin);
-        fin = NULL;
         return 1;
     }
 
-    free(campaign_name); campaign_name = NULL;
+    return 0;
+}
+
+static int campaign_load_v2(fs_file fin)
+{
+    char buf[512];
+
+    campaign_count = 30;
+
+    while (fs_gets(buf, sizeof(buf), fin))
+    {
+        int i = 0, j = 0, k = 0, n = 0;
+
+        strip_spaces(buf);
+
+        if (sscanf(buf, "name %n", &n) >= 0 && n > 0)
+        {
+            if (campaign_name)
+                free(campaign_name);
+
+            campaign_name = dupe_string(buf + n);
+        }
+        if ((n = sscanf(buf, "time_hs %d %d %d", &i, &j, &k)) >= 1)
+        {
+            time_trials.timer[RANK_HARD] = i;
+
+            if (n > 1)
+                time_trials.timer[RANK_MEDM] = j;
+
+            if (n > 2)
+                time_trials.timer[RANK_EASY] = k;
+        }
+        else if ((n = sscanf(buf, "coin_hs %d %d %d", &i, &j, &k)) >= 1)
+        {
+            time_trials.coins[RANK_HARD] = i;
+
+            if (n > 1)
+                time_trials.coins[RANK_MEDM] = j;
+
+            if (n > 2)
+                time_trials.coins[RANK_EASY] = k;
+        }
+        else if (sscanf(buf, "level %n", &n) >= 0 && n > 0)
+        {
+            if (campaign_count < MAXLVL)
+            {
+                if (campaign_levelpath[campaign_count])
+                    free(campaign_levelpath[campaign_count]);
+
+                campaign_levelpath[campaign_count] = dupe_string(buf + n);
+                campaign_count++;
+            }
+            else log_errorf("Campaign has too many levels\n");
+        }
+    }
+
+    return (strcmp(campaign_name, "Campaign") == 0 && campaign_count > 0);
+}
+
+int campaign_load(const char *filename)
+{
+    fs_file fin;
+    char    buf[16];
+
+    if (!filename || !*filename)
+        return 0;
+
+    if (!(fin = fs_open_read(filename)))
+    {
+        log_errorf("Failure to load campaign file: %s / %s\n",
+                   filename, fs_error());
+        return 0;
+    }
+
+    score_init_hs(&time_trials, 359999, 0);
+
+#if NB_STEAM_API==1
+    /* HACK: Only hardcore campaigns, that will work. */
+    score_steam_init_hs(0, 0);
+#endif
+
+    if (fs_gets(buf, sizeof (buf), fin))
+    {
+        strip_spaces(buf);
+
+        fs_seek(fin, 0, SEEK_SET);
+
+        if (strcmp(buf, "version 2") == 0)
+        {
+            if (!campaign_load_v2(fin))
+                goto campaign_load_fail;
+        }
+        else
+        {
+            if (!campaign_load_v1(fin))
+                goto campaign_load_fail;
+        }
+    }
+    else goto campaign_load_fail;
+
+    time_trial_leaderboard = strdup(config_cheat() ?
+                                    "Campaign/time-trial-cheat.txt" :
+                                    "Campaign/time-trial.txt");
+
+    fs_close(fin);
+    fin = NULL;
+
+    return 1;
+
+campaign_load_fail:
+    log_errorf("Failure to load campaign file: %s / %s\n",
+               filename, fs_error());
 
     fs_close(fin);
     fin = NULL;

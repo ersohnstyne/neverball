@@ -179,7 +179,47 @@ static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
         return 0;
     }
 
-    curl_easy_setopt(handle, CURLOPT_URL,           url);
+    CURLU *url_handle;
+    if ((url_handle = curl_url()))
+    {
+        char *encoded_url = NULL;
+        CURLUcode rc;
+
+        // URL goes in.
+
+        rc = curl_url_set(url_handle, CURLUPART_URL, url, CURLU_URLENCODE | CURLU_ALLOW_SPACE);
+
+        if (rc)
+        {
+            log_errorf("curl_url_set failure: %s\n", curl_url_strerror(rc));
+            goto cleanup;
+        }
+
+        // URL comes out.
+
+        rc = curl_url_get(url_handle, CURLUPART_URL, &encoded_url, 0);
+
+        if (rc)
+        {
+            log_errorf("curl_url_get failure: %s\n", curl_url_strerror(rc));
+            goto cleanup;
+        }
+
+        curl_easy_setopt(handle, CURLOPT_URL, encoded_url);
+
+    cleanup:
+
+        if (encoded_url)
+        {
+            curl_free(encoded_url);
+            encoded_url = NULL;
+        }
+
+        curl_url_cleanup(url_handle);
+        url_handle = NULL;
+    }
+    else log_errorf("curl_url failure\n");
+
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_callback);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA,     out_data);
 
@@ -244,7 +284,47 @@ static CURL *account_wgcl_curl_prepare_post(const char *url, const char *in_json
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
-    curl_easy_setopt(handle, CURLOPT_URL,           url);
+    CURLU *url_handle;
+    if ((url_handle = curl_url()))
+    {
+        char *encoded_url = NULL;
+        CURLUcode rc;
+
+        // URL goes in.
+
+        rc = curl_url_set(url_handle, CURLUPART_URL, url, CURLU_URLENCODE | CURLU_ALLOW_SPACE);
+
+        if (rc)
+        {
+            log_errorf("curl_url_set failure: %s\n", curl_url_strerror(rc));
+            goto cleanup;
+        }
+
+        // URL comes out.
+
+        rc = curl_url_get(url_handle, CURLUPART_URL, &encoded_url, 0);
+
+        if (rc)
+        {
+            log_errorf("curl_url_get failure: %s\n", curl_url_strerror(rc));
+            goto cleanup;
+        }
+
+        curl_easy_setopt(handle, CURLOPT_URL, encoded_url);
+
+    cleanup:
+
+        if (encoded_url)
+        {
+            curl_free(encoded_url);
+            encoded_url = NULL;
+        }
+
+        curl_url_cleanup(url_handle);
+        url_handle = NULL;
+    }
+    else log_errorf("curl_url failure\n");
+
     curl_easy_setopt(handle, CURLOPT_HTTPHEADER,    headers);
     curl_easy_setopt(handle, CURLOPT_POST,          1l);
     curl_easy_setopt(handle, CURLOPT_POSTFIELDS,    in_json_data);

@@ -37,10 +37,6 @@ addon-sets:
 		$(MAKE) -f mk/package-levelset.mk ADDON_SET=1 PACKAGE_ID="$$id" SET_FILE="$$dir/$$id.txt" DATA_DIR="$$dir" OUTPUT_DIR="$(OUTPUT_DIR)" || exit 1; \
 	done
 
-<<<<<<< HEAD
-.PHONY: all $(CAMPAIGN_PACKAGES) $(SET_PACKAGES) $(BALL_PACKAGES) $(COURSE_PACKAGES) addon-sets
-=======
 .PHONY: all $(SET_PACKAGES) $(BALL_PACKAGES) $(COURSE_PACKAGES) addon-sets
->>>>>>> 93a4185c71316980704c9bcdaa53a9df8b0899e9
 
 GNUMAKEFLAGS = --no-print-directory

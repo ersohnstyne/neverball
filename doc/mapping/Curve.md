@@ -14,7 +14,11 @@
 [`<h>`][h]
 [`<ct>`][ct]
 
+<<<<<<< HEAD
 Curve is a program designed to create rounded structures which can be imported directly into Radiant. The curve tool is available in the offical Windows download as `curve.exe`. An [online version](https://neverball.github.io/curve.js/) has been created by [@paxed](https://github.com/paxed/curve.js). An website [Curveball](https://curveball.mightyburger.net) was created by MightyBurger.
+=======
+Curve is a program designed to create rounded structures which can be imported directly into Radiant. The curve tool is available in the offical Windows download as `curve.exe`. An [online version](https://neverball.github.io/curve.js/) has been created by [@paxed](https://github.com/paxed/curve.js).
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
 ## Methods of Usage
 

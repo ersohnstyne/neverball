@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (C) 2022 Microsoft / Neverball authors
+=======
+ * Copyright (C) 2021-2026 Jānis Rūcis
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -279,5 +283,8 @@ unsigned int fetch_file(const char *url,
 
     return fetch_id;
 }
+<<<<<<< HEAD
 
 #endif
+=======
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a

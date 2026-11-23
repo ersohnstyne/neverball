@@ -43,5 +43,8 @@ unsigned int fetch_file(const char *url, const char *dst, struct fetch_callback 
 {
     return 0;
 }
+<<<<<<< HEAD
 
 #endif
+=======
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a

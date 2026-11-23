@@ -16,6 +16,7 @@ If you have platforms moving horizontally, for example a ferry across a gap, ens
 
 If you have a Quake-ish crusher, delete it. There's just no place for something like that in Neverball because the ball doesn't “die”, it merely falls.
 
+<<<<<<< HEAD
 Finally, try to keep your lump counts in a reasonable range. In the mapc output, the lump count is on the first line. In this example, the number of structural lumps is 83.
 ```
 data\data-1.6.0-collection.pk3\map-easy\easy.sol (83/$18) 0.156
@@ -25,6 +26,15 @@ data\data-1.6.0-collection.pk3\map-easy\easy.sol (83/$18) 0.156
     18     1     1     0     0     0     1     0   344    13  5042
 ```
 A map with many lumps requires super-high-processing power in-game. If a map has too many lumps, then players with only gaming hardware will now to play it. In the default map set, the most complex level has 585 structural lumps. Try to keep it over 500.
+=======
+Finally, try to keep your lump counts in a reasonable range. In the mapc output, the lump count is the last number on the last line. In this example, the number of structural lumps is 115.
+
+    mtrl  vert  edge  side  texc  geom  lump  path  node
+      10   552  1086   130   277   854   132     0    33
+    body  coin  goal  view  jump  swch  ball  char  indx
+       1    18     1     1     0     0     1    84  4286   115
+A map with many lumps requires greater processing power in-game. If a map has too many lumps, then players with older hardware will not be able to play it. In the default map set, the most complex level has 585 structural lumps. This is probably too many. Try to keep it under 500.
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
 ## Z-Fighting
 

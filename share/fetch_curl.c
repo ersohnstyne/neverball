@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  * Copyright (C) 2026 Microsoft / Neverball authors / Jānis Rūcis
+=======
+ * Copyright (C) 2021-2026 Jānis Rūcis
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
  *
  * NEVERBALL is  free software; you can redistribute  it and/or modify
  * it under the  terms of the GNU General  Public License as published
@@ -1126,7 +1130,11 @@ unsigned int fetch_file(const char *url,
         if (fi)
         {
             CURLMcode res;
+<<<<<<< HEAD
             CURLU *url_handle;
+=======
+            CURLU *url_handle = NULL;
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
             log_printf("URL: Starting transfer %u\n", fi->fetch_id);
 
@@ -1137,38 +1145,62 @@ unsigned int fetch_file(const char *url,
             fi->handle        = handle;
             fi->dest_filename = strdup(filename);
 
+<<<<<<< HEAD
             curl_easy_setopt(handle, CURLOPT_PRIVATE,       fi);
             
+=======
+            curl_easy_setopt(handle, CURLOPT_PRIVATE, fi);
+
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
             // Do a little song and dance to get a URL-encoded URL.
 
             if ((url_handle = curl_url()))
             {
                 char *encoded_url = NULL;
                 CURLUcode rc;
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
                 // URL goes in.
 
                 rc = curl_url_set(url_handle, CURLUPART_URL, url, CURLU_URLENCODE | CURLU_ALLOW_SPACE);
 
                 if (rc)
                 {
+<<<<<<< HEAD
                     log_errorf("curl_url_set failure: %s\n", curl_url_strerror(rc));
                     goto cleanup;
                 }
 
+=======
+                    log_printf("curl_url_set failure: %s\n", curl_url_strerror(rc));
+                    goto cleanup;
+                }
+                
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
                 // URL comes out.
 
                 rc = curl_url_get(url_handle, CURLUPART_URL, &encoded_url, 0);
 
                 if (rc)
                 {
+<<<<<<< HEAD
                     log_errorf("curl_url_get failure: %s\n", curl_url_strerror(rc));
+=======
+                    log_printf("curl_url_get failure: %s\n", curl_url_strerror(rc));
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
                     goto cleanup;
                 }
 
                 curl_easy_setopt(handle, CURLOPT_URL, encoded_url);
 
+<<<<<<< HEAD
             cleanup:
+=======
+cleanup:
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
                 if (encoded_url)
                 {
@@ -1179,7 +1211,11 @@ unsigned int fetch_file(const char *url,
                 curl_url_cleanup(url_handle);
                 url_handle = NULL;
             }
+<<<<<<< HEAD
             else log_errorf("curl_url failure\n");
+=======
+            else log_printf("curl_url failure\n");
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
             curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, fetch_write_func);
             curl_easy_setopt(handle, CURLOPT_WRITEDATA,     fi);

@@ -30,4 +30,8 @@ else
         shot)   tr -d '\r' < "$set_file" | sed -n '4p' ;;
         levels) tr -d '\r' < "$set_file" | sed -n '6,${ /^$/!p; }' ;;
     esac
+<<<<<<< HEAD
 fi
+=======
+fi
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a

@@ -43,7 +43,11 @@ print_msg() {
 
 for i in $(cat "$SETS"); do
     i="$DATA/$i"
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
     for field in name desc; do
         val=$(sh scripts/set-info.sh "$i" "$field")
         if [ -n "$val" ]; then

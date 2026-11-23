@@ -730,6 +730,7 @@ static int conf_account_gui(void)
 
         if (mainmenu_conf && !game_server_state() && !demo_state())
         {
+<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__EMSCRIPTEN__)
@@ -740,6 +741,13 @@ static int conf_account_gui(void)
             else
                 gui_state(id, _("Sign in to Pennyball + Neverball WGCL"),
                               GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
+=======
+            gui_label(id, "Neverball " VERSION, GUI_TNY, gui_wht, gui_wht);
+            gui_multi(id, _(
+                "Copyright © 2026 Neverball authors\n"
+                "Neverball is free software available under the terms of GPL v2 or later."
+            ), GUI_TNY, gui_wht, gui_wht);
+>>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
             gui_space(id);
 #endif

@@ -283,8 +283,5 @@ unsigned int fetch_file(const char *url,
 
     return fetch_id;
 }
-<<<<<<< HEAD
 
 #endif
-=======
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a

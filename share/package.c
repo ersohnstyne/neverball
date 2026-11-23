@@ -1217,8 +1217,5 @@ unsigned int package_fetch(int pi, struct fetch_callback callback, int category)
 
     return fetch_id;
 }
-<<<<<<< HEAD
 
 /*---------------------------------------------------------------------------*/
-=======
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a

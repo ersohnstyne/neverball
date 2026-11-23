@@ -179,7 +179,7 @@ static CURL *account_wgcl_curl_prepare_get(const char *url, void *out_data)
         return 0;
     }
 
-    CURLU *url_handle;
+    CURLU *url_handle = NULL;
     if ((url_handle = curl_url()))
     {
         char *encoded_url = NULL;
@@ -284,7 +284,7 @@ static CURL *account_wgcl_curl_prepare_post(const char *url, const char *in_json
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Content-Type: application/json");
 
-    CURLU *url_handle;
+    CURLU *url_handle = NULL;
     if ((url_handle = curl_url()))
     {
         char *encoded_url = NULL;

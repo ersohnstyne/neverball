@@ -165,7 +165,7 @@ void currency_init(void)
 
     if ((currency_handle = curl_easy_init()))
     {
-        CURLU *url_handle;
+        CURLU *url_handle = NULL;
         recv_in_data.prepared = 0;
 
         // Do a little song and dance to get a URL-encoded URL.

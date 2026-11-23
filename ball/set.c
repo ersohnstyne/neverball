@@ -566,151 +566,10 @@ static void set_load_hs(void)
 
 /*---------------------------------------------------------------------------*/
 
-<<<<<<< HEAD
 int set_cmp_available_packages(const void *A, const void *B)
 {
     const struct package *a = (const struct package *) A;
     const struct package *b = (const struct package *) B;
-=======
-static void set_free(struct set *s);
-
-static int set_load_v1(struct set *s, fs_file fin)
-{
-    char *scores, *level_name;
-
-    if (read_line(&s->name, fin) &&
-        read_line(&s->desc, fin) &&
-        read_line(&s->id,   fin) &&
-        read_line(&s->shot, fin) &&
-        read_line(&scores,  fin))
-    {
-        sscanf(scores, "%d %d %d %d %d %d",
-               &s->time_score.timer[RANK_HARD],
-               &s->time_score.timer[RANK_MEDM],
-               &s->time_score.timer[RANK_EASY],
-               &s->coin_score.coins[RANK_HARD],
-               &s->coin_score.coins[RANK_MEDM],
-               &s->coin_score.coins[RANK_EASY]);
-
-        free(scores);
-
-        while (s->count < MAXLVL && read_line(&level_name, fin))
-        {
-            strip_spaces(level_name);
-
-            if (*level_name)
-            {
-                s->level_name_v[s->count] = level_name;
-                s->count++;
-            }
-            else
-            {
-                free(level_name);
-                level_name = NULL;
-            }
-        }
-
-        return 1;
-    }
-
-    return 0;
-}
-
-static int set_load_v2(struct set *s, fs_file fin)
-{
-    char buf[512];
-
-    while (fs_gets(buf, sizeof (buf), fin))
-    {
-        int i = 0, j = 0, k = 0, n = 0;
-
-        strip_spaces(buf);
-
-        if (sscanf(buf, "name %n", &n) >= 0 && n > 0)
-        {
-            if (s->name)
-                free(s->name);
-
-            s->name = dupe_string(buf + n);
-        }
-        else if (sscanf(buf, "desc %n", &n) >= 0 && n > 0)
-        {
-            if (s->desc)
-                free(s->desc);
-
-            s->desc = dupe_string(buf + n);
-        }
-        else if (sscanf(buf, "id %n", &n) >= 0 && n > 0)
-        {
-            if (s->id)
-                free(s->id);
-
-            s->id = dupe_string(buf + n);
-        }
-        else if (sscanf(buf, "shot %n", &n) >= 0 && n > 0)
-        {
-            if (s->shot)
-                free(s->shot);
-
-            s->shot = dupe_string(buf + n);
-        }
-        else if ((n = sscanf(buf, "time_hs %d %d %d", &i, &j, &k)) >= 1)
-        {
-            s->time_score.timer[RANK_HARD] = i;
-
-            if (n > 1)
-                s->time_score.timer[RANK_MEDM] = j;
-    
-            if (n > 2)
-                s->time_score.timer[RANK_EASY] = k;
-        }
-        else if ((n = sscanf(buf, "coin_hs %d %d %d", &i, &j, &k)) >= 1)
-        {
-            s->coin_score.coins[RANK_HARD] = i;
-
-            if (n > 1)
-                s->coin_score.coins[RANK_MEDM] = j;
-
-            if (n > 2)
-                s->coin_score.coins[RANK_EASY] = k;
-        }
-        else if (sscanf(buf, "level %n", &n) >= 0 && n > 0)
-        {
-            if (s->count < MAXLVL)
-            {
-                s->level_name_v[s->count] = dupe_string(buf + n);
-                s->count++;
-            }
-            else
-                log_printf("%s has too many levels\n", s->file);
-        }
-    }
-
-    return (s->name && s->count > 0);
-}
-
-static const char *guess_set_id(const char *path)
-{
-    const char *base = base_name_sans(path, ".txt");
-
-    if (!base) {
-        return "IDNOTFOUND";
-    }
-
-    if (str_starts_with(base, "set-"))
-        base += 4;
-    
-    if (!*base)
-        return "IDNOTFOUND";
-
-    return base;
-}
-
-static int set_load(struct set *s, const char *filename)
-{
-    fs_file fin;
-    char buf[16];
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
     const int a_is_set = strcmp(a->type, "set") == 0;
     const int b_is_set = strcmp(b->type, "set") == 0;
@@ -811,7 +670,6 @@ static int set_load_v1(struct set *s, fs_file fin)
 {
     char *scores, *level_name;
 
-<<<<<<< HEAD
     if (read_line(&s->name, fin) &&
         read_line(&s->desc, fin) &&
         read_line(&s->id, fin) &&
@@ -848,15 +706,9 @@ static int set_load_v1(struct set *s, fs_file fin)
                , &s->star, &s->balls_needed
 #endif
         );
-=======
-    if (fs_gets(buf, sizeof (buf), fin))
-    {
-        strip_spaces(buf);
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
-        fs_seek(fin, 0, SEEK_SET);
+        free(scores);
 
-<<<<<<< HEAD
         for (int i = 0; i < 3; i++)
         {
             if (tmp_hs_timer[i] != 0) s->time_score.timer[i] = tmp_hs_timer[i];
@@ -864,28 +716,24 @@ static int set_load_v1(struct set *s, fs_file fin)
         }
 
         while (s->count < MAXLVL_SET && read_line(&level_name, fin))
-=======
-        if (strcmp(buf, "version 2") == 0)
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
         {
-            if (!set_load_v2(s, fin))
-                goto fail;
+            strip_spaces(level_name);
+
+            if (*level_name)
+            {
+                s->level_name_v[s->count] = level_name;
+                s->count++;
+            }
+            else
+            {
+                free(level_name);
+                level_name = NULL;
+            }
         }
-        else
-        {
-            if (!set_load_v1(s, fin))
-                goto fail;
-        }
-<<<<<<< HEAD
 
         return 1;
-=======
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
     }
-    else
-        goto fail;
 
-<<<<<<< HEAD
     return 0;
 }
 
@@ -1151,24 +999,203 @@ static int set_load(struct set *s, const char *filename)
 
     s->user_scores  = concat_string("Scores/", s->id, ".txt", NULL);
     s->cheat_scores = concat_string("Scores/", s->id, "-cheat.txt", NULL);
-=======
-    if (!s->id)
-        s->id = dupe_string(guess_set_id(s->file));
-    
-    if (!s->desc)
-        s->desc = dupe_string("");
-
-    s->user_scores = concat_string("Scores/", s->id, ".txt", NULL);
-    s->cheat_scores = concat_string("Scores/", s->id, "-cheat.txt", NULL);
 
     fs_close(fin);
     fin = NULL;
 
     return 1;
 
-fail:
-    log_printf("Failure to load set file %s\n", filename);
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
+set_load_fail:
+    log_errorf("Failure to load set file: %s / %s\n",
+               filename, fs_error());
+
+    fs_close(fin);
+    fin = NULL;
+    set_free(s);
+
+    return 0;
+}
+
+static const char *guess_set_id(const char *path)
+{
+    const char *base = base_name_sans(path, ".txt");
+
+    if (!base) return "IDNOTFOUND";
+
+    if (str_starts_with(base, "set-"))
+        base += 4;
+
+    if (!*base) return "IDNOTFOUND";
+
+    return base;
+}
+
+static int set_load(struct set *s, const char *filename)
+{
+    fs_file  fin;
+    char     buf[16];
+    int      curr_date_month = 0;
+
+    if (!s || !filename || !*filename)
+        return 0;
+
+    time_t     curr_date = time(NULL);
+    struct tm *curr_date_localtime = localtime(&curr_date);
+
+    if (curr_date_localtime)
+        curr_date_month = curr_date_localtime->tm_mon + 1;
+
+    if (!filename)
+        return 0;
+
+    /* Skip "Misc" when not in dev mode. */
+
+    if ((strcmp(filename, SET_MISC) == 0)
+#if NB_STEAM_API==0 && NB_EOS_SDK==0 && DEVEL_BUILD && !defined(NDEBUG)
+        && !config_cheat()
+#endif
+        ) return 0;
+
+    int set_has_event = strcmp(filename, "set-valentine.txt") == 0 ||
+                        strcmp(filename, "set-freeland.txt")  == 0 ||
+                        strcmp(filename, "set-halloween.txt") == 0 ||
+                        strcmp(filename, "set-christmas.txt") == 0;
+
+#if NB_HAVE_PB_BOTH==1
+    if (!set_has_event)
+    {
+#ifdef CONFIG_INCLUDES_ACCOUNT
+        /* Add more level sets when products bought. */
+
+        if ((strcmp(filename, "set-easy.txt") != 0 &&
+            strcmp(filename, "set-medium.txt") != 0 &&
+            strcmp(filename, "set-hard.txt") != 0 &&
+            strcmp(filename, "set-mym.txt") != 0 &&
+            strcmp(filename, "set-mym2.txt") != 0 &&
+            strcmp(filename, "set-fwp.txt") != 0 &&
+            strcmp(filename, "set-tones.txt") != 0 &&
+            strcmp(filename, SET_MISC) != 0) &&
+            (!account_get_d(ACCOUNT_PRODUCT_LEVELS) &&
+             !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET)))
+            return 0;
+#else
+        if ((strcmp(filename, "set-easy.txt") != 0 &&
+            strcmp(filename, "set-medium.txt") != 0 &&
+            strcmp(filename, "set-hard.txt") != 0 &&
+            strcmp(filename, "set-mym.txt") != 0 &&
+            strcmp(filename, "set-mym2.txt") != 0 &&
+            strcmp(filename, "set-fwp.txt") != 0 &&
+            strcmp(filename, "set-tones.txt") != 0 &&
+            strcmp(filename, SET_MISC) != 0) &&
+            !server_policy_get_d(SERVER_POLICY_LEVELSET_ENABLED_CUSTOMSET))
+            return 0;
+#endif
+    }
+
+    /* Limited offered game dependencies or region only */
+
+    if (set_check_id(filename, "anime")    &&
+        !package_superwaifu_game_installed() &&
+        !config_cheat())
+    {
+        if (server_policy_get_d(SERVER_POLICY_EDITION) < 3 &&
+            !glext_get_hatsune_miku())
+            return 0;
+
+        if (config_get_s(CONFIG_LANGUAGE) &&
+            (strcmp(config_get_s(CONFIG_LANGUAGE), "ja") != 0 &&
+             strcmp(config_get_s(CONFIG_LANGUAGE), "jp") != 0) &&
+            !glext_get_hatsune_miku())
+        {
+#ifdef __EMSCRIPTEN__
+            if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+#endif
+                return 0;
+        }
+#ifdef __EMSCRIPTEN__
+        else if (EM_ASM_INT({ return Pennyball.gamecore_geolocation_checkisjapan() || navigator.language.startsWith("ja") || navigator.language.startsWith("jp") ? 0 : 1; }))
+            return 0;
+#endif
+    }
+
+    /* Limited special offers only */
+
+    if (set_check_id(filename, "valentine") &&
+        curr_date_month != 2 &&
+        !config_cheat()){
+        log_errorf("Valentine is not available outside month February. (Current month: %d)\n", curr_date_month);
+        return 0;
+    }
+
+    if (set_check_id(filename, "freeland") &&
+        curr_date_month != 5 &&
+        !config_cheat()){
+        log_errorf("Freeland is not available outside month May. (Current month: %d)\n", curr_date_month);
+        return 0;
+    }
+
+    if (set_check_id(filename, "halloween") &&
+        curr_date_month != 10 &&
+        !config_cheat()){
+        log_errorf("Halloween is not available outside month October. (Current month: %d)\n", curr_date_month);
+        return 0;
+    }
+
+    if (set_check_id(filename, "christmas") &&
+        curr_date_month != 12 &&
+        !config_cheat()){
+        log_errorf("Christmas is not available outside month December. (Current month: %d)\n", curr_date_month);
+        return 0;
+    }
+#endif
+
+    if (!(fin = fs_open_read(filename)))
+    {
+        log_errorf("Failure to load set file: %s / %s\n",
+                   filename, fs_error());
+        return 0;
+    }
+
+    memset(s, 0, sizeof (struct set));
+
+    /* Set some same values in case the scores are missing. */
+
+    score_init_hs(&s->time_score, 359999, 0);
+    score_init_hs(&s->coin_score, 359999, 0);
+
+#if NB_STEAM_API==1
+    score_steam_init_hs(s->id, 1);
+#endif
+
+    SAFECPY(s->file, filename);
+
+    if (fs_gets(buf, sizeof (buf), fin))
+    {
+        strip_spaces(buf);
+
+        fs_seek(fin, 0, SEEK_SET);
+
+        if (strcmp(buf, "version 2") == 0)
+        {
+            if (!set_load_v2(s, fin))
+                goto set_load_fail;
+        }
+        else
+        {
+            if (!set_load_v1(s, fin))
+                goto set_load_fail;
+        }
+    }
+    else goto set_load_fail;
+
+    if (!s->id)
+        s->id = dupe_string(guess_set_id(s->file));
+
+    if (!s->desc)
+        s->desc = dupe_string("");
+
+    s->user_scores  = concat_string("Scores/", s->id, ".txt", NULL);
+    s->cheat_scores = concat_string("Scores/", s->id, "-cheat.txt", NULL);
 
     fs_close(fin);
     fin = NULL;

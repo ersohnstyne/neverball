@@ -347,7 +347,6 @@ static Array items;
 
 static int play_id = 0;
 static int motd_id = 0;
-<<<<<<< HEAD
 
 #ifndef __EMSCRIPTEN__
 static int support_exit = 1;
@@ -380,8 +379,6 @@ static const char editions_developer[][33] = {
     "%s Server Edition / %s",
     "%s Datacenter Edition / %s"
 };
-=======
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
 enum
 {
@@ -838,11 +835,7 @@ static const char *pick_motd_text(void)
         N_("Fallout 995,996,997,998,999, ***NUMERIC OVERFLOW***"),
         N_("Not compatible with Minecraft"),
         N_("Super Not-So-Empty Ball"),
-<<<<<<< HEAD
         N_("The monkeys ran away."),
-=======
-        N_("The monkeys ran away"),
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
     };
 
     static int idx = -1;
@@ -861,7 +854,6 @@ static int show_motd_text(void)
 static const float MOTD_DELAY = 2.4f;
 static const float MOTD_TIME = 2.4f;
 
-<<<<<<< HEAD
 static int title_gui_wgcl_version_enabled;
 
 int title_check_wgcl(void)
@@ -935,8 +927,6 @@ static int title_check_shopavailable(void)
 }
 #endif
 
-=======
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 static int title_gui(void)
 {
     int root_id, id, jd;
@@ -1199,7 +1189,6 @@ static int title_gui(void)
 #endif
             }
 
-<<<<<<< HEAD
 #if ENABLE_RFD==1
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(dev_env, sizeof (dev_env), _("RFD Edition / %s"),
@@ -1352,29 +1341,6 @@ static int title_gui(void)
         }
 
         if (!title_lockscreen)
-=======
-#if ENABLE_VERSION
-        if ((id = gui_label(root_id, "Neverball " VERSION, GUI_TNY, gui_wht2, gui_wht2)))
-        {
-            gui_clr_rect(id);
-            gui_set_slide(id, GUI_N, 0.85f, 0.4f, 0);
-            gui_layout(id, +1, +1);
-        }
-#endif
-
-        if (show_motd_text())
-        {
-            if ((motd_id = gui_label(root_id, pick_motd_text(), GUI_TNY, gui_yel2, gui_grn2)))
-            {
-                gui_set_fill(motd_id);
-                gui_clr_rect(motd_id);
-                gui_set_slide(motd_id, GUI_S, MOTD_DELAY, MOTD_TIME, 0);
-                gui_layout(motd_id, 0, -1);
-            }
-        }
-
-        if (config_online())
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
         {
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \

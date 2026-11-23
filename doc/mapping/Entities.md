@@ -10,7 +10,6 @@ While some of Neverball entities use entity names derived from Quake, this is on
 
 ## info_player_start
 
-<<<<<<< HEAD
 The *info_player_start* entity defines a ball. Neverputt requires an *info_player_start* entity for each player slot, plus one. This doesn't replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * [Neverball entity design specifications](https://pennyball.stynegame.de/docs/internal/makeandplay/entitiesdesignspecifications)
 
@@ -41,23 +40,6 @@ The *info_player_deathmatch* entity defines a goal. This doesn't replace your Ra
 Key     | Description
 --------|------------
 radius  | Goal radius in meters. The default radius is "0.75". Values can't be negative. In Neverputt, this is usually set to "0.1375".
-=======
-The *info_player_start* entity defines a ball. While multiple balls may be defined, Neverball uses only the first of them. Neverputt requires an *info_player_start* entity for each player slot, plus one.
-
-Key       | Description
-----------|------------
-radius    | The ball radius in meters. The default radius is "0.25". In Neverputt, this should be set to "0.0625".
-
-Note that the "angle" attribute does NOT determine the initial facing direction. The player begins each level looking down the Y axis. If your level begins wrong, you must rotate your map.
-
-## info_player_deathmatch
-
-The *info_player_deathmatch* entity defines a goal.
-
-Key    | Description
--------|------------
-radius | Goal radius in meters. The default radius is "0.75". In Neverputt, this is usually set to "0.1375".
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 target  | Refers to the first *path_corner* of the path along which the goal will travel.
 target2 | Refers to a second path that controls the orientation of the goal. This is useful when you want to control the position and orientation independently of each other.
 
@@ -85,12 +67,8 @@ target2 | Refers to a second path that controls the orientation of the item. Thi
 
 ## item_health_small
 
-<<<<<<< HEAD
 The *item_health_small* entity defines a "shrink" item. This doesn't replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * [Neverball entity design specifications](https://pennyball.stynegame.de/docs/internal/makeandplay/entitiesdesignspecifications)
-=======
-The *item_health_small* entity defines a "shrink" item.
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
 Key     | Description
 --------|------------
@@ -99,12 +77,8 @@ target2 | Refers to a second path that controls the orientation of the item. Thi
 
 ## item_health_large
 
-<<<<<<< HEAD
 The *item_health_large* entity defines a "grow" item. This doesn't replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * [Neverball entity design specifications](https://pennyball.stynegame.de/docs/internal/makeandplay/entitiesdesignspecifications)
-=======
-The *item_health_large* entity defines a "grow" item.
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
 Key     | Description
 --------|------------
@@ -113,12 +87,8 @@ target2 | Refers to a second path that controls the orientation of the item. Thi
 
 ## path_corner
 
-<<<<<<< HEAD
 The *path_corner* entity defines a path segment of a moving object. This doesn't replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * [Neverball entity design specifications](https://pennyball.stynegame.de/docs/internal/makeandplay/entitiesdesignspecifications)
-=======
-The *path_corner* entity defines a path segment of a moving object.
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
 Key        | Description
 -----------|------------
@@ -136,12 +106,8 @@ Note that the "speed" attribute has a different meaning to Neverball than it doe
 
 ## func_train
 
-<<<<<<< HEAD
 The *func_train* entity defines the geometry of a moving object. This doesn't replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * [Neverball entity design specifications](https://pennyball.stynegame.de/docs/internal/makeandplay/entitiesdesignspecifications)
-=======
-The *func_train* entity defines the geometry of a moving object. Think of it as a container or a grouping mechanism for lumps, rather than an object in-and-of itself.
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
 Key     | Description
 --------|------------
@@ -160,20 +126,12 @@ Note that *func_trains* are positioned differently in Neverball than in Quake. Q
 
 ## target_teleporter
 
-<<<<<<< HEAD
 The *target_teleporter* entity defines a teleporter. This doesn't replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * [Neverball entity design specifications](https://pennyball.stynegame.de/docs/internal/makeandplay/entitiesdesignspecifications)
 
 Key     | Description
 --------|------------
 radius  | Teleporter radius. The default is "0.5". Values can't be negative.
-=======
-The *target_teleporter* entity defines a teleporter.
-
-Key     | Description
---------|------------
-radius  | Teleporter radius. The default is "0.5".
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 target  | Refers to a *target_position* entity defining the destination of the teleporter.
 target2 | Refers to the first *path_corner* of the path along which the teleporter will travel.
 target3 | Refers to a second path that controls the orientation of the teleporter. This is useful when you want to control the position and orientation independently of each other.
@@ -182,20 +140,12 @@ Unlike the goal entity, the center of the editor's entity box defines the origin
 
 ## info_camp
 
-<<<<<<< HEAD
 The *info_camp* entity defines a switch. This doesn't replace your Radiant's entities, but should be a higher-fidelity version that follows these design guidelines: 
 * [Neverball entity design specifications](https://pennyball.stynegame.de/docs/internal/makeandplay/entitiesdesignspecifications)
 
 Key       | Description
 ----------|------------
 radius    | Switch radius. The default is "0.5". Values can't be negative.
-=======
-The *info_camp* entity defines a switch. A switch's behavior is similar to a teleporter.
-
-Key       | Description
-----------|------------
-radius    | Switch radius. The default is "0.5".
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 target    | Refers to the *path_corner* that the switch controls.
 target2   | Refers to the first *path_corner* of the path along which the switch will travel.
 target3   | Refers to a second path that controls the orientation of the switch. This is useful when you want to control the position and orientation independently of each other.
@@ -231,13 +181,8 @@ The *misc_model* entity imports an arbitrary polygonal model into a level. It ma
 
 Key     | Description
 --------|------------
-<<<<<<< HEAD
 model   | Filename of the model relative to the data directory. The model must be in OBJ format authored in TrenchBroom map coordinates (64 units = 1 meter).
 target  | Path that the model will travel along, starting from the linked *path_corner*. Both position and rotation are controlled by this path.
-=======
-model   | Filename of the model relative to the data directory.
-target  | Refers to the first *path_corner* of the path along which the model will travel.
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 target2 | Refers to a second path that controls the orientation of the model. This is useful when you want to control the position and orientation independently of each other.
 
 The model must be in OBJ format. It must have triangular tesselation. All vertices must have normals and texture coordinates. A 3D modeller such as Blender or Wings3D may be used to create and export OBJ models.
@@ -253,7 +198,6 @@ The *worldspawn* entity defines most static level geometry and fully defines a l
 Key     | Description
 --------|------------
 message | Intro text that appears as a level begins. A "\" (backslash) character starts a new line. Limited space is available. Wrapping text within the intro text box is often a process of trial and error.
-<<<<<<< HEAD
 back    | Path to the background file. In Switchball this field is required.
 grad    | Path to the background gradient image. Also valid in Neverputt. In Switchball this field is required.
 song    | Path to the background music file. Also valid in Neverputt. In Switchball this field is required.
@@ -265,19 +209,6 @@ goal_hs | Default values for Fast Unlock highscore, in order: Hard, Medium, and 
 coin_hs | Default values for Most Coins highscore, in order: Hard, Medium, and Easy (optional, defaults to required coins). In Switchball, three fields are required.
 version | Level version. It is specified as "X.Y", where X is incremented every time the level is changed in a way that breaks existing replays, and Y is incremented for all other changes.
 author  | Author's name. This level must sign prior to the official classic campaign.
-=======
-back    | Path to the background file.
-grad    | Path to the background gradient image. Also valid in Neverputt.
-song    | Path to the background music file. Also valid in Neverputt.
-shot    | Path to the level shot file.
-goal    | Number of coins required to unlock the goal.
-time    | Level time limit in hundredths of a second.
-time_hs | Default values for Best Times highscore, in order: Hard, Medium, and Easy (optional, defaults to the time limit).
-goal_hs | Default values for Fast Unlock highscore, in order: Hard, Medium, and Easy (optional, defaults to the time limit).
-coin_hs | Default values for Most Coins highscore, in order: Hard, Medium, and Easy (optional, defaults to required coins).
-version | Level version. It is specified as "X.Y", where X is incremented every time the level is changed in a way that breaks existing replays, and Y is incremented for all other changes.
-author  | Author's name
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 bonus   | Marks the level as a bonus level.
 idle    | Neverputt: Time to wait after the ball has stopped before starting the next shot. This is useful if you have moving objects that may hit the ball while the player is making the shot.
 par     | Neverputt: The number of strokes required to complete the hole.

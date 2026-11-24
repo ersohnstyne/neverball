@@ -94,7 +94,10 @@ extern int CONFIG_FPS;
 extern int CONFIG_MASTER_VOLUME;
 extern int CONFIG_SOUND_VOLUME;
 extern int CONFIG_MUSIC_VOLUME;
+<<<<<<< HEAD
 extern int CONFIG_NARRATOR_VOLUME;
+=======
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
 extern int CONFIG_TRANSITIONS;
 extern int CONFIG_JOYSTICK;
 extern int CONFIG_JOYSTICK_AUTOCALIB_AXIS;

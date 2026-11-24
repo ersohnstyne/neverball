@@ -3184,7 +3184,11 @@ void gui_timer(int id, float dt)
             alpha = (widget[id].slide_time - widget[id].slide_delay) / widget[id].slide_dur;
             alpha = CLAMP(0.0f, alpha, 1.0f);
 
+<<<<<<< HEAD
             if (!config_get_d(CONFIG_SCREEN_ANIMATIONS) || !config_get_d(CONFIG_TRANSITIONS))
+=======
+            if (!config_get_d(CONFIG_TRANSITIONS))
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
                 alpha = 1.0f;
 
             at_end = (alpha >= 1.0f);

@@ -68,7 +68,11 @@ jobs:
             "$TAG"
             "artifacts/${TAG}.tar.gz"
             --repo "$GITHUB_REPOSITORY"
+<<<<<<< HEAD
             --title "neverball ${TAG#neverball-}"
+=======
+            --title "Neverball ${TAG#neverball-}"
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
             --draft
           )
           if [ -f doc/release-notes.md ]; then
@@ -97,4 +101,8 @@ jobs:
       contents: write
     uses: ./.github/workflows/windows.yml
     with:
+<<<<<<< HEAD
       release_tag: ${{ needs.prepare.outputs.tag }}
+=======
+      release_tag: ${{ needs.prepare.outputs.tag }}
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b

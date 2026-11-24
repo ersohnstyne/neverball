@@ -217,6 +217,7 @@ int conf_state(int id, const char *label, const char *text, int token)
     return rd;
 }
 
+<<<<<<< HEAD
 int conf_start(int id, const char *label, const char *text, int token)
 {
     int jd, kd, rd = 0;
@@ -287,6 +288,12 @@ int conf_toggle(int id, const char *label, int token, int value,
                 const char *text1, int value1,
                 const char *text0, int value0)
 {
+=======
+int conf_toggle(int id, const char *label, int token, int value,
+                 const char *text1, int value1,
+                 const char *text0, int value0)
+{
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
     int jd = 0, kd = 0;
 
     if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
@@ -316,7 +323,11 @@ void conf_set_toggle(int id, int value)
         gui_set_hilite(btn1, 0);
         gui_pulse(btn0, 1.2f);
     }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
     if (value == 1)
     {
         gui_set_hilite(btn0, 0);
@@ -982,13 +993,19 @@ enum
     VIDEO_RESOLUTION,
     VIDEO_TEXTURES,
     VIDEO_HMD,
+<<<<<<< HEAD
     VIDEO_AUTO_CONFIGURE,
     VIDEO_ADVANCED
+=======
+    VIDEO_MULTISAMPLE,
+    VIDEO_TRANSITIONS,
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
 };
 
 static struct state *video_back;
 
 static int transitions_id = 0;
+<<<<<<< HEAD
 static int fullscreen_id  = 0;
 static int textures_id    = 0;
 
@@ -998,6 +1015,8 @@ int goto_video(struct state *returnable)
 
     return goto_state(&st_video);
 }
+=======
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
 
 static int video_action(int tok, int val)
 {
@@ -1107,6 +1126,7 @@ static int video_action(int tok, int val)
             r = video_mode(f, w, h);
 #endif
 
+<<<<<<< HEAD
             if (r) r = exit_state(&st_video);
             else
             {
@@ -1141,6 +1161,19 @@ static int video_action(int tok, int val)
 
         case VIDEO_ADVANCED:
             return goto_state(&st_video_advanced);
+=======
+    case VIDEO_MULTISAMPLE:
+        goto_state(&st_null);
+        config_set_d(CONFIG_MULTISAMPLE, val);
+        r = video_mode(f, w, h);
+        goto_state(&st_video);
+        break;
+
+    case VIDEO_TRANSITIONS:
+        config_tgl_d(CONFIG_TRANSITIONS);
+        conf_set_toggle(transitions_id, (config_get_d(CONFIG_TRANSITIONS) == 1));
+        break;
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
     }
 
     return r;
@@ -1863,6 +1896,7 @@ static int video_advanced_gui(void)
                                              config_get_d(CONFIG_SHADOW),     _("On"), 1, _("Off"), 0);
 #endif
 
+<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__SWITCH__)
@@ -1987,6 +2021,16 @@ static int video_advanced_gui(void)
         advanced_transitions_id = conf_toggle(id, _("Screen Animations / UI Transitions"), VIDEO_ADVANCED_TRANSITIONS,
                                                   config_get_d(CONFIG_SCREEN_ANIMATIONS) != 0 && config_get_d(CONFIG_TRANSITIONS) != 0, _("On"), 1, _("Off"), 0);
 #endif
+=======
+        gui_space(id);
+
+        transitions_id = conf_toggle(
+            id, _("Transitions"),
+            VIDEO_TRANSITIONS, config_get_d(CONFIG_TRANSITIONS),
+            _("On"), 1, _("Off"), 0
+        );
+        
+>>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
         gui_layout(id, 0, 0);
     }
 

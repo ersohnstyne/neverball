@@ -140,10 +140,7 @@ int CONFIG_FPS;
 int CONFIG_MASTER_VOLUME;
 int CONFIG_SOUND_VOLUME;
 int CONFIG_MUSIC_VOLUME;
-<<<<<<< HEAD
 int CONFIG_NARRATOR_VOLUME;
-=======
->>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
 int CONFIG_TRANSITIONS;
 int CONFIG_JOYSTICK;
 int CONFIG_JOYSTICK_AUTOCALIB_AXIS;
@@ -340,7 +337,6 @@ static struct
     { &CONFIG_MOUSE_CAMERA_R,      "mouse_camera_r",      SDL_BUTTON_RIGHT },
     { &CONFIG_MOUSE_CANCEL_MENU,   "mouse_cancel_menu",   SDL_BUTTON_X1 },
 
-<<<<<<< HEAD
     { &CONFIG_NICE,             "nice",            0 },
     { &CONFIG_FPS,              "fps",             0 },
     { &CONFIG_MASTER_VOLUME,    "master_volume",   10 },
@@ -348,13 +344,6 @@ static struct
     { &CONFIG_MUSIC_VOLUME,     "music_volume",    5 },  /* Switchball default config value: 4; NB default config value: 6 */
     { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 },
     { &CONFIG_TRANSITIONS,      "transitions", 1 },
-=======
-    { &CONFIG_NICE,         "nice",         0 },
-    { &CONFIG_FPS,          "fps",          0 },
-    { &CONFIG_SOUND_VOLUME, "sound_volume", 10 },
-    { &CONFIG_MUSIC_VOLUME, "music_volume", 6 },
-    { &CONFIG_TRANSITIONS,  "transitions", 1 },
->>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b
 
     { &CONFIG_JOYSTICK,                "joystick",                1 },
     { &CONFIG_JOYSTICK_AUTOCALIB_AXIS, "joystick_autocalib_axis", 1 },

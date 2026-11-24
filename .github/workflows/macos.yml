@@ -53,8 +53,4 @@ jobs:
         run: |
           gh release upload "${{ inputs.release_tag }}" build/macos/neverball-*.dmg \
             --repo "$GITHUB_REPOSITORY" \
-<<<<<<< HEAD
             --clobber
-=======
-            --clobber
->>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b

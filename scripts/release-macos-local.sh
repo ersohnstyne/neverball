@@ -141,8 +141,4 @@ fi
 echo "==> Uploading $(basename "$DMG_PATH") to $REPO release $TAG..."
 gh release upload "$TAG" "$DMG_PATH" --repo "$REPO" --clobber
 
-<<<<<<< HEAD
 echo "==> Done."
-=======
-echo "==> Done."
->>>>>>> 25e4f0db38ce753a4b969ee495900c58a161da5b

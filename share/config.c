@@ -126,7 +126,6 @@ int CONFIG_MOUSE_SENSE;
 int CONFIG_MOUSE_RESPONSE;
 int CONFIG_MOUSE_INVERT;
 int CONFIG_VSYNC;
-int CONFIG_TRANSITIONS;
 int CONFIG_HMD;
 int CONFIG_HIGHDPI;
 int CONFIG_MOUSE_CAMERA_1;
@@ -142,6 +141,7 @@ int CONFIG_MASTER_VOLUME;
 int CONFIG_SOUND_VOLUME;
 int CONFIG_MUSIC_VOLUME;
 int CONFIG_NARRATOR_VOLUME;
+int CONFIG_TRANSITIONS;
 int CONFIG_JOYSTICK;
 int CONFIG_JOYSTICK_AUTOCALIB_AXIS;
 int CONFIG_JOYSTICK_RESPONSE;
@@ -326,7 +326,6 @@ static struct
     { &CONFIG_MOUSE_RESPONSE, "mouse_response", 50 },
     { &CONFIG_MOUSE_INVERT,   "mouse_invert", 0 },
     { &CONFIG_VSYNC,          "vsync",        1 },
-    { &CONFIG_TRANSITIONS,    "uitransitions", 1 },
     { &CONFIG_HMD,            "hmd",          0 },
     { &CONFIG_HIGHDPI,        "highdpi",      1 },
 
@@ -344,6 +343,7 @@ static struct
     { &CONFIG_SOUND_VOLUME,     "sound_volume",    10 },
     { &CONFIG_MUSIC_VOLUME,     "music_volume",    5 },  /* Switchball default config value: 4; NB default config value: 6 */
     { &CONFIG_NARRATOR_VOLUME,  "narrator_volume", 10 },
+    { &CONFIG_TRANSITIONS,      "transitions", 1 },
 
     { &CONFIG_JOYSTICK,                "joystick",                1 },
     { &CONFIG_JOYSTICK_AUTOCALIB_AXIS, "joystick_autocalib_axis", 1 },

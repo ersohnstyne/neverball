@@ -36,14 +36,16 @@ int  conf_state (int id, const char *label, const char *text, int token);
 int  conf_start (int id, const char *label, const char *text, int token);
 int  conf_state_icon(int id, const char *label, const char *icon, const char *text, int token);
 int  conf_start_icon(int id, const char *label, const char *icon, const char *text, int token);
-void conf_toggle_simple(int id, const char *label, int token, int value,
+int  conf_toggle_simple(int id, const char *label, int token, int value,
                         int value1, int value0);
-void conf_toggle(int id, const char *label, int token, int value,
+int  conf_toggle(int id, const char *label, int token, int value,
                  const char *text1, int value1,
                  const char *text0, int value0);
 void conf_header(int id, const char *text, int token);
 void conf_select(int id, const char *text, int token, int value,
                  const struct conf_option *opts, int num);
+
+void conf_set_toggle(int id, int value);
 
 /*---------------------------------------------------------------------------*/
 

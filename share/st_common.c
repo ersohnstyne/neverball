@@ -256,10 +256,10 @@ int conf_start_icon(int id, const char *label, const char *icon, const char *tex
     return rd;
 }
 
-void conf_toggle_simple(int id, const char *label, int token, int value,
-                        int value1, int value0)
+int conf_toggle_simple(int id, const char *label, int token, int value,
+                       int value1, int value0)
 {
-    int jd, kd;
+    int jd = 0, kd = 0;
 
     if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
     {
@@ -279,13 +279,15 @@ void conf_toggle_simple(int id, const char *label, int token, int value,
 
         gui_label(jd, label, GUI_SML, 0, 0);
     }
+
+    return kd;
 }
 
-void conf_toggle(int id, const char *label, int token, int value,
-                 const char *text1, int value1,
-                 const char *text0, int value0)
+int conf_toggle(int id, const char *label, int token, int value,
+                const char *text1, int value1,
+                const char *text0, int value0)
 {
-    int jd, kd;
+    int jd = 0, kd = 0;
 
     if ((jd = gui_harray(id)) && (kd = gui_harray(jd)))
     {
@@ -299,11 +301,33 @@ void conf_toggle(int id, const char *label, int token, int value,
 
         gui_label(jd, label, GUI_SML, 0, 0);
     }
+
+    return kd;
+}
+
+void conf_set_toggle(int id, int value)
+{
+    int btn0 = gui_child(id, 0);
+    int btn1 = gui_child(id, 1);
+
+    if (value == 0)
+    {
+        gui_set_hilite(btn0, 1);
+        gui_set_hilite(btn1, 0);
+        gui_pulse(btn0, 1.2f);
+    }
+
+    if (value == 1)
+    {
+        gui_set_hilite(btn0, 0);
+        gui_set_hilite(btn1, 1);
+        gui_pulse(btn1, 1.2f);
+    }
 }
 
 void conf_header(int id, const char *text, int token)
 {
-    int jd, kd;
+    int jd = 0, kd = 0;
 
     if ((jd = gui_hstack(id)))
     {
@@ -964,6 +988,10 @@ enum
 
 static struct state *video_back;
 
+static int transitions_id = 0;
+static int fullscreen_id  = 0;
+static int textures_id    = 0;
+
 int goto_video(struct state *returnable)
 {
     video_back = returnable;
@@ -1002,7 +1030,12 @@ static int video_action(int tok, int val)
             config_set_d(CONFIG_TRANSITIONS,       val);
             config_save();
 
-            return goto_state(&st_video);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(transitions_id, config_get_d(CONFIG_SCREEN_ANIMATIONS) == 0 || config_get_d(CONFIG_TRANSITIONS) == 0);
+#else
+            conf_set_toggle(transitions_id, config_get_d(CONFIG_SCREEN_ANIMATIONS) != 0 && config_get_d(CONFIG_TRANSITIONS) != 0);
+#endif
+            break;
 
         case VIDEO_DISPLAY:
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -1019,17 +1052,20 @@ static int video_action(int tok, int val)
             if (oldF == val) return 1;
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             goto_state(&st_null);
-            r = video_fullscreen(val);
-            if (r) r = exit_state(&st_video);
+            if ((r = video_fullscreen(val)))
+            {
+#if NB_HAVE_PB_BOTH==1
+                conf_set_toggle(fullscreen_id, config_get_d(CONFIG_FULLSCREEN) == 0);
+#else
+                conf_set_toggle(fullscreen_id, config_get_d(CONFIG_FULLSCREEN) != 0);
+#endif
+                r = exit_state(&st_video);
+            }
+            else if ((r = video_fullscreen(val))) r = exit_state(&st_video);
             else
             {
-                r = video_fullscreen(oldF);
-                if (r) r = exit_state(&st_video);
-                else
-                {
-                    config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
-                    config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
-                }
+                config_set_d(CONFIG_GRAPHIC_RESTORE_ID, 0);
+                config_set_d(CONFIG_GRAPHIC_RESTORE_VAL1, val);
             }
 
             config_save();
@@ -1090,10 +1126,14 @@ static int video_action(int tok, int val)
 
         case VIDEO_TEXTURES:
             audio_play(val != 2 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
-            goto_state(&st_null);
             config_set_d(CONFIG_TEXTURES, val);
             config_save();
-            return exit_state(&st_video);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(textures_id, config_get_d(CONFIG_TEXTURES) == 1);
+#else
+            conf_set_toggle(textures_id, config_get_d(CONFIG_TEXTURES) != 1);
+#endif
+            break;
 
         case VIDEO_AUTO_CONFIGURE:
             perf_warning_autoconfig = 1;
@@ -1113,6 +1153,10 @@ static int video_gui(void)
 #else
     int id, autoconf_id = 0;
 #endif
+
+    transitions_id = 0;
+    fullscreen_id  = 0;
+    textures_id    = 0;
 
     if ((id = gui_vstack(0)))
     {
@@ -1159,11 +1203,11 @@ static int video_gui(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Screen animations / UI Transitions"), VIDEO_SCREENANIMATIONS,
-                               config_get_d(CONFIG_SCREEN_ANIMATIONS), 1, 0);
+        transitions_id = conf_toggle_simple(id, _("Screen animations / UI Transitions"), VIDEO_SCREENANIMATIONS,
+                                                config_get_d(CONFIG_SCREEN_ANIMATIONS) != 0 && config_get_d(CONFIG_TRANSITIONS) != 0, 1, 0);
 #else
-        conf_toggle(id, _("Screen animations / UI Transitions"), VIDEO_SCREENANIMATIONS,
-                        config_get_d(CONFIG_SCREEN_ANIMATIONS), _("On"), 1, _("Off"), 0);
+        transitions_id = conf_toggle(id, _("Screen animations / UI Transitions"), VIDEO_SCREENANIMATIONS,
+                                         config_get_d(CONFIG_SCREEN_ANIMATIONS) != 0 && config_get_d(CONFIG_TRANSITIONS) != 0, _("On"), 1, _("Off"), 0);
 #endif
 
 #if ENABLE_HMD
@@ -1232,19 +1276,19 @@ static int video_gui(void)
 #endif*/
 #else
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Fullscreen"), VIDEO_FULLSCREEN,
-                               config_get_d(CONFIG_FULLSCREEN), 1, 0);
+        fullscreen_id = conf_toggle_simple(id, _("Fullscreen"), VIDEO_FULLSCREEN,
+                                               config_get_d(CONFIG_FULLSCREEN), 1, 0);
 #else
-        conf_toggle(id, _("Fullscreen"), VIDEO_FULLSCREEN,
-                        config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
+        fullscreen_id = conf_toggle(id, _("Fullscreen"), VIDEO_FULLSCREEN,
+                                         config_get_d(CONFIG_FULLSCREEN), _("On"), 1, _("Off"), 0);
 #endif
 #endif
 
         gui_space(id);
 #endif
 
-        conf_toggle(id, _("Textures"), VIDEO_TEXTURES,
-                        config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
+        textures_id = conf_toggle(id, _("Textures"), VIDEO_TEXTURES,
+                                      config_get_d(CONFIG_TEXTURES), _("High"), 1, _("Low"), 2);
 
         gui_space(id);
 
@@ -1306,11 +1350,20 @@ enum
     VIDEO_ADVANCED_ANISO,
     VIDEO_ADVANCED_VSYNC,
     VIDEO_ADVANCED_MULTISAMPLE,
-    VIDEO_ADVANCED_TEXTURES,
-    VIDEO_ADVANCED_TRANSITIONS
+    VIDEO_ADVANCED_TRANSITIONS,
+    VIDEO_ADVANCED_TEXTURES
 };
 
 static struct state *video_advanced_back;
+
+static int advanced_camshake_id    = 0;
+static int advanced_transitions_id = 0;
+static int advanced_mipmap_id      = 0;
+static int advanced_aniso_id       = 0;
+static int advanced_bg_id          = 0;
+static int advanced_shadow_id      = 0;
+
+static int advanced_smoothfix_ids[2];
 
 static int video_advanced_action(int tok, int val)
 {
@@ -1403,7 +1456,11 @@ static int video_advanced_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_CAMERA_SHAKE, val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_camshake_id, config_get_d(CONFIG_CAMERA_SHAKE) == 0);
+#else
+            conf_set_toggle(advanced_camshake_id, config_get_d(CONFIG_CAMERA_SHAKE) != 0);
+#endif
             break;
 
         case VIDEO_ADVANCED_HMD:
@@ -1497,14 +1554,22 @@ static int video_advanced_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_BACKGROUND, val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_bg_id, config_get_d(CONFIG_BACKGROUND) == 0);
+#else
+            conf_set_toggle(advanced_bg_id, config_get_d(CONFIG_BACKGROUND) != 0);
+#endif
             break;
 
         case VIDEO_ADVANCED_SHADOW:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SHADOW, val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_shadow_id, config_get_d(CONFIG_SHADOW) == 0);
+#else
+            conf_set_toggle(advanced_shadow_id, config_get_d(CONFIG_SHADOW) != 0);
+#endif
             break;
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
@@ -1512,7 +1577,11 @@ static int video_advanced_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_MIPMAP, val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_mipmap_id, config_get_d(CONFIG_MIPMAP) == 0);
+#else
+            conf_set_toggle(advanced_mipmap_id, config_get_d(CONFIG_MIPMAP) != 0);
+#endif
             break;
 #endif
 
@@ -1521,7 +1590,11 @@ static int video_advanced_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ANISO, val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_aniso_id, config_get_d(CONFIG_ANISO) != 2);
+#else
+            conf_set_toggle(advanced_aniso_id, config_get_d(CONFIG_ANISO) == 2);
+#endif
             break;
 #endif
 
@@ -1569,7 +1642,12 @@ static int video_advanced_action(int tok, int val)
             backups = 1;
             config_set_d(CONFIG_TEXTURES, val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_aniso_id, config_get_d(CONFIG_TEXTURES) == 2);
+#else
+            conf_set_toggle(advanced_aniso_id, config_get_d(CONFIG_TEXTURES) != 2);
+#endif
+            break;
 
         case VIDEO_ADVANCED_MULTISAMPLE:
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -1617,21 +1695,33 @@ static int video_advanced_action(int tok, int val)
             config_set_d(CONFIG_SCREEN_ANIMATIONS, val);
             config_set_d(CONFIG_TRANSITIONS,       val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_transitions_id, config_get_d(CONFIG_SCREEN_ANIMATIONS) == 0 || config_get_d(CONFIG_TRANSITIONS) == 0);
+#else
+            conf_set_toggle(advanced_transitions_id, config_get_d(CONFIG_SCREEN_ANIMATIONS) != 0 && config_get_d(CONFIG_TRANSITIONS) != 0);
+#endif
             break;
 
         case VIDEO_ADVANCED_SMOOTH_FIX:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_SMOOTH_FIX, val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_smoothfix_ids[0], config_get_d(CONFIG_SMOOTH_FIX) == 0);
+#else
+            conf_set_toggle(advanced_smoothfix_ids[0], config_get_d(CONFIG_SMOOTH_FIX) != 0);
+#endif
             break;
 
         case VIDEO_ADVANCED_FORCE_SMOOTH_FIX:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_FORCE_SMOOTH_FIX, val);
             config_save();
-            r = goto_state(&st_video_advanced);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(advanced_smoothfix_ids[1], config_get_d(CONFIG_FORCE_SMOOTH_FIX) == 0);
+#else
+            conf_set_toggle(advanced_smoothfix_ids[1], config_get_d(CONFIG_FORCE_SMOOTH_FIX) != 0);
+#endif
             break;
     }
 
@@ -1679,6 +1769,13 @@ static int video_advanced_gui(void)
     int id, jd;
 #endif
 
+    advanced_camshake_id    = 0;
+    advanced_transitions_id = 0;
+    advanced_mipmap_id      = 0;
+    advanced_aniso_id       = 0;
+    advanced_bg_id          = 0;
+    advanced_shadow_id      = 0;
+
     if ((id = gui_vstack(0)))
     {
 #ifdef SWITCHBALL_GUI
@@ -1693,26 +1790,26 @@ static int video_advanced_gui(void)
         conf_header(id, _("Graphics"), GUI_BACK);
 
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Camera Shake"), VIDEO_ADVANCED_CAMERA_SHAKE,
-                               config_get_d(CONFIG_CAMERA_SHAKE),
-                               1, 0);
-        conf_toggle_simple(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
-                               config_get_d(CONFIG_SMOOTH_FIX),
-                               1, 0);
+        advanced_camshake_id = conf_toggle_simple(id, _("Camera Shake"), VIDEO_ADVANCED_CAMERA_SHAKE,
+                                                      config_get_d(CONFIG_CAMERA_SHAKE),
+                                                      1, 0);
+        advanced_smoothfix_ids[0] = conf_toggle_simple(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
+                                                           config_get_d(CONFIG_SMOOTH_FIX),
+                                                           1, 0);
 
         if (config_get_d(CONFIG_SMOOTH_FIX))
-            conf_toggle_simple(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
-                                   config_get_d(CONFIG_FORCE_SMOOTH_FIX),
-                                   1, 0);
+            advanced_smoothfix_ids[1] = conf_toggle_simple(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
+                                                               config_get_d(CONFIG_FORCE_SMOOTH_FIX),
+                                                               1, 0);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
-        conf_toggle_simple(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
-                               config_get_d(CONFIG_MIPMAP), 1, 0);
+        advanced_mipmap_id = conf_toggle_simple(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
+                                                    config_get_d(CONFIG_MIPMAP), 1, 0);
 #endif
 #if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
     GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
-        conf_toggle_simple(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
-                               config_get_d(CONFIG_ANISO), 8, 0);
+        advanced_aniso_id = conf_toggle_simple(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
+                                                   config_get_d(CONFIG_ANISO), 8, 0);
 #endif
 
         gui_space(id);
@@ -1724,31 +1821,31 @@ static int video_advanced_gui(void)
 #endif
         conf_toggle_simple(id, _("Reflection"),   VIDEO_ADVANCED_REFLECTION,
                                config_get_d(CONFIG_REFLECTION), 1, 0);
-        conf_toggle_simple(id, _("Background"),   VIDEO_ADVANCED_BACKGROUND,
-                               config_get_d(CONFIG_BACKGROUND), 1, 0);
-        conf_toggle_simple(id, _("Shadow"),       VIDEO_ADVANCED_SHADOW,
-                               config_get_d(CONFIG_SHADOW),     1, 0);
+        advanced_bg_id = conf_toggle_simple(id, _("Background"),   VIDEO_ADVANCED_BACKGROUND,
+                                                config_get_d(CONFIG_BACKGROUND), 1, 0);
+        advanced_shadow_id = conf_toggle_simple(id, _("Shadow"),       VIDEO_ADVANCED_SHADOW,
+                                                    config_get_d(CONFIG_SHADOW),     1, 0);
 #else
-        conf_toggle(id, _("Camera Shake"), VIDEO_ADVANCED_CAMERA_SHAKE,
-                        config_get_d(CONFIG_CAMERA_SHAKE),
-                        _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
-                        config_get_d(CONFIG_SMOOTH_FIX),
-                        _("On"), 1, _("Off"), 0);
+        advanced_camshake_id = conf_toggle(id, _("Camera Shake"), VIDEO_ADVANCED_CAMERA_SHAKE,
+                                               config_get_d(CONFIG_CAMERA_SHAKE),
+                                               _("On"), 1, _("Off"), 0);
+        advanced_smoothfix_ids[0] = conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
+                                                    config_get_d(CONFIG_SMOOTH_FIX),
+                                                    _("On"), 1, _("Off"), 0);
 
         if (config_get_d(CONFIG_SMOOTH_FIX))
-            conf_toggle(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
-                            config_get_d(CONFIG_FORCE_SMOOTH_FIX),
-                            _("On"), 1, _("Off"), 0);
+            advanced_smoothfix_ids[1] = conf_toggle(id, _("Force smooth fix"), VIDEO_ADVANCED_FORCE_SMOOTH_FIX,
+                                                        config_get_d(CONFIG_FORCE_SMOOTH_FIX),
+                                                        _("On"), 1, _("Off"), 0);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
-        conf_toggle(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
-                        config_get_d(CONFIG_MIPMAP), _("On"), 1, _("Off"), 0);
+        advanced_mipmap_id = conf_toggle(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
+                                             config_get_d(CONFIG_MIPMAP), _("On"), 1, _("Off"), 0);
 #endif
 #if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
     GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
-        conf_toggle(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
-                        config_get_d(CONFIG_ANISO),  _("On"), 2, _("Off"), 0);
+        advanced_aniso_id = conf_toggle(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
+                                            config_get_d(CONFIG_ANISO),  _("On"), 2, _("Off"), 0);
 #endif
 
         gui_space(id);
@@ -1760,10 +1857,10 @@ static int video_advanced_gui(void)
 #endif
         conf_toggle(id, _("Reflection"),   VIDEO_ADVANCED_REFLECTION,
                         config_get_d(CONFIG_REFLECTION), _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Background"),   VIDEO_ADVANCED_BACKGROUND,
-                        config_get_d(CONFIG_BACKGROUND), _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Shadow"),       VIDEO_ADVANCED_SHADOW,
-                        config_get_d(CONFIG_SHADOW),     _("On"), 1, _("Off"), 0);
+        advanced_bg_id = conf_toggle(id, _("Background"),   VIDEO_ADVANCED_BACKGROUND,
+                                         config_get_d(CONFIG_BACKGROUND), _("On"), 1, _("Off"), 0);
+        advanced_shadow_id = conf_toggle(id, _("Shadow"),       VIDEO_ADVANCED_SHADOW,
+                                             config_get_d(CONFIG_SHADOW),     _("On"), 1, _("Off"), 0);
 #endif
 
 #if !defined(__NDS__) && !defined(__3DS__) && \
@@ -1846,8 +1943,8 @@ static int video_advanced_gui(void)
 #endif
 #endif
 
-        conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
-                        config_get_d(CONFIG_SMOOTH_FIX), _("On"), 1, _("Off"), 0);
+        advanced_smoothfix_ids[0] = conf_toggle(id, _("Smooth fix"), VIDEO_ADVANCED_SMOOTH_FIX,
+                                                    config_get_d(CONFIG_SMOOTH_FIX), _("On"), 1, _("Off"), 0);
 
         gui_space(id);
 
@@ -1869,17 +1966,17 @@ static int video_advanced_gui(void)
                         config_get_d(CONFIG_REFLECTION), _("On"), 1, _("Off"), 0);
         conf_toggle(id, _("Background"), VIDEO_ADVANCED_BACKGROUND,
                         config_get_d(CONFIG_BACKGROUND), _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Shadow"), VIDEO_ADVANCED_SHADOW,
-                        config_get_d(CONFIG_SHADOW), _("On"), 1, _("Off"), 0);
+        advanced_shadow_id = conf_toggle(id, _("Shadow"), VIDEO_ADVANCED_SHADOW,
+                                             config_get_d(CONFIG_SHADOW), _("On"), 1, _("Off"), 0);
 
 #ifdef GL_GENERATE_MIPMAP_SGIS
-        conf_toggle(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
-                        config_get_d(CONFIG_MIPMAP), _("On"), 1, _("Off"), 0);
+        advanced_mipmap_id = conf_toggle(id, _("Mipmap"), VIDEO_ADVANCED_MIPMAP,
+                                             config_get_d(CONFIG_MIPMAP), _("On"), 1, _("Off"), 0);
 #endif
 #if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT) && \
     GL_TEXTURE_MAX_ANISOTROPY_EXT != 0 && GL_TEXTURE_MAX_ANISOTROPY_EXT != -1
-        conf_toggle(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
-                        config_get_d(CONFIG_ANISO), _("On"), 2, _("Off"), 0);
+        advanced_aniso_id = conf_toggle(id, _("Anisotropic"), VIDEO_ADVANCED_ANISO,
+                                            config_get_d(CONFIG_ANISO), _("On"), 2, _("Off"), 0);
 #endif
 
         conf_toggle(id, _("Textures"), VIDEO_ADVANCED_TEXTURES,
@@ -1887,8 +1984,8 @@ static int video_advanced_gui(void)
 
         gui_space(id);
 
-        conf_toggle(id, _("Screen Animations / UI Transitions"), VIDEO_ADVANCED_TRANSITIONS,
-                        config_get_d(CONFIG_TRANSITIONS), _("On"), 1, _("Off"), 0);
+        advanced_transitions_id = conf_toggle(id, _("Screen Animations / UI Transitions"), VIDEO_ADVANCED_TRANSITIONS,
+                                                  config_get_d(CONFIG_SCREEN_ANIMATIONS) != 0 && config_get_d(CONFIG_TRANSITIONS) != 0, _("On"), 1, _("Off"), 0);
 #endif
         gui_layout(id, 0, 0);
     }
@@ -1978,7 +2075,7 @@ static int display_gui(void)
             gui_space(id);
         }
 #endif
-        
+
         if (video_get_hatsune_miku() && glext_get_hatsune_miku())
         {
             gui_multi(id,
@@ -1997,7 +2094,7 @@ static int display_gui(void)
 #else
             SDL_GetCurrentDisplayMode(config_get_d(CONFIG_DISPLAY), &dpyMode);
 #endif
-            
+
             int out_num_displays = 0;
 #if _WIN32 && !defined(__EMSCRIPTEN__) && !_CRT_SECURE_NO_WARNINGS
             sprintf_s(name, sizeof (name),

@@ -536,7 +536,7 @@ static int putt_title_enter(struct state *st, struct state *prev, int intent)
 
             if ((jd = gui_hstack(id)))
             {
-                kd = gui_image(jd, "gui/pennyball-256.png", ww, hh);
+                kd = gui_image(jd, "gui/neverball-256.png", ww, hh);
                 gui_set_state(kd, TITLE_BALL, 0);
                 gui_space(jd);
             }

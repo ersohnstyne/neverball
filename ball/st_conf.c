@@ -730,7 +730,6 @@ static int conf_account_gui(void)
 
         if (mainmenu_conf && !game_server_state() && !demo_state())
         {
-<<<<<<< HEAD
 #if !defined(__NDS__) && !defined(__3DS__) && \
     !defined(__GAMECUBE__) && !defined(__WII__) && !defined(__WIIU__) && \
     !defined(__EMSCRIPTEN__)
@@ -741,13 +740,6 @@ static int conf_account_gui(void)
             else
                 gui_state(id, _("Sign in to Pennyball + Neverball WGCL"),
                               GUI_SML, CONF_ACCOUNT_SIGNIN, 0);
-=======
-            gui_label(id, "Neverball " VERSION, GUI_TNY, gui_wht, gui_wht);
-            gui_multi(id, _(
-                "Copyright © 2026 Neverball authors\n"
-                "Neverball is free software available under the terms of GPL v2 or later."
-            ), GUI_TNY, gui_wht, gui_wht);
->>>>>>> 1185634d47fcae0dec72c4f87c334a042e9a7e6a
 
             gui_space(id);
 #endif
@@ -1014,6 +1006,13 @@ enum
     CONF_GAMEPLAY_LOCK_GOALS
 };
 
+static int conf_gameplay_autoretry_id    = 0;
+static int conf_gameplay_fasterreset_id  = 0;
+static int conf_gameplay_tutorial_id     = 0;
+static int conf_gameplay_hint_id         = 0;
+static int conf_gameplay_dropspeeding_id = 0;
+static int conf_gameplay_lock_goals_id   = 0;
+
 /*
  * This enum name will be redirected to CONF_GAMEPLAY_AUTORETRY for modern WGCL source project.
  * To continue with legacy source project Neverball,
@@ -1097,57 +1096,87 @@ static int conf_gameplay_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_gameplay_autoretry_id, config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY) == 0);
+#else
+            conf_set_toggle(conf_gameplay_autoretry_id, config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY) != 0);
+#endif
+            return goto_state_full_intent(curr_state(), 0, 0, 1, 0);
 
         case GAMEPLAY_FASTERRESET:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_gameplay_fasterreset_id, config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET) == 0);
+#else
+            conf_set_toggle(conf_gameplay_fasterreset_id, config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET) != 0);
+#endif
+            break;
 
         case GAMEPLAY_TUTORIAL:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_TUTORIAL, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_gameplay_tutorial_id, config_get_d(CONFIG_ACCOUNT_TUTORIAL) == 0);
+#else
+            conf_set_toggle(conf_gameplay_tutorial_id, config_get_d(CONFIG_ACCOUNT_TUTORIAL) != 0);
+#endif
+            break;
 
         case GAMEPLAY_HINT:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ACCOUNT_HINT, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_gameplay_hint_id, config_get_d(CONFIG_ACCOUNT_HINT) == 0);
+#else
+            conf_set_toggle(conf_gameplay_hint_id, config_get_d(CONFIG_ACCOUNT_HINT) != 0);
+#endif
+            break;
 
         case GAMEPLAY_SWITCHBALL_DROPSPEEDING:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_gameplay_dropspeeding_id, config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING) == 0);
+#else
+            conf_set_toggle(conf_gameplay_dropspeeding_id, config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING) != 0);
+#endif
+            break;
 
         case GAMEPLAY_CAMERA_DEFAULT:
             cam_preset_set(CAM_1, CAM_PRESET_DEFAULT);
             config_save();
-            return goto_state(curr_state());
+            return goto_state_full_intent(curr_state(), 0, 0, 1, 0);
 
         case GAMEPLAY_CAMERA_1_4:
             cam_preset_set(CAM_1, CAM_PRESET_1_4);
             config_save();
-            return goto_state(curr_state());
+            return goto_state_full_intent(curr_state(), 0, 0, 1, 0);
 
         case GAMEPLAY_CAMERA_1_5:
             cam_preset_set(CAM_1, CAM_PRESET_1_5);
             config_save();
-            return goto_state(curr_state());
+            return goto_state_full_intent(curr_state(), 0, 0, 1, 0);
 
         case GAMEPLAY_CAMERA_1_6:
             cam_preset_set(CAM_1, CAM_PRESET_1_6);
             config_save();
-            return goto_state(curr_state());
+            return goto_state_full_intent(curr_state(), 0, 0, 1, 0);
 
         case GAMEPLAY_LOCK_GOALS:
             audio_play(val == 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_LOCK_GOALS, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_gameplay_lock_goals_id, config_get_d(CONFIG_LOCK_GOALS) != 0);
+#else
+            conf_set_toggle(conf_gameplay_lock_goals_id, config_get_d(CONFIG_LOCK_GOALS) == 0);
+#endif
+            break;
     }
 
     return 1;
@@ -1166,6 +1195,13 @@ static int conf_gameplay_gui(void)
     int curr = cam_preset_get(CAM_1);
 
     /* Initialize the configuration GUI. */
+
+    conf_gameplay_autoretry_id    = 0;
+    conf_gameplay_fasterreset_id  = 0;
+    conf_gameplay_tutorial_id     = 0;
+    conf_gameplay_hint_id         = 0;
+    conf_gameplay_dropspeeding_id = 0;
+    conf_gameplay_lock_goals_id   = 0;
 
     if ((id = gui_vstack(0)))
     {
@@ -1194,36 +1230,36 @@ static int conf_gameplay_gui(void)
 #endif
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Auto-Retry"), GAMEPLAY_AUTORETRY,
-                                   config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), 1, 0);
+            conf_gameplay_autoretry_id = conf_toggle_simple(id, _("Auto-Retry"), GAMEPLAY_AUTORETRY,
+                                                                config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), 1, 0);
 
             if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
-                conf_toggle_simple(id, _("Faster Reset"), GAMEPLAY_FASTERRESET,
-                                       config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), 1, 0);
+                conf_gameplay_fasterreset_id = conf_toggle_simple(id, _("Faster Reset"), GAMEPLAY_FASTERRESET,
+                                                                      config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), 1, 0);
 #else
-            conf_toggle(id, _("Auto-Retry"), GAMEPLAY_AUTORETRY,
-                            config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), _("On"), 1, _("Off"), 0);
+            conf_gameplay_autoretry_id = conf_toggle(id, _("Auto-Retry"), GAMEPLAY_AUTORETRY,
+                                                         config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY), _("On"), 1, _("Off"), 0);
 
             if (config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_AUTORETRY))
-                conf_toggle(id, _("Faster Reset"), GAMEPLAY_FASTERRESET,
-                                config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), _("On"), 1, _("Off"), 0);
+                conf_gameplay_fasterreset_id = conf_toggle(id, _("Faster Reset"), GAMEPLAY_FASTERRESET,
+                                                               config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_FASTERRESET), _("On"), 1, _("Off"), 0);
 #endif
 
             gui_space(id);
         }
-        
+
         if (config_ball())
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
-                                   config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
-            conf_toggle_simple(id, _("Show Hint"), GAMEPLAY_HINT,
-                                   config_get_d(CONFIG_ACCOUNT_HINT), 1, 0);
+            conf_gameplay_tutorial_id = conf_toggle_simple(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
+                                                               config_get_d(CONFIG_ACCOUNT_TUTORIAL), 1, 0);
+            conf_gameplay_hint_id = conf_toggle_simple(id, _("Show Hint"), GAMEPLAY_HINT,
+                                                           config_get_d(CONFIG_ACCOUNT_HINT), 1, 0);
 #else
-            conf_toggle(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
-                            config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
-            conf_toggle(id, _("Show Hint"), GAMEPLAY_HINT,
-                            config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
+            conf_gameplay_tutorial_id = conf_toggle(id, _("Show Tutorial"), GAMEPLAY_TUTORIAL,
+                                                        config_get_d(CONFIG_ACCOUNT_TUTORIAL), _("On"), 1, _("Off"), 0);
+            conf_gameplay_hint_id = conf_toggle(id, _("Show Hint"), GAMEPLAY_HINT,
+                                                    config_get_d(CONFIG_ACCOUNT_HINT), _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
         }
@@ -1231,15 +1267,15 @@ static int conf_gameplay_gui(void)
         if (game_switchball_installed() && config_ball())
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Drop Speeding Alert"), GAMEPLAY_SWITCHBALL_DROPSPEEDING,
-                                   config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING), 1, 0);
+            conf_gameplay_dropspeeding_id = conf_toggle_simple(id, _("Drop Speeding Alert"), GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+                                                                   config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING), 1, 0);
 #else
-            conf_toggle(id, _("Drop Speeding Alert"), GAMEPLAY_SWITCHBALL_DROPSPEEDING,
-                            config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING), _("On"), 1, _("Off"), 0);
+            conf_gameplay_dropspeeding_id = conf_toggle(id, _("Drop Speeding Alert"), GAMEPLAY_SWITCHBALL_DROPSPEEDING,
+                                                            config_get_d(CONFIG_ADVANCEDGAMING_GAMEPLAY_SWITCHBALL_DROPSPEEDING), _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
         }
-        
+
         if ((!game_server_state() ||
             (curr_mode() != MODE_CHALLENGE &&
 #ifdef LEVELGROUPS_INCLUDES_CAMPAIGN
@@ -1252,11 +1288,11 @@ static int conf_gameplay_gui(void)
              )) && config_ball())
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Completed Levels"), GAMEPLAY_LOCK_GOALS,
-                                   config_get_d(CONFIG_LOCK_GOALS), 0, 1);
+            conf_gameplay_lock_goals_id = conf_toggle_simple(id, _("Completed Levels"), GAMEPLAY_LOCK_GOALS,
+                                                                 config_get_d(CONFIG_LOCK_GOALS), 0, 1);
 #else
-            conf_toggle(id, _("Completed Levels"), GAMEPLAY_LOCK_GOALS,
-                            config_get_d(CONFIG_LOCK_GOALS), _("Locked"), 1, _("Unlocked"), 0);
+            conf_gameplay_lock_goals_id = conf_toggle(id, _("Completed Levels"), GAMEPLAY_LOCK_GOALS,
+                                                          config_get_d(CONFIG_LOCK_GOALS), _("Locked"), 1, _("Unlocked"), 0);
 #endif
             gui_space(id);
         }
@@ -1449,6 +1485,11 @@ static int mouse_id;
 static int mouse_id[11];
 #endif
 
+static int conf_controls_tiltingfloor_id  = 0;
+static int conf_controls_autocalibrate_id = 0;
+
+static int conf_controls_invertyaxis_ids[2];
+
 /*
  * This maps mouse_sense 300 (default) to the 7th of an 11 button
  * series. Effectively there are more options for a lower-than-default
@@ -1558,7 +1599,12 @@ static int conf_controls_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_TILTING_FLOOR, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_controls_tiltingfloor_id, config_get_d(CONFIG_TILTING_FLOOR) == 0);
+#else
+            conf_set_toggle(conf_controls_tiltingfloor_id, config_get_d(CONFIG_TILTING_FLOOR) != 0);
+#endif
+            break;
 
         case CONTROLS_CAMERA_ROTATE_MODE:
 #ifdef SWITCHBALL_GUI
@@ -1593,13 +1639,23 @@ static int conf_controls_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_MOUSE_INVERT, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_controls_invertyaxis_ids[0], config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS) == 0);
+#else
+            conf_set_toggle(conf_controls_invertyaxis_ids[0], config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS) != 0);
+#endif
+            break;
 
         case CONTROLS_INVERT_RS_Y:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT, val);
             config_save();
-            return goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_controls_invertyaxis_ids[1], config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS) == 0);
+#else
+            conf_set_toggle(conf_controls_invertyaxis_ids[1], config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS) != 0);
+#endif
+            break;
 
         case CONTROLS_KEYBD:
             return goto_state(&st_conf_keybd);
@@ -1611,7 +1667,12 @@ static int conf_controls_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS, val);
             config_save();
-            return goto_state(&st_conf_controls);
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_controls_tiltingfloor_id, config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS) == 0);
+#else
+            conf_set_toggle(conf_controls_tiltingfloor_id, config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS) != 0);
+#endif
+            return goto_state_full_intent(curr_state(), 0, 0, 1, 0);
 
         case CONTROLS_JOYSTICK_CALIBRATE:
             return goto_state(&st_conf_calibrate);
@@ -1644,6 +1705,12 @@ static int conf_controls_gui(void)
 #endif
 
     /* Initialize the configuration GUI. */
+
+    conf_controls_tiltingfloor_id  = 0;
+    conf_controls_autocalibrate_id = 0;
+
+    for (int i = 0; i < ARRAYSIZE(conf_controls_invertyaxis_ids); i++)
+        conf_controls_invertyaxis_ids[i] = 0;
 
     if ((id = gui_vstack(0)))
     {
@@ -1685,13 +1752,13 @@ static int conf_controls_gui(void)
         gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Tilting Floor"), CONTROLS_TILTING_FLOOR,
-                               config_get_d(CONFIG_TILTING_FLOOR),
-                               1, 0);
+        conf_controls_tiltingfloor_id = conf_toggle_simple(id, _("Tilting Floor"), CONTROLS_TILTING_FLOOR,
+                                                               config_get_d(CONFIG_TILTING_FLOOR),
+                                                            1, 0);
 #else
-        conf_toggle(id, _("Tilting Floor"), CONTROLS_TILTING_FLOOR,
-                        config_get_d(CONFIG_TILTING_FLOOR),
-                        _("On"), 1, _("Off"), 0);
+        conf_controls_tiltingfloor_id = conf_toggle(id, _("Tilting Floor"), CONTROLS_TILTING_FLOOR,
+                                                        config_get_d(CONFIG_TILTING_FLOOR),
+                                                        _("On"), 1, _("Off"), 0);
 #endif
 
 #ifdef SWITCHBALL_GUI
@@ -1717,13 +1784,13 @@ static int conf_controls_gui(void)
 #endif
 
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Invert Y Axis"), CONTROLS_INVERT_MOUSE_Y,
-                                   config_get_d(CONFIG_MOUSE_INVERT),
-                                   1, 0);
+            conf_controls_invertyaxis_ids[0] = conf_toggle_simple(id, _("Invert Y Axis"), CONTROLS_INVERT_MOUSE_Y,
+                                                                      config_get_d(CONFIG_MOUSE_INVERT),
+                                                                      1, 0);
 #else
-            conf_toggle(id, _("Invert Y Axis"), CONTROLS_INVERT_MOUSE_Y,
-                            config_get_d(CONFIG_MOUSE_INVERT),
-                            _("On"), 1, _("Off"), 0);
+            conf_controls_invertyaxis_ids[0] = conf_toggle(id, _("Invert Y Axis"), CONTROLS_INVERT_MOUSE_Y,
+                                                               config_get_d(CONFIG_MOUSE_INVERT),
+                                                               _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
             conf_state_icon(id, _("Keyboard"), GUI_TRIANGLE_RIGHT, _("Configure"), CONTROLS_KEYBD);
@@ -1733,13 +1800,13 @@ static int conf_controls_gui(void)
 #endif
         {
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Invert Y Axis (RS)"), CONTROLS_INVERT_RS_Y,
+            conf_controls_invertyaxis_ids[1] = conf_toggle_simple(id, _("Invert Y Axis (RS)"), CONTROLS_INVERT_RS_Y,
                                    config_get_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT),
                                    1, 0);
 #else
-            conf_toggle(id, _("Invert Y Axis (RS)"), CONTROLS_INVERT_RS_Y,
-                            config_get_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT),
-                            _("On"), 1, _("Off"), 0);
+            conf_controls_invertyaxis_ids[1] = conf_toggle(id, _("Invert Y Axis (RS)"), CONTROLS_INVERT_RS_Y,
+                                                               config_get_d(CONFIG_JOYSTICK_AXIS_Y1_INVERT),
+                                                               _("On"), 1, _("Off"), 0);
 #endif
         }
 
@@ -1751,13 +1818,13 @@ static int conf_controls_gui(void)
             gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
-            conf_toggle_simple(id, _("Auto-Calibrate Axis"), CONTROLS_JOYSTICK_AUTOCALIB_AXIS,
-                                   config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
-                                   1, 0);
+            conf_controls_autocalibrate_id = conf_toggle_simple(id, _("Auto-Calibrate Axis"), CONTROLS_JOYSTICK_AUTOCALIB_AXIS,
+                                                                    config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
+                                                                    1, 0);
 #else
-            conf_toggle(id, _("Auto-Calibrate Axis"), CONTROLS_JOYSTICK_AUTOCALIB_AXIS,
-                            config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
-                            _("On"), 1, _("Off"), 0);
+            conf_controls_autocalibrate_id = conf_toggle(id, _("Auto-Calibrate Axis"), CONTROLS_JOYSTICK_AUTOCALIB_AXIS,
+                                                             config_get_d(CONFIG_JOYSTICK_AUTOCALIB_AXIS),
+                                                             _("On"), 1, _("Off"), 0);
 #endif
             gui_space(id);
             conf_state_icon(id, _("Gamepad"), GUI_TRIANGLE_RIGHT, _("Configure"), CONTROLS_JOYSTICK);
@@ -1838,6 +1905,8 @@ static struct state *conf_touch_back;
  */
 #define touch_back conf_touch_back
 
+static int conf_touch_invertrotation_id = 0;
+
 static int conf_touch_action(int tok, int val)
 {
     int r = 1;
@@ -1859,6 +1928,11 @@ static int conf_touch_action(int tok, int val)
         audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
         config_set_d(CONFIG_TOUCH_ROTATE_INVERT, val);
         config_set_d(CONFIG_CAMERA_ROTATE_MODE, val);
+#if NB_HAVE_PB_BOTH==1
+        conf_set_toggle(conf_touch_invertrotation_id, config_get_d(CONFIG_TOUCH_ROTATE_INVERT) == 0 || config_get_d(CONFIG_CAMERA_ROTATE_MODE) == 0);
+#else
+        conf_set_toggle(conf_touch_invertrotation_id, config_get_d(CONFIG_TOUCH_ROTATE_INVERT) != 0 && config_get_d(CONFIG_CAMERA_ROTATE_MODE) != 0);
+#endif
         return goto_state(curr_state());
     }
 
@@ -1901,14 +1975,14 @@ static int conf_touch_gui(void)
         gui_space(id);
 
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Invert Rotation"), TOUCH_ROTATE_INVERT,
-                               config_get_d(CONFIG_TOUCH_ROTATE_INVERT),
-                               1, 0);
+        conf_touch_invertrotation_id = conf_toggle_simple(id, _("Invert Rotation"), TOUCH_ROTATE_INVERT,
+                                                              config_get_d(CONFIG_TOUCH_ROTATE_INVERT),
+                                                              1, 0);
 #else
-        conf_toggle(id, _("Invert Rotation"),
-                        TOUCH_ROTATE_INVERT,
-                        config_get_d(CONFIG_TOUCH_ROTATE_INVERT),
-                        _("On"), 1, _("Off"), 0);
+        conf_touch_invertrotation_id = conf_toggle(id, _("Invert Rotation"),
+                                                       TOUCH_ROTATE_INVERT,
+                                                       config_get_d(CONFIG_TOUCH_ROTATE_INVERT),
+                                                       _("On"), 1, _("Off"), 0);
 #endif
 
         gui_layout(id, 0, 0);
@@ -3232,12 +3306,14 @@ enum
     CONF_NOTIFICATION_SHOP
 };
 
+static int conf_notification_toggle_ids[3];
+
 static int conf_notification_action(int tok, int val)
 {
     GENERIC_GAMEMENU_ACTION;
 
     int r = 1;
-
+    
     switch (tok)
     {
         case GUI_BACK:
@@ -3250,21 +3326,33 @@ static int conf_notification_action(int tok, int val)
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_CHKP, val);
             config_save();
-            r = goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_notification_toggle_ids[0], config_get_d(CONFIG_NOTIFICATION_CHKP) == 0);
+#else
+            conf_set_toggle(conf_notification_toggle_ids[0], config_get_d(CONFIG_NOTIFICATION_CHKP) != 0);
+#endif
             break;
 
         case CONF_NOTIFICATION_REWARD:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_REWARD, val);
             config_save();
-            r = goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_notification_toggle_ids[1], config_get_d(CONFIG_NOTIFICATION_REWARD) == 0);
+#else
+            conf_set_toggle(conf_notification_toggle_ids[1], config_get_d(CONFIG_NOTIFICATION_REWARD) != 0);
+#endif
             break;
 
         case CONF_NOTIFICATION_SHOP:
             audio_play(val != 0 ? "snd/2.2/game_button_down.ogg" : "snd/2.2/game_button_up.ogg", 1.0f);
             config_set_d(CONFIG_NOTIFICATION_SHOP, val);
             config_save();
-            r = goto_state(curr_state());
+#if NB_HAVE_PB_BOTH==1
+            conf_set_toggle(conf_notification_toggle_ids[2], config_get_d(CONFIG_NOTIFICATION_SHOP) == 0);
+#else
+            conf_set_toggle(conf_notification_toggle_ids[2], config_get_d(CONFIG_NOTIFICATION_SHOP) != 0);
+#endif
             break;
     }
 
@@ -3284,30 +3372,33 @@ static int conf_notification_gui(void)
 
     /* Initialize the configuration GUI. */
 
+    for (int i = 0; i < ARRAYSIZE(conf_notification_toggle_ids); i++)
+        conf_notification_toggle_ids[i] = 0;
+
     if ((id = gui_vstack(0)))
     {
         conf_header(id, _("Notifications"), GUI_BACK);
 
 #if NB_HAVE_PB_BOTH==1
-        conf_toggle_simple(id, _("Checkpoints"), CONF_NOTIFICATION_CHKP,
-                               config_get_d(CONFIG_NOTIFICATION_CHKP),
-                               1, 0);
-        conf_toggle_simple(id, _("Extra balls"), CONF_NOTIFICATION_REWARD,
-                               config_get_d(CONFIG_NOTIFICATION_REWARD),
-                               1, 0);
-        conf_toggle_simple(id, _("Shop"), CONF_NOTIFICATION_SHOP,
-                               config_get_d(CONFIG_NOTIFICATION_SHOP),
-                               1, 0);
+        conf_notification_toggle_ids[0] = conf_toggle_simple(id, _("Checkpoints"), CONF_NOTIFICATION_CHKP,
+                                                                 config_get_d(CONFIG_NOTIFICATION_CHKP),
+                                                                 1, 0);
+        conf_notification_toggle_ids[1] = conf_toggle_simple(id, _("Extra balls"), CONF_NOTIFICATION_REWARD,
+                                                                 config_get_d(CONFIG_NOTIFICATION_REWARD),
+                                                                 1, 0);
+        conf_notification_toggle_ids[2] = conf_toggle_simple(id, _("Shop"), CONF_NOTIFICATION_SHOP,
+                                                                 config_get_d(CONFIG_NOTIFICATION_SHOP),
+                                                                 1, 0);
 #else
-        conf_toggle(id, _("Checkpoints"), CONF_NOTIFICATION_CHKP,
-                        config_get_d(CONFIG_NOTIFICATION_CHKP),
-                        _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Extra balls"), CONF_NOTIFICATION_REWARD,
-                        config_get_d(CONFIG_NOTIFICATION_REWARD),
-                        _("On"), 1, _("Off"), 0);
-        conf_toggle(id, _("Shop"), CONF_NOTIFICATION_SHOP,
-                        config_get_d(CONFIG_NOTIFICATION_SHOP),
-                        _("On"), 1, _("Off"), 0);
+        conf_notification_toggle_ids[0] = conf_toggle(id, _("Checkpoints"), CONF_NOTIFICATION_CHKP,
+                                                          config_get_d(CONFIG_NOTIFICATION_CHKP),
+                                                          _("On"), 1, _("Off"), 0);
+        conf_notification_toggle_ids[1] = conf_toggle(id, _("Extra balls"), CONF_NOTIFICATION_REWARD,
+                                                          config_get_d(CONFIG_NOTIFICATION_REWARD),
+                                                          _("On"), 1, _("Off"), 0);
+        conf_notification_toggle_ids[2] = conf_toggle(id, _("Shop"), CONF_NOTIFICATION_SHOP,
+                                                          config_get_d(CONFIG_NOTIFICATION_SHOP),
+                                                          _("On"), 1, _("Off"), 0);
 #endif
 
         gui_layout(id, 0, 0);
@@ -3823,7 +3914,7 @@ static int conf_gui(void)
             conf_state_icon(id, _("Community (Discord)"), GUI_TRIANGLE_RIGHT, _("Join"), CONF_SOCIAL);
             gui_space(id);
 #endif
-            
+
             if (config_ball())
             {
 #if NB_HAVE_PB_BOTH==1
@@ -3941,7 +4032,7 @@ static int conf_gui(void)
 
                 int lang_id;
                 lang_id = conf_state(id, _("Language"), "                            ",
-                    CONF_LANGUAGE);
+                                         CONF_LANGUAGE);
 
                 gui_set_trunc(lang_id, TRUNC_TAIL);
 

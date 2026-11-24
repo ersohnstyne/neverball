@@ -110,10 +110,10 @@ fi
 
 case "$ARCH" in
     arm64)
-        ARCH_LABEL="apple"
+        ARCH_LABEL="macos-apple"
         ;;
     x86_64)
-        ARCH_LABEL="intel"
+        ARCH_LABEL="macos-intel"
         ;;
 esac
 
@@ -139,7 +139,7 @@ FRAMEWORKS_DIR="$OUT_DIR/Frameworks"
 download_framework() {
     local name="$1"
     local ver="$2"
-    local dmg_url="$3"
+    local dmg_url="$3"    
     local fw_name="${name}.framework"
 
     if [[ ! -d "$FRAMEWORK_DIR/$fw_name" ]]; then
@@ -157,6 +157,7 @@ download_framework() {
         rm -rf "$mnt"
     fi
 }
+
 TTF_STATIC_LIB="$OUT_DIR/libSDL2_ttf_${ARCH}.a"
 
 if [[ "$SKIP_BUILD" -eq 0 ]]; then
@@ -201,7 +202,6 @@ APP_NAME="Neverball"
 APP_DIR="$OUT_DIR/${APP_NAME}.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
-FRAMEWORKS_DEST_DIR="$CONTENTS_DIR/Frameworks"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
 FRAMEWORKS_DEST_DIR="$CONTENTS_DIR/Frameworks"
 DATA_DIR="$RESOURCES_DIR/data"
@@ -260,7 +260,6 @@ done
 # -----------------------------------------------------------------------------
 
 echo "==> Code signing bundle (identity: '${SIGN_IDENTITY}')..."
-
 CODESIGN_CMD=(codesign --force --sign "${SIGN_IDENTITY}")
 if [[ "$SIGN_IDENTITY" != "-" ]]; then
     CODESIGN_CMD+=(--options runtime)

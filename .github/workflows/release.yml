@@ -3,9 +3,9 @@
 name: Release
 
 on:
-#  push:
-#    tags:
-#      - 'neverball-*'
+  push:
+    tags:
+      - 'neverball-*'
   workflow_dispatch:
     inputs:
       tag:

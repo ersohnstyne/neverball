@@ -524,25 +524,19 @@ static void game_draw_items(struct s_rend *rend,
 
 static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
 {
-    /* Goal beams */
-    static const GLfloat goal_c[4]       =   { 1.0f, 1.0f, 0.0f, 0.5f };
-
-    /* Jump beams */
-    static const GLfloat jump_c[2][4]    =  {{ 0.7f, 0.5f, 1.0f, 0.5f },
-                                             { 0.7f, 0.5f, 1.0f, 0.8f }};
-
-    /* Switch beams */
-    static const GLfloat swch_c[2][2][4] = {{{ 1.0f, 0.0f, 0.0f, 0.5f },
-                                             { 1.0f, 0.0f, 0.0f, 0.8f }},
-                                            {{ 0.0f, 1.0f, 0.0f, 0.5f },
-                                             { 0.0f, 1.0f, 0.0f, 0.8f }}};
+    static const GLfloat goal_c[4]       =   { 1.0f, 1.0f, 0.0f, 0.3f };
+    static const GLfloat jump_c[2][4]    =  {{ 0.7f, 0.5f, 1.0f, 0.3f },
+                                             { 0.7f, 0.5f, 1.0f, 0.6f }};
+    static const GLfloat swch_c[2][2][4] = {{{ 1.0f, 0.0f, 0.0f, 0.3f },
+                                             { 1.0f, 0.0f, 0.0f, 0.6f }},
+                                            {{ 0.0f, 1.0f, 0.0f, 0.3f },
+                                             { 0.0f, 1.0f, 0.0f, 0.6f }}};
 
 #ifdef MAPC_INCLUDES_CHKP
-    /* Checkpoint beams */
-    static const GLfloat chkp_c[2][2][4] = {{{ 0.0f, 0.0f, 1.0f, 0.5f },
-                                             { 0.0f, 0.0f, 1.0f, 0.8f }},
-                                            {{ 1.0f, 0.0f, 1.0f, 0.5f },
-                                             { 1.0f, 0.0f, 1.0f, 0.8f }}};
+    static const GLfloat chkp_c[2][2][4] = {{{ 0.0f, 0.0f, 1.0f, 0.3f },
+                                             { 0.0f, 0.0f, 1.0f, 0.6f }},
+                                            {{ 1.0f, 0.0f, 1.0f, 0.3f },
+                                             { 1.0f, 0.0f, 1.0f, 0.6f }}};
 #endif
 
     const struct s_base *base =  gd->vary.base;

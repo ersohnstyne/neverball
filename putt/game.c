@@ -304,12 +304,29 @@ static void putt_draw_balls(struct s_rend *rend,
     r_color_mtrl(rend, 0);
 }
 
-static void putt_draw_flags(struct s_rend *rend, const struct s_base *fp)
+static void putt_draw_flags(struct s_rend *rend, const struct s_base *bp,
+                                                 const struct s_vary *vp)
 {
+    float flag_p[3], flag_e[4], u[3], a;
     int zi;
 
-    for (zi = 0; zi < fp->zc; zi++)
-        flag_draw(rend, fp->zv[zi].p);
+    for (zi = 0; zi < bp->zc; zi++)
+    {
+        struct v_goal *zp = vp->zv + zi;
+
+        sol_entity_p(flag_p, vp, zp->mi, zp->mj);
+        sol_entity_e(flag_e, vp, zp->mi, zp->mj);
+
+        q_as_axisangle(flag_e, u, &a);
+
+        glPushMatrix();
+        {
+            glTranslatef(flag_p[0], flag_p[1], flag_p[2]);
+            glRotatef(V_DEG(a), u[0], u[1], u[2]);
+            flag_draw(rend, bp->zv[zi].p);
+        }
+        glPopMatrix();
+    }
 }
 
 static void putt_draw_beams(struct s_rend *rend, const struct s_base *bp,
@@ -322,20 +339,31 @@ static void putt_draw_beams(struct s_rend *rend, const struct s_base *bp,
                                              { 1.0f, 0.0f, 0.0f, 0.8f }},
                                             {{ 0.0f, 1.0f, 0.0f, 0.5f },
                                              { 0.0f, 1.0f, 0.0f, 0.8f }}};
-
+    
+    float beam_p[3], beam_e[4], u[3], a;
     int i;
-
-    /* Goal beams */
-
-    /*for (i = 0; i < bp->zc; i++)
-        beam_draw(rend, bp->zv[i].p, goal_c,
-                        bp->zv[i].r, 3.0f);*/
 
     /* Jump beams */
 
     for (i = 0; i < bp->jc; i++)
-        beam_draw(rend, bp->jv[i].p, jump_c[jump_e ? 0 : 1],
-                        bp->jv[i].r, 2.0f);
+    {
+        struct b_jump *jp_base = bp->jv + i;
+        struct v_jump *jp_vary = vp->jv + i;
+
+        sol_entity_p(beam_p, vp, jp_vary->mi, jp_vary->mj);
+        sol_entity_e(beam_e, vp, jp_vary->mi, jp_vary->mj);
+
+        q_as_axisangle(beam_e, u, &a);
+
+        glPushMatrix();
+        {
+            glTranslatef(beam_p[0], beam_p[1], beam_p[2]);
+            glRotatef(V_DEG(a), u[0], u[1], u[2]);
+            beam_draw(rend, jp_base->p, jump_c[jump_e ? 0 : 1],
+                            jp_base->r, 2.0f);
+        }
+        glPopMatrix();
+    }
 
     /* Switch beams */
 
@@ -343,9 +371,22 @@ static void putt_draw_beams(struct s_rend *rend, const struct s_base *bp,
     {
         struct v_swch *xp = vp->xv + i;
 
+        sol_entity_p(beam_p, vp, xp->mi, xp->mj);
+        sol_entity_e(beam_e, vp, xp->mi, xp->mj);
+
+        q_as_axisangle(beam_e, u, &a);
+
         if (!xp->base->i)
-            beam_draw(rend, xp->base->p, swch_c[xp->f][xp->e],
-                            xp->base->r, 2.0f);
+        {
+            glPushMatrix();
+            {
+                glTranslatef(beam_p[0], beam_p[1], beam_p[2]);
+                glRotatef(V_DEG(a), u[0], u[1], u[2]);
+                beam_draw(rend, xp->base->p, swch_c[xp->f][xp->e],
+                                xp->base->r, 2.0f);
+            }
+            glPopMatrix();
+        }
     }
 }
 
@@ -443,7 +484,7 @@ void putt_draw(int pose, float t)
 
         glDepthMask(GL_FALSE);
         {
-            putt_draw_flags(&rend, fp->base);
+            putt_draw_flags(&rend, fp->base, fp->vary);
             putt_draw_beams(&rend, fp->base, fp->vary);
         }
         glDepthMask(GL_TRUE);

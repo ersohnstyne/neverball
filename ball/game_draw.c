@@ -531,7 +531,6 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
                                              { 1.0f, 0.0f, 0.0f, 0.6f }},
                                             {{ 0.0f, 1.0f, 0.0f, 0.3f },
                                              { 0.0f, 1.0f, 0.0f, 0.6f }}};
-<<<<<<< HEAD
 
 #ifdef MAPC_INCLUDES_CHKP
     static const GLfloat chkp_c[2][2][4] = {{{ 0.0f, 0.0f, 1.0f, 0.3f },
@@ -539,8 +538,6 @@ static void game_draw_beams(struct s_rend *rend, const struct game_draw *gd)
                                             {{ 1.0f, 0.0f, 1.0f, 0.3f },
                                              { 1.0f, 0.0f, 1.0f, 0.6f }}};
 #endif
-=======
->>>>>>> 7f32a34065f946cc84d619a001cc5d5b829a0671
 
     const struct s_base *base =  gd->vary.base;
     const struct s_vary *vary = &gd->vary;

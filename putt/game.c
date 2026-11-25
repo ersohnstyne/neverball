@@ -307,7 +307,6 @@ static void putt_draw_balls(struct s_rend *rend,
 static void putt_draw_flags(struct s_rend *rend, const struct s_base *bp,
                                                  const struct s_vary *vp)
 {
-<<<<<<< HEAD
     float flag_p[3], flag_e[4], u[3], a;
     int zi;
 
@@ -342,15 +341,6 @@ static void putt_draw_beams(struct s_rend *rend, const struct s_base *bp,
                                              { 0.0f, 1.0f, 0.0f, 0.8f }}};
     
     float beam_p[3], beam_e[4], u[3], a;
-=======
-    static const GLfloat jump_c[2][4]    =  {{ 0.7f, 0.5f, 1.0f, 0.3f },
-                                             { 0.7f, 0.5f, 1.0f, 0.6f }};
-    static const GLfloat swch_c[2][2][4] = {{{ 1.0f, 0.0f, 0.0f, 0.3f },
-                                             { 1.0f, 0.0f, 0.0f, 0.6f }},
-                                            {{ 0.0f, 1.0f, 0.0f, 0.3f },
-                                             { 0.0f, 1.0f, 0.0f, 0.6f }}};
-
->>>>>>> 7f32a34065f946cc84d619a001cc5d5b829a0671
     int i;
 
     /* Jump beams */

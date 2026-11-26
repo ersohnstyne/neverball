@@ -2302,7 +2302,7 @@ static int game_step(const float g[3], float dt, int bt)
 
                 /* Translate ball and hold it at the destination. */
 
-                v_cpy(vary.uv[CURR_PLAYER].p, jump_p);
+                if (jump_p[1] >= player_min_area[1]) v_cpy(vary.uv[CURR_PLAYER].p, jump_p);
             }
 
             if (jump_dt >= 1.0f)
